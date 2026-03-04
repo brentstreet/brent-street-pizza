@@ -1,31 +1,35 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/pizza-redesign/Navbar';
-import Footer from './components/pizza-redesign/Footer';
+import Navbar from './layout/Navbar';
+import Footer from './layout/Footer';
+import MobileCTABar from './layout/MobileCTABar';
+import { CartProvider } from './context/CartContext';
 
 // Pages
 import Home from './pages/Home';
 import Menu from './pages/Menu';
-import TradingHours from './pages/TradingHours';
+
 import ContactUs from './pages/ContactUs';
 
 export default function App() {
   return (
     <Router>
-      <div className="font-opensans bg-white min-h-screen text-gray-800 antialiased overflow-x-hidden selection:bg-brand-red selection:text-white flex flex-col">
-        <Navbar />
+      <CartProvider>
+        <div className="font-inter bg-[#1a0a00] min-h-screen text-white antialiased overflow-x-hidden selection:bg-[#C0392B] selection:text-white flex flex-col pb-[52px] sm:pb-0">
+          <Navbar />
 
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/menu" element={<Menu />} />
-            <Route path="/trading-hours" element={<TradingHours />} />
-            <Route path="/contact" element={<ContactUs />} />
-          </Routes>
-        </main>
+          <main className="flex-grow">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/menu" element={<Menu />} />
 
-        <Footer />
-      </div>
+              <Route path="/contact" element={<ContactUs />} />
+            </Routes>
+          </main>
+
+          <Footer />
+          <MobileCTABar />
+        </div>
+      </CartProvider>
     </Router>
   );
 }

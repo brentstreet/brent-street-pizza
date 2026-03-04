@@ -9,6 +9,7 @@ export interface MenuItem {
     isVegan?: boolean;
     isGlutenFree?: boolean;
     isSpicy?: boolean;
+    isFavorite?: boolean;
   };
 }
 

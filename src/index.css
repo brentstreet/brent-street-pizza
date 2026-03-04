@@ -1,16 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;900&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-brand-red: #C0001A;
-  --color-brand-darkred: #8B0000;
-  --color-brand-gold: #F5C300;
-  --color-brand-dark: #1A1A1A;
-  --color-brand-light: #F8F8F8;
+  --color-brand-red: #C0392B;
+  --color-brand-crimson: #E11D3C;
+  --color-brand-dark: #1a0a00;
+  --color-brand-deep: #2b1200;
+  --color-brand-gold: #d4a017;
+  --color-brand-offwhite: #F5F0EB;
+  --color-brand-white: #FFFFFF;
+  --color-brand-text-dark: #1A1A1A;
+  --color-brand-text-medium: #444444;
+  --color-brand-border: #E0D9D0;
 
-  --font-bangers: "Bangers", system-ui;
-  --font-oswald: "Oswald", sans-serif;
-  --font-opensans: "Open Sans", sans-serif;
-  --font-dancing: "Dancing Script", cursive;
+  --font-bebas: "Bebas Neue", sans-serif;
+  --font-inter: "Inter", sans-serif;
+  --font-barlow: "Barlow Condensed", sans-serif;
 }
 
 @layer base {
@@ -31,9 +36,11 @@
   }
 
   body {
-    font-family: var(--font-opensans);
+    font-family: var(--font-inter);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-brand-dark);
+    color: var(--color-brand-offwhite);
   }
 
   a {
@@ -58,30 +65,138 @@
 
 @layer utilities {
   .section-padding {
-    padding-top: 70px;
-    padding-bottom: 70px;
-  }
-
-  @media (min-width: 1024px) {
-    .section-padding {
-      padding-top: 80px;
-      padding-bottom: 80px;
-    }
+    padding-top: 100px;
+    padding-bottom: 100px;
   }
 
   .container-custom {
     max-width: 1200px;
     margin: 0 auto;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 24px;
+    padding-right: 24px;
     width: 100%;
   }
 
   .tracking-heading {
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
+  }
+
+  .font-barlow {
+    font-family: var(--font-barlow);
+  }
+
+  .bg-brand-texture {
+    background-color: #1a0a00;
+    background-image:
+      radial-gradient(ellipse at top, rgba(192, 57, 43, 0.12) 0%, transparent 60%),
+      url('https://www.transparenttextures.com/patterns/dark-leather.png');
+    background-size: cover, auto;
+    background-blend-mode: normal, overlay;
+  }
+
+  .bg-grain {
+    position: relative;
+  }
+
+  .bg-grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.35;
+    z-index: 1;
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(192, 57, 43, 0.5);
+  }
+
+  .shadow-gold-glow {
+    box-shadow: 0 0 20px rgba(212, 160, 23, 0.4);
+  }
+
+  .shadow-xl-soft {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #d4a017, #f0c040, #d4a017);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #C0392B;
+    color: white;
+    font-family: var(--font-barlow);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 24px -8px rgba(192, 57, 43, 0.5);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .btn-primary:hover {
+    background: #a93226;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px -8px rgba(192, 57, 43, 0.7);
+  }
+
+  .btn-primary:hover::before {
+    opacity: 1;
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: transparent;
+    color: white;
+    font-family: var(--font-barlow);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 13px 28px;
+    border-radius: 4px;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .btn-outline:hover {
+    border-color: #d4a017;
+    color: #d4a017;
+    box-shadow: 0 0 20px rgba(212, 160, 23, 0.2);
+    transform: translateY(-2px);
   }
 }
 
+/* ---- Animations ---- */
 @keyframes marquee {
   0% {
     transform: translateX(0);
@@ -92,6 +207,221 @@
   }
 }
 
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes counterUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(192, 57, 43, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 30px rgba(192, 57, 43, 0.7);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .animate-marquee {
-  animation: marquee 20s linear infinite;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.8s ease forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.7s ease forwards;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Scroll reveal - triggered by IntersectionObserver via JS */
+.reveal {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal-left.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(50px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal-right.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.delay-100 {
+  transition-delay: 0.1s;
+}
+
+.delay-200 {
+  transition-delay: 0.2s;
+}
+
+.delay-300 {
+  transition-delay: 0.3s;
+}
+
+.delay-400 {
+  transition-delay: 0.4s;
+}
+
+.delay-500 {
+  transition-delay: 0.5s;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a0a00;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C0392B;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d4a017;
+}
+
+/* Hide scrollbar for carousels */
+.hide-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Gold divider */
+.divider-gold {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #d4a017, transparent);
+  opacity: 0.4;
 }

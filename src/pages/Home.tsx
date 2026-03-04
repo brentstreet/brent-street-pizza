@@ -1,22 +1,27 @@
+import Hero from '../sections/HeroSlider';
 
-import HeroSlider from '../components/pizza-redesign/HeroSlider';
-import AboutUs from '../components/pizza-redesign/AboutUs';
-import WhyChooseUs from '../components/pizza-redesign/WhyChooseUs';
-import DiscoverMenu from '../components/pizza-redesign/DiscoverMenu';
-import MarqueeBanner from '../components/pizza-redesign/MarqueeBanner';
-import CustomerTestimonials from '../components/pizza-redesign/CustomerTestimonials';
-import DeliveryAreas from '../components/pizza-redesign/DeliveryAreas';
+import CategorySection from '../sections/CategorySection';
+import MarqueeBanner from '../sections/MarqueeBanner';
+import CustomerFavourites from '../sections/CustomerFavourites';
+import WhyOrderDirect from '../sections/WhyOrderDirect';
+import CustomerTestimonials from '../sections/CustomerTestimonials';
+import InfoSection from '../sections/InfoSection';
+import CateringSection from '../sections/CateringSection';
+import DeliveryAreas from '../sections/DeliveryAreas';
 
 export default function Home() {
   return (
-    <>
-      <HeroSlider />
-      <AboutUs />
-      <WhyChooseUs />
-      <DiscoverMenu />
+    <div className="bg-[#1a0a00] min-h-screen">
+      <Hero />
+
+      <CategorySection />
       <MarqueeBanner />
+      <CustomerFavourites />
+      <WhyOrderDirect />
       <CustomerTestimonials />
+      <InfoSection />
+      <CateringSection />
       <DeliveryAreas />
-    </>
+    </div>
   );
 }
