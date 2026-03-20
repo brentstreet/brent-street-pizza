@@ -1,4 +1,8 @@
 import React, { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { MapPin, Bike, ArrowRight, Clock } from 'lucide-react';
+
+const SUBURBS = ['Glenorchy', 'Moonah', 'West Moonah', 'Derwent Park', 'Montrose', 'Rosetta'];
 
 const DeliveryAreas: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -13,43 +17,98 @@ const DeliveryAreas: React.FC = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="bg-[#f0ebe1] py-16 md:py-24 relative border-t border-[#dcd3c6]">
-       {/* Light texture overlay */}
-       <div 
-         className="absolute inset-0 opacity-40 pointer-events-none"
-         style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/cream-paper.png')` }} 
-       />
+    <section ref={sectionRef} className="bg-[#0f0600] py-24 md:py-32 relative overflow-hidden">
 
-      <div className="container-custom relative z-10 text-center text-[#1a0a00]">
-        
-        <div className="flex items-center justify-center gap-4 mb-3 reveal">
-          <div className="h-[1px] w-8 bg-[#C0392B]" />
-          <h2 className="font-bebas text-[20px] md:text-[24px] font-800 tracking-wider">
-            Delivery
+      {/* Background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-[#C0392B]/6 blur-[120px] pointer-events-none rounded-full" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C0392B]/30 to-transparent" />
+
+      <div className="container-custom relative z-10">
+
+        {/* Header */}
+        <div className="text-center mb-16 reveal">
+          <span className="font-barlow text-[12px] font-700 uppercase tracking-[0.35em] text-[#c9922a] block mb-4">
+            — We Come To You —
+          </span>
+          <h2 className="font-bebas text-[56px] md:text-[80px] text-white tracking-wider leading-none mb-4">
+            Delivery Areas
           </h2>
-          <div className="h-[1px] w-8 bg-[#C0392B]" />
-        </div>
-
-        <p className="font-barlow text-[16px] md:text-[18px] font-800 tracking-wide mb-3 reveal">
-          Delivery available within 5km of Brent Street Pizza.
-        </p>
-
-        <p className="font-barlow text-[14px] md:text-[16px] font-700 mb-2 text-black/70 reveal leading-relaxed max-w-lg mx-auto uppercase">
-          Delivery Areas:
-        </p>
-        <p className="font-barlow text-[14px] md:text-[16px] font-500 mb-6 text-black/70 reveal leading-relaxed max-w-lg mx-auto">
-          Glenorchy • Moonah • West Moonah • Derwent Park • Montrose • Rosetta
-        </p>
-
-        <div className="flex flex-col items-center gap-2 mb-8 reveal">
-          <p className="font-barlow text-[18px] font-800 text-[#C0392B]">
-            Flat $5 delivery • Minimum order $25
-          </p>
-          <p className="font-barlow text-[14px] font-600">
-            📞 Call now or order on our website
+          <p className="font-inter text-white/40 text-[15px] max-w-md mx-auto leading-relaxed">
+            Hot, fresh pizza delivered within 5km of Brent Street Pizza, Glenorchy.
           </p>
         </div>
 
+        {/* Main card */}
+        <div className="max-w-4xl mx-auto">
+
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-4 mb-8 reveal">
+            {[
+              { icon: <Bike className="w-5 h-5" />, value: '5km', label: 'Delivery Radius' },
+              { icon: <span className="font-bebas text-[18px] leading-none">$5</span>, value: 'Flat Fee', label: 'No hidden costs' },
+              { icon: <Clock className="w-5 h-5" />, value: '30–45', label: 'Minutes est.' },
+            ].map(stat => (
+              <div key={stat.label} className="flex flex-col items-center justify-center bg-[#1c0c00] border border-white/8 rounded-2xl py-6 px-4 gap-2 hover:border-[#C0392B]/30 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-[#C0392B]/15 border border-[#C0392B]/25 flex items-center justify-center text-[#C0392B]">
+                  {stat.icon}
+                </div>
+                <p className="font-bebas text-[28px] text-white leading-none tracking-wider">{stat.value}</p>
+                <p className="font-barlow text-[11px] font-700 uppercase tracking-wider text-white/35">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Suburbs grid */}
+          <div className="bg-[#1c0c00] border border-white/8 rounded-2xl p-8 mb-6 reveal">
+            <div className="flex items-center gap-3 mb-6">
+              <MapPin className="w-4 h-4 text-[#C0392B] flex-shrink-0" />
+              <span className="font-barlow text-[11px] font-700 uppercase tracking-[0.25em] text-[#c9922a]">
+                Delivery Suburbs
+              </span>
+              <div className="flex-1 h-px bg-gradient-to-r from-[#c9922a]/20 to-transparent" />
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {SUBURBS.map(suburb => (
+                <span
+                  key={suburb}
+                  className="flex items-center gap-2 bg-[#C0392B]/10 border border-[#C0392B]/25 text-white font-barlow font-700 text-[13px] uppercase tracking-wider px-4 py-2 rounded-full"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#C0392B] flex-shrink-0" />
+                  {suburb}
+                </span>
+              ))}
+            </div>
+            <p className="font-inter text-[12px] text-white/25 mt-5">
+              Not sure if we deliver to you? Call us on{' '}
+              <a href="tel:0455123678" className="text-[#c9922a] hover:text-white transition-colors">0455 123 678</a>
+            </p>
+          </div>
+
+          {/* Minimum order notice + CTA */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 reveal">
+            <div className="flex-1 bg-[#1c0c00] border border-[#c9922a]/20 rounded-2xl px-6 py-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-[#c9922a]/15 border border-[#c9922a]/25 flex items-center justify-center flex-shrink-0">
+                <span className="font-bebas text-[16px] text-[#c9922a] leading-none">$25</span>
+              </div>
+              <div>
+                <p className="font-barlow text-[13px] font-700 uppercase tracking-wider text-white">Minimum Order</p>
+                <p className="font-inter text-[12px] text-white/35">$25 minimum for delivery orders</p>
+              </div>
+            </div>
+
+            <Link
+              to="/menu?tab=delivery"
+              className="flex-1 flex items-center justify-between bg-[#C0392B] hover:bg-[#a93226] text-white font-barlow font-700 text-[14px] uppercase tracking-wider px-6 py-4 rounded-2xl transition-all duration-200 shadow-[0_8px_28px_rgba(192,57,43,0.4)] hover:shadow-[0_12px_36px_rgba(192,57,43,0.6)] group w-full sm:w-auto"
+            >
+              <span className="flex items-center gap-2">
+                <Bike className="w-4 h-4" />
+                Order Delivery Now
+              </span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+        </div>
       </div>
     </section>
   );
