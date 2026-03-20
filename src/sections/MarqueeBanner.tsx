@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ITEMS = ['HOT PIZZA', '★', 'WOOD-FIRED', '·', 'AUTHENTIC ITALIAN', '★', 'FRESHLY MADE', '·', 'ORDER NOW', '★'];
+const ITEMS = ['FRESH PIZZA', '•', 'MADE TO ORDER', '•', 'QUALITY INGREDIENTS', '•', '$5 FLAT DELIVERY', '•', 'ORDER ONLINE OR CALL NOW'];
 
 const MarqueeBanner: React.FC = () => {
   const doubled = [...ITEMS, ...ITEMS];

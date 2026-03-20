@@ -3,7 +3,7 @@ import { type MenuItem } from '../types/menu';
 
 const RATINGS: Record<string, number> = {
   'pizza-1': 4.9, 'pizza-2': 4.8, 'pizza-3': 4.9, 'pizza-4': 4.7,
-  'gelato-1': 4.8, 'gelato-2': 4.9, 'gelato-3': 4.7,
+  'icecream-1': 4.8, 'icecream-2': 4.9, 'icecream-3': 4.7,
   'dessert-1': 4.9, 'dessert-2': 4.8,
 };
 

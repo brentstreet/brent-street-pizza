@@ -24,19 +24,31 @@ const DeliveryAreas: React.FC = () => {
         
         <div className="flex items-center justify-center gap-4 mb-3 reveal">
           <div className="h-[1px] w-8 bg-[#C0392B]" />
-          <h2 className="font-barlow text-[20px] md:text-[24px] font-800 tracking-wider">
-            Delivery Area
+          <h2 className="font-bebas text-[20px] md:text-[24px] font-800 tracking-wider">
+            Delivery
           </h2>
           <div className="h-[1px] w-8 bg-[#C0392B]" />
         </div>
 
         <p className="font-barlow text-[16px] md:text-[18px] font-800 tracking-wide mb-3 reveal">
-          Delivery within 5km of Brent Street
+          Delivery available within 5km of Brent Street Pizza.
         </p>
 
-        <p className="font-barlow text-[14px] md:text-[16px] font-500 mb-6 text-black/70 reveal leading-relaxed max-w-lg mx-auto">
-          Glenorchy • Moonah • Rosetta • Claremont • Lutana
+        <p className="font-barlow text-[14px] md:text-[16px] font-700 mb-2 text-black/70 reveal leading-relaxed max-w-lg mx-auto uppercase">
+          Delivery Areas:
         </p>
+        <p className="font-barlow text-[14px] md:text-[16px] font-500 mb-6 text-black/70 reveal leading-relaxed max-w-lg mx-auto">
+          Glenorchy • Moonah • West Moonah • Derwent Park • Montrose • Rosetta
+        </p>
+
+        <div className="flex flex-col items-center gap-2 mb-8 reveal">
+          <p className="font-barlow text-[18px] font-800 text-[#C0392B]">
+            Flat $5 delivery • Minimum order $25
+          </p>
+          <p className="font-barlow text-[14px] font-600">
+            📞 Call now or order on our website
+          </p>
+        </div>
 
       </div>
     </section>

@@ -26,7 +26,7 @@ const reviews = [
   {
     name: 'Michael T.',
     date: 'October 2024',
-    text: 'The gelato here is absolutely divine. Creamy, rich, and authentic. Combined with the pizza, this is hands down the best Italian food in the area.',
+    text: 'The ice cream here is absolutely divine. Creamy, rich, and authentic. Combined with the pizza, this is hands down the best Italian food in the area.',
     avatar: 'M',
     color: '#d4a017',
   },

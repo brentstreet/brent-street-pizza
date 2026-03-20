@@ -18,8 +18,8 @@ const steps = [
   },
   {
     step: '03',
-    title: 'Wood-Fired Perfection',
-    desc: 'Each pizza spends 90 seconds in our 450°C wood-fired oven, creating the perfect char and smoky flavour.',
+    title: 'Precision Temperature',
+    desc: 'Each pizza is baked at a consistent 232°C in our professional ovens, ensuring a perfect crust every single time.',
     icon: Bell,
     color: '#d4a017',
   },
@@ -57,7 +57,7 @@ const InfoSection: React.FC = () => {
           {/* Left: Text */}
           <div className="reveal-left">
             <span className="font-barlow text-[13px] font-600 uppercase tracking-[0.3em] text-[#d4a017] block mb-4">
-              — Our Story —
+              — Fresh pizza, Fast Delivery, Always Delicious —
             </span>
             <h2 className="font-bebas text-[52px] md:text-[72px] lg:text-[80px] text-white tracking-[0.02em] leading-[0.9] uppercase mb-8">
               Crafted<br />
@@ -65,16 +65,19 @@ const InfoSection: React.FC = () => {
             </h2>
             <div className="space-y-5">
               <p className="font-inter text-white/50 text-[16px] md:text-[17px] leading-[1.8]">
-                Brent Street Pizza was born from a simple obsession — the perfect pizza. Founded in 2012, we've spent over a decade perfecting our recipes, our dough, and our craft.
+                Brent Street Pizza was created with one simple goal — to serve great pizza that brings people together.
+              </p>
+              <p className="font-inter text-white/50 text-[16px] md:text-[17px] leading-[1.8]">
+                Located in the heart of Glenorchy, we make fresh, classic pizzas using quality ingredients, from Margherita and Hawaiian to favourites like The Lot and Meat Lovers.
               </p>
               <p className="font-inter text-white/50 text-[16px] leading-[1.8] pl-5 border-l-2 border-[#d4a017]/40 italic">
-                Every pizza starts with love and ends with a satisfied smile. From our oven to your table, we promise nothing less than extraordinary.
+                Simple, delicious, and made fresh — that’s Brent Street Pizza. Proudly local, we look forward to serving the Glenorchy community. See you soon at Brent Street Pizza. 🍕
               </p>
             </div>
 
             <div className="flex items-center gap-6 mt-10">
               <div className="text-center">
-                <p className="font-bebas text-[40px] text-white leading-none">2012</p>
+                <p className="font-bebas text-[40px] text-white leading-none">2026</p>
                 <p className="font-barlow text-[11px] uppercase tracking-wider text-white/30">Founded</p>
               </div>
               <div className="w-[1px] h-12 bg-white/10" />
@@ -84,7 +87,7 @@ const InfoSection: React.FC = () => {
               </div>
               <div className="w-[1px] h-12 bg-white/10" />
               <div className="text-center">
-                <p className="font-bebas text-[40px] text-white leading-none">450°C</p>
+                <p className="font-bebas text-[40px] text-white leading-none">232°C</p>
                 <p className="font-barlow text-[11px] uppercase tracking-wider text-white/30">Oven Temp</p>
               </div>
             </div>
@@ -107,8 +110,8 @@ const InfoSection: React.FC = () => {
                   <Flame className="w-5 h-5 text-[#C0392B]" />
                 </div>
                 <div>
-                  <p className="font-barlow font-700 text-[14px] uppercase tracking-wider text-white">Wood-Fired. Always.</p>
-                  <p className="font-inter text-[12px] text-white/40">Traditional Italian technique since 2012</p>
+                  <p className="font-barlow font-700 text-[14px] uppercase tracking-wider text-white">Fresh Pizza. Fast Delivery.</p>
+                  <p className="font-inter text-[12px] text-white/40">Always Delicious since 2026</p>
                 </div>
               </div>
             </div>
