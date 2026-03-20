@@ -1,36 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Flame, Leaf, Bell, Heart } from 'lucide-react';
-
-const steps = [
-  {
-    step: '01',
-    title: 'Hand-Stretched Dough',
-    desc: 'Our dough is made fresh every morning using a 48-hour cold fermentation process for that perfect, airy crust.',
-    icon: Leaf,
-    color: '#d4a017',
-  },
-  {
-    step: '02',
-    title: 'Premium Ingredients',
-    desc: 'San Marzano tomatoes, buffalo mozzarella, and fresh herbs — sourced from local farms and Italian importers daily.',
-    icon: Flame,
-    color: '#C0392B',
-  },
-  {
-    step: '03',
-    title: 'Precision Temperature',
-    desc: 'Each pizza is baked at a consistent 232°C in our professional ovens, ensuring a perfect crust every single time.',
-    icon: Bell,
-    color: '#d4a017',
-  },
-  {
-    step: '04',
-    title: 'Served with Love',
-    desc: 'Cut, boxed, and delivered hot — from our oven to your door in under 30 minutes. Every single time.',
-    icon: Heart,
-    color: '#C0392B',
-  },
-];
+import { Flame } from 'lucide-react';
 
 const InfoSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -122,57 +91,8 @@ const InfoSection: React.FC = () => {
         </div>
 
         {/* Divider */}
-        <div className="divider-gold mb-24" />
+        <div className="divider-gold" />
 
-        {/* "How It's Made" process steps */}
-        <div className="reveal text-center mb-16">
-          <span className="font-barlow text-[13px] font-600 uppercase tracking-[0.3em] text-[#d4a017] block mb-4">
-            — The Process —
-          </span>
-          <h2 className="font-bebas text-[44px] md:text-[58px] text-white tracking-wider leading-none">
-            How It's Made
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {steps.map((step, idx) => (
-            <div
-              key={step.step}
-              className="reveal group relative flex flex-col items-start gap-4 p-6 rounded-[12px] border border-white/5 bg-white/2 hover:border-white/10 hover:bg-white/4 transition-all duration-400 hover:-translate-y-1"
-              style={{ transitionDelay: `${idx * 80}ms` }}
-            >
-              {/* Step number */}
-              <span
-                className="font-bebas text-[64px] leading-none opacity-10 absolute -top-4 -right-2 select-none pointer-events-none"
-                style={{ color: step.color }}
-              >
-                {step.step}
-              </span>
-
-              {/* Icon */}
-              <div
-                className="w-12 h-12 rounded-[10px] flex items-center justify-center transition-all duration-300 group-hover:scale-110"
-                style={{ background: `${step.color}15`, border: `1px solid ${step.color}30` }}
-              >
-                <step.icon className="w-6 h-6" style={{ color: step.color }} strokeWidth={1.5} />
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-barlow text-[11px] font-700 uppercase tracking-[0.2em]" style={{ color: step.color }}>
-                    Step {step.step}
-                  </span>
-                </div>
-                <h3 className="font-barlow font-700 text-[16px] uppercase tracking-wider text-white mb-2">
-                  {step.title}
-                </h3>
-                <p className="font-inter text-[13px] text-white/40 leading-relaxed">
-                  {step.desc}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );
