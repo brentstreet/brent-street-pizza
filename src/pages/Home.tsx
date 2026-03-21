@@ -7,7 +7,7 @@ import DeliveryAreas from '../sections/DeliveryAreas';
 
 export default function Home() {
   return (
-    <div className="bg-[#1a0a00] min-h-screen">
+    <div className="bg-[#FDF8F2] min-h-screen">
       <Hero />
       <QuickLinks />
       <CategorySection />

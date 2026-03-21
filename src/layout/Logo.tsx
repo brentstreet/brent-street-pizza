@@ -1,7 +1,7 @@
 import React from 'react';
 
 const Logo: React.FC<{ className?: string; innerClassName?: string }> = ({
-  className = "w-24 h-24",
+  className="w-24 h-24",
   innerClassName = "scale-110"
 }) => {
   return (

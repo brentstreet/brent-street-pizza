@@ -9,8 +9,8 @@ const categories = [
     sub: 'Hand-stretched perfection',
     icon: Pizza,
     link: '/menu?cat=cat-pizza',
-    color: '#C0392B',
-    gradient: 'from-[#C0392B]/20 to-transparent',
+    color: '#C8201A',
+    gradient: 'from-[#C8201A]/20 to-transparent',
     img: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=90',
   },
   {
@@ -19,8 +19,8 @@ const categories = [
     sub: 'Premium artisan ice cream',
     icon: IceCream,
     link: '/menu?cat=cat-icecream',
-    color: '#d4a017',
-    gradient: 'from-[#d4a017]/20 to-transparent',
+    color: '#D4952A',
+    gradient: 'from-[#D4952A]/20 to-transparent',
     img: 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=800&q=90',
   },
   {
@@ -29,15 +29,15 @@ const categories = [
     sub: 'Sweet Italian indulgence',
     icon: CakeSlice,
     link: '/menu?cat=cat-desserts',
-    color: '#C0392B',
-    gradient: 'from-[#C0392B]/20 to-transparent',
+    color: '#C8201A',
+    gradient: 'from-[#C8201A]/20 to-transparent',
     img: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=800&q=90',
   },
 ];
 
 const CategorySection: React.FC = () => {
   return (
-    <section className="bg-[#2b1200] py-0">
+    <section className="bg-[#F5EDE0] py-0">
       <div className="grid grid-cols-1 md:grid-cols-3 h-auto md:h-[320px]">
         {categories.map((cat, idx) => (
           <Link
@@ -54,7 +54,7 @@ const CategorySection: React.FC = () => {
             />
 
             {/* Dark overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1a0a00]/90 via-[#1a0a00]/50 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#FDF8F2]/90 via-[#FDF8F2]/50 to-transparent" />
 
             {/* Color glow on hover */}
             <div
@@ -73,11 +73,11 @@ const CategorySection: React.FC = () => {
                 </div>
               </div>
               <h3
-                className="font-bebas text-[40px] md:text-[48px] leading-none text-white tracking-wider group-hover:translate-x-1 transition-transform duration-300"
+                className="font-bebas text-[40px] md:text-[48px] leading-none text-[#1A1A1A] tracking-wider group-hover:translate-x-1 transition-transform duration-300"
               >
                 {cat.name}
               </h3>
-              <p className="font-barlow text-[13px] font-400 uppercase tracking-[0.15em] text-white/40 group-hover:text-white/70 transition-colors duration-300">
+              <p className="font-barlow text-[13px] font-400 uppercase tracking-[0.15em] text-[#555555] group-hover:text-[#555555] transition-colors duration-300">
               </p>
 
               {/* Explore arrow */}

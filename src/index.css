@@ -2,16 +2,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-red: #C0392B;
-  --color-brand-crimson: #E11D3C;
-  --color-brand-dark: #1a0a00;
-  --color-brand-deep: #2b1200;
-  --color-brand-gold: #d4a017;
-  --color-brand-offwhite: #F5F0EB;
+  --color-brand-red: #C8201A;
+  --color-brand-crimson: #C8201A;
+  --color-brand-dark: #FDF8F2;
+  --color-brand-deep: #F5EDE0;
+  --color-brand-gold: #D4952A;
+  --color-brand-offwhite: #1A1A1A;
   --color-brand-white: #FFFFFF;
   --color-brand-text-dark: #1A1A1A;
-  --color-brand-text-medium: #444444;
-  --color-brand-border: #E0D9D0;
+  --color-brand-text-medium: #555555;
+  --color-brand-border: #E8D8C8;
 
   --font-bebas: "Bebas Neue", sans-serif;
   --font-inter: "Inter", sans-serif;
@@ -93,9 +93,9 @@
   }
 
   .bg-brand-texture {
-    background-color: #1a0a00;
+    background-color: #FDF8F2;
     background-image:
-      radial-gradient(ellipse at top, rgba(192, 57, 43, 0.12) 0%, transparent 60%),
+      radial-gradient(ellipse at top, rgba(200, 32, 26, 0.12) 0%, transparent 60%),
       url('https://www.transparenttextures.com/patterns/dark-leather.png');
     background-size: cover, auto;
     background-blend-mode: normal, overlay;
@@ -116,11 +116,11 @@
   }
 
   .shadow-glow {
-    box-shadow: 0 0 20px rgba(192, 57, 43, 0.5);
+    box-shadow: 0 0 20px rgba(200, 32, 26, 0.5);
   }
 
   .shadow-gold-glow {
-    box-shadow: 0 0 20px rgba(212, 160, 23, 0.4);
+    box-shadow: 0 0 20px rgba(212, 149, 42, 0.4);
   }
 
   .shadow-xl-soft {
@@ -128,7 +128,7 @@
   }
 
   .text-gradient-gold {
-    background: linear-gradient(135deg, #d4a017, #f0c040, #d4a017);
+    background: linear-gradient(135deg, #D4952A, #f0c040, #D4952A);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -139,8 +139,8 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    background: #C0392B;
-    color: white;
+    background: #C8201A;
+    color: #FFFFFF;
     font-family: var(--font-barlow);
     font-weight: 700;
     font-size: 15px;
@@ -149,7 +149,7 @@
     padding: 14px 28px;
     border-radius: 4px;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 24px -8px rgba(192, 57, 43, 0.5);
+    box-shadow: 0 8px 24px -8px rgba(200, 32, 26, 0.5);
     position: relative;
     overflow: hidden;
   }
@@ -164,9 +164,9 @@
   }
 
   .btn-primary:hover {
-    background: #a93226;
+    background: #9E1510;
     transform: translateY(-2px);
-    box-shadow: 0 12px 32px -8px rgba(192, 57, 43, 0.7);
+    box-shadow: 0 12px 32px -8px rgba(200, 32, 26, 0.7);
   }
 
   .btn-primary:hover::before {
@@ -183,7 +183,7 @@
     justify-content: center;
     gap: 8px;
     background: transparent;
-    color: white;
+    color: #1A1A1A;
     font-family: var(--font-barlow);
     font-weight: 700;
     font-size: 15px;
@@ -191,14 +191,14 @@
     text-transform: uppercase;
     padding: 13px 28px;
     border-radius: 4px;
-    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    border: 1.5px solid #1A1A1A;
     transition: all 0.3s ease;
   }
 
   .btn-outline:hover {
-    border-color: #d4a017;
-    color: #d4a017;
-    box-shadow: 0 0 20px rgba(212, 160, 23, 0.2);
+    border-color: #000000;
+    background: #000000;
+    color: #FFFFFF;
     transform: translateY(-2px);
   }
 }
@@ -286,11 +286,11 @@
 
   0%,
   100% {
-    box-shadow: 0 0 10px rgba(192, 57, 43, 0.3);
+    box-shadow: 0 0 10px rgba(200, 32, 26, 0.3);
   }
 
   50% {
-    box-shadow: 0 0 30px rgba(192, 57, 43, 0.7);
+    box-shadow: 0 0 30px rgba(200, 32, 26, 0.7);
   }
 }
 
@@ -404,16 +404,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a0a00;
+  background: #FDF8F2;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #C0392B;
+  background: #C8201A;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #d4a017;
+  background: #D4952A;
 }
 
 /* Hide scrollbar for carousels */
@@ -429,7 +429,7 @@
 /* Gold divider */
 .divider-gold {
   height: 2px;
-  background: linear-gradient(90deg, transparent, #d4a017, transparent);
+  background: linear-gradient(90deg, transparent, #D4952A, transparent);
   opacity: 0.4;
 }
 
@@ -441,8 +441,8 @@
 
 /* Checkout button gentle pulse */
 @keyframes checkoutPulse {
-  0%, 100% { box-shadow: 0 8px 24px -8px rgba(192,57,43,0.5); }
-  50%       { box-shadow: 0 8px 32px -4px rgba(192,57,43,0.75); }
+  0%, 100% { box-shadow: 0 8px 24px -8px rgba(200, 32, 26,0.5); }
+  50%       { box-shadow: 0 8px 32px -4px rgba(200, 32, 26,0.75); }
 }
 
 /* Card image scale utility */

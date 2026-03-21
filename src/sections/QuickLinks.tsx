@@ -4,7 +4,7 @@ import { Pizza, Tag, CupSoda } from 'lucide-react';
 
 const QuickLinks: React.FC = () => {
   return (
-    <section className="bg-[#f0ebe1] py-8 relative w-full border-b border-[#dcd3c6]">
+    <section className="bg-[#FDF8F2] py-8 relative w-full border-b border-[#E8D8C8]">
       {/* Light texture overlay */}
       <div 
         className="absolute inset-0 opacity-40 pointer-events-none"
@@ -17,7 +17,7 @@ const QuickLinks: React.FC = () => {
           {/* PIZZA */}
           <Link 
             to="/menu?cat=pizza" 
-            className="flex flex-col items-center justify-center py-4 px-2 hover:bg-black/5 transition-colors border-r border-[#dcd3c6]"
+            className="flex flex-col items-center justify-center py-4 px-2 hover:bg-black/5 transition-colors border-r border-[#E8D8C8]"
           >
             <div className="mb-2 text-black flex items-center justify-center pb-2 border-b-2 border-transparent w-full">
               <Pizza className="w-12 h-12 stroke-[1.5]" />
@@ -33,7 +33,7 @@ const QuickLinks: React.FC = () => {
           {/* DEALS */}
           <Link 
             to="/deals" 
-            className="flex flex-col items-center justify-center py-4 px-2 hover:bg-black/5 transition-colors border-r border-[#dcd3c6]"
+            className="flex flex-col items-center justify-center py-4 px-2 hover:bg-black/5 transition-colors border-r border-[#E8D8C8]"
           >
             <div className="mb-2 text-red-600 flex items-center justify-center relative">
                <Tag className="w-12 h-12 stroke-[1.5]" />

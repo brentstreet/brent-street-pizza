@@ -18,7 +18,7 @@ export default function App() {
     <Router>
       <MenuProvider>
         <CartProvider>
-          <div className="font-inter bg-[#1a0a00] min-h-screen text-white antialiased overflow-x-hidden selection:bg-[#C0392B] selection:text-white flex flex-col pb-[52px] sm:pb-0">
+          <div className="font-inter bg-[#FDF8F2] min-h-screen text-[#2B2B2B] antialiased overflow-x-hidden selection:bg-[#C8201A] selection:text-white flex flex-col pb-[52px] sm:pb-0">
             <Navbar />
 
             <main className="flex-grow">

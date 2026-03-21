@@ -27,10 +27,10 @@ const RATINGS: Record<string, number> = {
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 mb-3">
-      <span className="font-barlow text-[10px] font-700 uppercase tracking-[0.28em] text-[#c9922a] whitespace-nowrap">
+      <span className="font-barlow text-[10px] font-700 uppercase tracking-[0.28em] text-[#D4952A] whitespace-nowrap">
         {children}
       </span>
-      <div className="flex-1 h-px bg-gradient-to-r from-[#c9922a]/20 to-transparent" />
+      <div className="flex-1 h-px bg-gradient-to-r from-[#D4952A]/20 to-transparent" />
     </div>
   );
 }
@@ -123,7 +123,7 @@ const CustomizationModal: React.FC<Props> = ({
       <div
         className={`relative w-full flex flex-col
           sm:max-w-[900px] sm:rounded-2xl sm:overflow-hidden
-          bg-[#110700] border border-white/8
+          bg-[#110700] border border-[#E8D8C8]
           shadow-[0_40px_120px_rgba(0,0,0,0.9)]
           transition-all duration-400 ease-[cubic-bezier(0.32,0.72,0,1)]
           /* mobile: sheet slides up */
@@ -166,9 +166,9 @@ const CustomizationModal: React.FC<Props> = ({
             <button
               onClick={onClose}
               className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full
-                bg-black/55 backdrop-blur-md border border-white/15
+                bg-black/55 backdrop-blur-md border border-[#E8D8C8]
                 flex items-center justify-center
-                text-white/60 hover:text-white hover:bg-black/80 hover:border-white/30
+                text-[#555555] hover:text-[#1A1A1A] hover:bg-black/80 hover:border-[#E8D8C8]
                 transition-all duration-200"
             >
               <X className="w-4 h-4" />
@@ -177,15 +177,15 @@ const CustomizationModal: React.FC<Props> = ({
             {/* Dietary badges — top-left */}
             <div className="absolute top-4 left-4 flex gap-1.5 z-10">
               {item.tags?.isSpicy && (
-                <span className="flex items-center gap-1 bg-[#C0392B]/90 backdrop-blur-sm
-                  text-white font-barlow text-[10px] font-700 uppercase tracking-wider
+                <span className="flex items-center gap-1 bg-[#C8201A]/90 backdrop-blur-sm
+                  text-[#FFFCF7] font-barlow text-[10px] font-700 uppercase tracking-wider
                   px-2.5 py-1 rounded-full">
                   <Flame className="w-3 h-3" /> Spicy
                 </span>
               )}
               {item.tags?.isVegan && (
                 <span className="flex items-center gap-1 bg-emerald-600/90 backdrop-blur-sm
-                  text-white font-barlow text-[10px] font-700 uppercase tracking-wider
+                  text-[#1A1A1A] font-barlow text-[10px] font-700 uppercase tracking-wider
                   px-2.5 py-1 rounded-full">
                   <Leaf className="w-3 h-3" /> Vegan
                 </span>
@@ -195,30 +195,30 @@ const CustomizationModal: React.FC<Props> = ({
             {/* Name + meta — pinned to bottom of image panel */}
             <div className="absolute bottom-0 left-0 right-0 px-5 pb-5 z-10">
               {/* "Customize your order" eyebrow */}
-              <p className="font-barlow text-[10px] font-700 uppercase tracking-[0.3em] text-[#c9922a] mb-1">
+              <p className="font-barlow text-[10px] font-700 uppercase tracking-[0.3em] text-[#D4952A] mb-1">
                 Customize Your Order
               </p>
 
               {/* Pizza name */}
-              <h2 className="font-bebas text-[36px] sm:text-[42px] text-white tracking-widest leading-none mb-2">
+              <h2 className="font-bebas text-[36px] sm:text-[42px] text-[#1A1A1A] tracking-widest leading-none mb-2">
                 {item.name}
               </h2>
 
               {/* Rating row */}
               <div className="flex items-center gap-2 mb-2">
-                <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/10">
-                  <Star className="w-3 h-3 fill-[#c9922a] text-[#c9922a]" />
-                  <span className="font-barlow text-[11px] font-700 text-white">{rating}</span>
+                <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-1 border border-[#E8D8C8]">
+                  <Star className="w-3 h-3 fill-[#D4952A] text-[#D4952A]" />
+                  <span className="font-barlow text-[11px] font-700 text-[#2B2B2B]">{rating}</span>
                 </div>
                 {item.sizes && item.sizes.length > 0 && (
-                  <span className="font-barlow text-[11px] font-700 text-white/40 uppercase tracking-wider">
+                  <span className="font-barlow text-[11px] font-700 text-[#555555] uppercase tracking-wider">
                     from ${item.sizes[0].price}
                   </span>
                 )}
               </div>
 
               {/* Short description — desktop only */}
-              <p className="hidden sm:block font-inter text-[12px] text-white/45 leading-relaxed line-clamp-3">
+              <p className="hidden sm:block font-inter text-[12px] text-[#555555] leading-relaxed line-clamp-3">
                 {item.description}
               </p>
             </div>
@@ -230,10 +230,10 @@ const CustomizationModal: React.FC<Props> = ({
           <div
             ref={rightPanelRef}
             className="flex-1 overflow-y-auto overscroll-contain
-              bg-[#110700] sm:bg-[#0f0600]
+              bg-[#110700] sm:bg-[#FDF8F2]
               /* subtle left border on desktop */
-              sm:border-l sm:border-white/6"
-            style={{ scrollbarWidth: 'thin', scrollbarColor: '#C0392B #0f0600' }}
+              sm:border-l sm:border-[#E8D8C8]"
+            style={{ scrollbarWidth: 'thin', scrollbarColor: '#C8201A #FDF8F2' }}
           >
             <div className="px-5 sm:px-6 pt-5 pb-4 space-y-7">
 
@@ -251,8 +251,8 @@ const CustomizationModal: React.FC<Props> = ({
                           className={`relative flex flex-col items-center justify-center
                             py-4 px-2 rounded-xl border-2 transition-all duration-200 overflow-hidden
                             ${active
-                              ? 'border-[#C0392B] bg-[#C0392B]/12 shadow-[0_0_20px_rgba(192,57,43,0.2),inset_0_1px_0_rgba(255,255,255,0.05)]'
-                              : 'border-white/8 bg-white/3 hover:border-white/16 hover:bg-white/5'
+                              ? 'border-[#C8201A] bg-[#C8201A]/12 shadow-[0_0_20px_rgba(200, 32, 26,0.2),inset_0_1px_0_rgba(255,255,255,0.05)]'
+                              : 'border-[#E8D8C8] bg-[#1A1A1A]/5 hover:border-[#E8D8C8] hover:bg-[#1A1A1A]/5'
                             }`}
                         >
                           {/* Scaled pizza emoji */}
@@ -262,17 +262,17 @@ const CustomizationModal: React.FC<Props> = ({
                             🍕
                           </span>
                           <span className={`font-barlow text-[11px] font-700 uppercase tracking-wider mb-1 transition-colors
-                            ${active ? 'text-white' : 'text-white/45'}`}>
+                            ${active ? 'text-white' : 'text-[#555555]'}`}>
                             {size.name}
                           </span>
                           <span className={`font-bebas text-[22px] leading-none transition-colors
-                            ${active ? 'text-[#C0392B]' : 'text-white/40'}`}>
+                            ${active ? 'text-[#C8201A]' : 'text-[#555555]'}`}>
                             ${size.price}
                           </span>
                           {active && (
-                            <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#C0392B]
-                              flex items-center justify-center shadow-[0_0_8px_rgba(192,57,43,0.7)]">
-                              <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                            <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#C8201A]
+                              flex items-center justify-center shadow-[0_0_8px_rgba(200, 32, 26,0.7)]">
+                              <Check className="w-2.5 h-2.5 text-[#1A1A1A]" strokeWidth={3} />
                             </div>
                           )}
                         </button>
@@ -287,7 +287,7 @@ const CustomizationModal: React.FC<Props> = ({
                 <section>
                   <div className="flex items-center justify-between mb-3">
                     <FieldLabel>Current Toppings</FieldLabel>
-                    <span className="font-inter text-[10px] text-white/25 ml-2 flex-shrink-0">tap × to remove</span>
+                    <span className="font-inter text-[10px] text-[#555555] ml-2 flex-shrink-0">tap × to remove</span>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {item.toppings.map(t => {
@@ -299,13 +299,13 @@ const CustomizationModal: React.FC<Props> = ({
                           className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-full border
                             font-inter text-[12px] transition-all duration-200
                             ${removed
-                              ? 'border-white/6 bg-transparent text-white/20 line-through'
-                              : 'border-[#c9922a]/28 bg-[#2a1800] text-white/78 hover:border-[#C0392B]/50 hover:bg-[#C0392B]/8'
+                              ? 'border-[#E8D8C8] bg-transparent text-[#555555] line-through'
+                              : 'border-[#D4952A]/28 bg-[#2a1800] text-[#555555] hover:border-[#C8201A]/50 hover:bg-[#C8201A]/8'
                             }`}
                         >
                           {t}
                           <span className={`text-[14px] leading-none transition-colors
-                            ${removed ? 'text-white/15' : 'text-white/25 group-hover:text-[#C0392B]'}`}>
+                            ${removed ? 'text-[#555555]' : 'text-[#555555] group-hover:text-[#C8201A]'}`}>
                             ×
                           </span>
                         </button>
@@ -316,7 +316,7 @@ const CustomizationModal: React.FC<Props> = ({
                     <button
                       onClick={() => setRemovedToppings(new Set())}
                       className="mt-2.5 font-barlow text-[10px] font-700 uppercase tracking-wider
-                        text-[#c9922a]/50 hover:text-[#c9922a] transition-colors"
+                        text-[#D4952A]/50 hover:text-[#D4952A] transition-colors"
                     >
                       ↺ Restore all
                     </button>
@@ -336,7 +336,7 @@ const CustomizationModal: React.FC<Props> = ({
                         <div
                           key={cat.id}
                           className={`rounded-xl border overflow-hidden transition-colors duration-200
-                            ${open ? 'border-white/12' : 'border-white/6'}`}
+                            ${open ? 'border-[#E8D8C8]' : 'border-[#E8D8C8]'}`}
                         >
                           {/* Header */}
                           <button
@@ -346,18 +346,18 @@ const CustomizationModal: React.FC<Props> = ({
                           >
                             <div className="flex items-center gap-2.5">
                               <span className="text-[14px]">{CAT_ICONS[cat.id] ?? '➕'}</span>
-                              <span className="font-barlow text-[12px] font-700 uppercase tracking-wider text-white">
+                              <span className="font-barlow text-[12px] font-700 uppercase tracking-wider text-[#2B2B2B]">
                                 {cat.name}
                               </span>
                               {count > 0 && (
-                                <span className="bg-[#C0392B] text-white font-barlow text-[10px] font-700
+                                <span className="bg-[#C8201A] text-[#FFFCF7] font-barlow text-[10px] font-700
                                   px-1.5 py-0.5 rounded-full leading-none min-w-[18px] text-center">
                                   {count}
                                 </span>
                               )}
                             </div>
-                            <ChevronDown className={`w-4 h-4 text-white/30 transition-transform duration-300
-                              ${open ? 'rotate-180 text-white/55' : ''}`} />
+                            <ChevronDown className={`w-4 h-4 text-[#555555] transition-transform duration-300
+                              ${open ? 'rotate-180 text-[#555555]' : ''}`} />
                           </button>
 
                           {/* Body */}
@@ -373,14 +373,14 @@ const CustomizationModal: React.FC<Props> = ({
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border
                                       font-inter text-[11px] transition-all duration-150
                                       ${added
-                                        ? 'bg-[#C0392B] border-[#C0392B] text-white shadow-[0_0_10px_rgba(192,57,43,0.3)]'
-                                        : 'bg-white/4 border-white/10 text-white/55 hover:border-white/20 hover:text-white hover:bg-white/7'
+                                        ? 'bg-[#C8201A] border-[#C8201A] text-white shadow-[0_0_10px_rgba(200, 32, 26,0.3)]'
+                                        : 'bg-[#1A1A1A]/5 border-[#E8D8C8] text-[#555555] hover:border-[#E8D8C8] hover:text-white hover:bg-[#1A1A1A]/5'
                                       }`}
                                   >
                                     {added && <Check className="w-2.5 h-2.5 flex-shrink-0" strokeWidth={3} />}
                                     <span>{opt.name}</span>
                                     <span className={`font-barlow font-700 text-[10px]
-                                      ${added ? 'text-white/70' : 'text-white/30'}`}>
+                                      ${added ? 'text-[#555555]' : 'text-[#555555]'}`}>
                                       +${opt.price.toFixed(2)}
                                     </span>
                                   </button>
@@ -399,33 +399,33 @@ const CustomizationModal: React.FC<Props> = ({
               {addedExtras.size > 0 && (
                 <section>
                   <FieldLabel>Your Extras</FieldLabel>
-                  <div className="bg-[#160900] border border-white/7 rounded-xl p-3.5">
+                  <div className="bg-[#160900] border border-[#E8D8C8] rounded-xl p-3.5">
                     <div className="flex flex-wrap gap-1.5">
                       {Array.from(addedExtras.values()).map(e => (
                         <span
                           key={e.name}
-                          className="flex items-center gap-1.5 bg-[#C0392B]/10 border border-[#C0392B]/25
-                            text-white/75 font-inter text-[11px] px-2.5 py-1.5 rounded-full"
+                          className="flex items-center gap-1.5 bg-[#C8201A]/10 border border-[#C8201A]/25
+                            text-[#555555] font-inter text-[11px] px-2.5 py-1.5 rounded-full"
                         >
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#C0392B] flex-shrink-0" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#C8201A] flex-shrink-0" />
                           {e.name}
-                          <span className="text-[#c9922a] font-barlow font-700 text-[10px]">
+                          <span className="text-[#D4952A] font-barlow font-700 text-[10px]">
                             +${e.price.toFixed(2)}
                           </span>
                           <button
                             onClick={() => toggleExtra(e.name, e.price)}
-                            className="text-white/25 hover:text-[#C0392B] transition-colors ml-0.5"
+                            className="text-[#555555] hover:text-[#C8201A] transition-colors ml-0.5"
                           >
                             <X className="w-3 h-3" />
                           </button>
                         </span>
                       ))}
                     </div>
-                    <div className="mt-3 pt-2.5 border-t border-white/7 flex justify-between items-center">
-                      <span className="font-barlow text-[10px] font-700 uppercase tracking-wider text-white/30">
+                    <div className="mt-3 pt-2.5 border-t border-[#E8D8C8] flex justify-between items-center">
+                      <span className="font-barlow text-[10px] font-700 uppercase tracking-wider text-[#555555]">
                         Extras Total
                       </span>
-                      <span className="font-barlow text-[13px] font-700 text-[#c9922a]">
+                      <span className="font-barlow text-[13px] font-700 text-[#D4952A]">
                         +${extrasTotal.toFixed(2)}
                       </span>
                     </div>
@@ -442,36 +442,36 @@ const CustomizationModal: React.FC<Props> = ({
         {/* ════════════════════════════════════════════════════════════════════
             BOTTOM ACTION BAR — full width, spans both columns
         ════════════════════════════════════════════════════════════════════ */}
-        <div className="flex-shrink-0 border-t border-white/8 bg-[#0a0400]/98 backdrop-blur-xl px-5 sm:px-6 py-4">
+        <div className="flex-shrink-0 border-t border-[#E8D8C8] bg-[#0a0400]/98 backdrop-blur-xl px-5 sm:px-6 py-4">
 
           {/* Price breakdown — shown above controls on mobile, inline on desktop */}
           <div className="flex items-center justify-between sm:hidden mb-3">
-            <span className="font-barlow text-[11px] font-700 uppercase tracking-wider text-white/30">
+            <span className="font-barlow text-[11px] font-700 uppercase tracking-wider text-[#555555]">
               {selectedSize && `${selectedSize} · `}${basePrice.toFixed(2)}
-              {extrasTotal > 0 && <span className="text-[#c9922a]/60"> + ${extrasTotal.toFixed(2)} extras</span>}
+              {extrasTotal > 0 && <span className="text-[#D4952A]/60"> + ${extrasTotal.toFixed(2)} extras</span>}
             </span>
-            <span className="font-bebas text-[28px] text-white leading-none">${orderTotal.toFixed(2)}</span>
+            <span className="font-bebas text-[28px] text-[#2B2B2B] leading-none">${orderTotal.toFixed(2)}</span>
           </div>
 
           <div className="flex items-center gap-3">
 
             {/* ── Quantity stepper ── */}
-            <div className="flex items-center bg-[#1c0e00] border border-white/10 rounded-full overflow-hidden flex-shrink-0">
+            <div className="flex items-center bg-[#1c0e00] border border-[#E8D8C8] rounded-full overflow-hidden flex-shrink-0">
               <button
                 onClick={() => setQuantity(q => Math.max(1, q - 1))}
                 className="w-11 h-11 flex items-center justify-center
-                  text-white/40 hover:text-white hover:bg-white/6
+                  text-[#555555] hover:text-[#FFFCF7] hover:bg-[#1A1A1A]/5
                   transition-all active:scale-90"
               >
                 <Minus className="w-4 h-4" />
               </button>
-              <span className="font-bebas text-[22px] text-white w-9 text-center leading-none select-none">
+              <span className="font-bebas text-[22px] text-[#2B2B2B] w-9 text-center leading-none select-none">
                 {quantity}
               </span>
               <button
                 onClick={() => setQuantity(q => q + 1)}
                 className="w-11 h-11 flex items-center justify-center
-                  text-white/40 hover:text-[#c9922a] hover:bg-white/6
+                  text-[#555555] hover:text-[#D4952A] hover:bg-[#1A1A1A]/5
                   transition-all active:scale-90"
               >
                 <Plus className="w-4 h-4" />
@@ -480,12 +480,12 @@ const CustomizationModal: React.FC<Props> = ({
 
             {/* ── Price summary (desktop only, inline) ── */}
             <div className="hidden sm:flex flex-col leading-tight flex-shrink-0">
-              <span className="font-barlow text-[10px] font-700 uppercase tracking-widest text-white/25">
+              <span className="font-barlow text-[10px] font-700 uppercase tracking-widest text-[#555555]">
                 {selectedSize && `${selectedSize} · `}
                 {extrasTotal > 0 ? `$${basePrice.toFixed(2)} + $${extrasTotal.toFixed(2)}` : `$${basePrice.toFixed(2)}`}
                 {quantity > 1 && ` × ${quantity}`}
               </span>
-              <span className="font-bebas text-[32px] text-white leading-none tabular-nums">
+              <span className="font-bebas text-[32px] text-[#2B2B2B] leading-none tabular-nums">
                 ${orderTotal.toFixed(2)}
               </span>
             </div>
@@ -494,11 +494,11 @@ const CustomizationModal: React.FC<Props> = ({
             <button
               onClick={handleAdd}
               className="flex-1 relative flex items-center justify-between overflow-hidden
-                bg-[#C0392B] hover:bg-[#a93226] active:scale-[0.98]
-                text-white font-barlow font-700 text-[14px] uppercase tracking-wider
+                bg-[#C8201A] hover:bg-[#9E1510] active:scale-[0.98]
+                text-[#FFFCF7] font-barlow font-700 text-[14px] uppercase tracking-wider
                 px-5 sm:px-6 py-3.5 rounded-full
-                shadow-[0_8px_28px_-4px_rgba(192,57,43,0.55)]
-                hover:shadow-[0_12px_36px_-4px_rgba(192,57,43,0.72)]
+                shadow-[0_8px_28px_-4px_rgba(200, 32, 26,0.55)]
+                hover:shadow-[0_12px_36px_-4px_rgba(200, 32, 26,0.72)]
                 transition-all duration-200 group"
             >
               {/* Shimmer sweep on hover */}
@@ -520,7 +520,7 @@ const CustomizationModal: React.FC<Props> = ({
 
           {/* Removed toppings notice */}
           {removedToppings.size > 0 && (
-            <p className="mt-2.5 font-inter text-[11px] text-[#C0392B]/50 text-center">
+            <p className="mt-2.5 font-inter text-[11px] text-[#C8201A]/50 text-center">
               No {Array.from(removedToppings).join(', ')}
             </p>
           )}

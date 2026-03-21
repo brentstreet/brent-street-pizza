@@ -29,11 +29,11 @@ export default function ExtrasManager() {
   };
 
   return (
-    <div className="mt-16 bg-[#2b1200] border border-white/10 rounded-xl p-8 shadow-xl">
+    <div className="mt-16 bg-[#F5EDE0] border border-[#E8D8C8] rounded-xl p-8 shadow-xl">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h2 className="font-bebas text-4xl text-white">Global Customization Extras</h2>
-          <p className="font-inter text-sm text-white/50 mt-1">
+          <h2 className="font-bebas text-4xl text-[#1A1A1A]">Global Customization Extras</h2>
+          <p className="font-inter text-sm text-[#555555] mt-1">
             Edit the JSON below to add, remove, or update the global pizza extras (toppings, sauces, etc.).
           </p>
         </div>
@@ -45,13 +45,13 @@ export default function ExtrasManager() {
           )}
           <button
             onClick={handleReset}
-            className="px-4 py-2 border border-white/20 rounded font-barlow font-bold text-white hover:bg-white/5 transition-colors"
+            className="px-4 py-2 border border-[#E8D8C8] rounded font-barlow font-bold text-[#FFFCF7] hover:bg-[#1A1A1A]/5 transition-colors"
           >
             Reset
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-[#d4a017] text-black rounded font-barlow font-bold hover:bg-yellow-500 transition-colors"
+            className="px-4 py-2 bg-[#D4952A] text-black rounded font-barlow font-bold hover:bg-yellow-500 transition-colors"
           >
             Save Changes
           </button>
@@ -61,7 +61,7 @@ export default function ExtrasManager() {
       <textarea
         value={jsonStr}
         onChange={(e) => setJsonStr(e.target.value)}
-        className="w-full h-[500px] bg-[#1a0a00] border border-white/10 rounded-lg p-4 font-mono text-sm text-white outline-none focus:border-[#d4a017] resize-y"
+        className="w-full h-[500px] bg-[#FDF8F2] border border-[#E8D8C8] rounded-lg p-4 font-mono text-sm text-[#1A1A1A] outline-none focus:border-[#D4952A] resize-y"
         spellCheck={false}
       />
     </div>

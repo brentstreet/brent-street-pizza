@@ -11,7 +11,7 @@ const DEALS = [
     description: '2 Large Pizzas + Garlic Bread + 1.25L Drink. Perfect for a cozy night in.',
     tag: 'BEST SELLER',
     icon: <Flame className="w-5 h-5" />,
-    color: '#C0392B',
+    color: '#C8201A',
   },
   {
     id: 'family-feast',
@@ -21,7 +21,7 @@ const DEALS = [
     description: '3 Large Pizzas + 2 Garlic Breads + 2 x 1.25L Drinks. Feeds the whole crew.',
     tag: 'POPULAR',
     icon: <Star className="w-5 h-5" />,
-    color: '#d4a017',
+    color: '#D4952A',
   },
   {
     id: 'lunch-special',
@@ -31,7 +31,7 @@ const DEALS = [
     description: 'Any Small Pizza + Can of Drink. Available daily until 4 PM. (Pick up only)',
     tag: 'VALUE',
     icon: <Clock className="w-5 h-5" />,
-    color: '#4ade80',
+    color: '#C8201A',
   },
   {
     id: 'party-pack',
@@ -41,23 +41,23 @@ const DEALS = [
     description: '5 Large Pizzas + 3 Garlic Breads + 3 x 1.25L Drinks. The ultimate celebration deal.',
     tag: 'ULTIMATE',
     icon: <Zap className="w-5 h-5" />,
-    color: '#C0392B',
+    color: '#C8201A',
   },
 ];
 
 const Deals: React.FC = () => {
   return (
-    <div className="bg-[#1a0a00] min-h-screen pt-32 pb-24">
+    <div className="bg-[#FDF8F2] min-h-screen pt-32 pb-24">
       <div className="container-custom">
         {/* Header */}
         <div className="text-center mb-20">
-          <span className="font-barlow text-[13px] font-600 uppercase tracking-[0.4em] text-[#d4a017] block mb-4">
+          <span className="font-barlow text-[13px] font-600 uppercase tracking-[0.4em] text-[#D4952A] block mb-4">
             — Exclusive Offers —
           </span>
-          <h1 className="font-bebas text-[64px] md:text-[90px] text-white tracking-wider leading-none mb-6">
-            Hot <span className="text-[#C0392B]">Deals</span>
+          <h1 className="font-bebas text-[64px] md:text-[90px] text-[#1A1A1A] tracking-wider leading-none mb-6">
+            Hot <span className="text-[#C8201A]">Deals</span>
           </h1>
-          <p className="font-inter text-white/40 text-[16px] md:text-[18px] max-w-2xl mx-auto leading-relaxed">
+          <p className="font-inter text-[#555555] text-[16px] md:text-[18px] max-w-2xl mx-auto leading-relaxed">
             Grab our famous combo packs and save big. Freshly made, delivered hot, and always delicious.
           </p>
         </div>
@@ -67,7 +67,7 @@ const Deals: React.FC = () => {
           {DEALS.map((deal) => (
             <div
               key={deal.id}
-              className="group relative bg-[#2b1200] border border-white/5 rounded-[20px] overflow-hidden hover:border-white/15 transition-all duration-500 hover:-translate-y-2 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.4)]"
+              className="group relative bg-[#F5EDE0] border border-[#E8D8C8] rounded-[20px] overflow-hidden hover:border-[#E8D8C8] transition-all duration-500 hover:-translate-y-2 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.4)]"
             >
               <div className="p-8 md:p-10 flex flex-col h-full">
                 {/* Badge */}
@@ -79,22 +79,22 @@ const Deals: React.FC = () => {
                   {deal.tag}
                 </div>
 
-                <h3 className="font-bebas text-[36px] md:text-[42px] text-white tracking-wider mb-2 group-hover:text-[#d4a017] transition-colors">
+                <h3 className="font-bebas text-[36px] md:text-[42px] text-[#1A1A1A] tracking-wider mb-2 group-hover:text-[#D4952A] transition-colors">
                   {deal.title}
                 </h3>
                 
-                <p className="font-inter text-white/50 text-[15px] leading-relaxed mb-8 flex-grow">
+                <p className="font-inter text-[#555555] text-[15px] leading-relaxed mb-8 flex-grow">
                   {deal.description}
                 </p>
 
                 <div className="flex items-end justify-between mt-auto">
                   <div className="flex flex-col">
-                    <span className="font-inter text-[14px] text-white/20 line-through mb-1">
+                    <span className="font-inter text-[14px] text-[#555555] line-through mb-1">
                       Was ${deal.originalPrice}
                     </span>
                     <div className="flex items-start">
-                      <span className="font-bebas text-[24px] text-white mt-1 mr-1">$</span>
-                      <span className="font-bebas text-[56px] text-white leading-none tracking-tighter">
+                      <span className="font-bebas text-[24px] text-[#2B2B2B] mt-1 mr-1">$</span>
+                      <span className="font-bebas text-[56px] text-[#2B2B2B] leading-none tracking-tighter">
                         {deal.price.split('.')[0]}
                         <span className="text-[28px] opacity-60">.{deal.price.split('.')[1]}</span>
                       </span>
@@ -103,7 +103,7 @@ const Deals: React.FC = () => {
 
                   <Link
                     to="/menu"
-                    className="flex items-center justify-center w-14 h-14 rounded-full bg-white/5 hover:bg-[#C0392B] text-white transition-all duration-300 group-hover:scale-110"
+                    className="flex items-center justify-center w-14 h-14 rounded-full bg-[#1A1A1A]/5 hover:bg-[#C8201A] text-[#1A1A1A] hover:text-white transition-all duration-300 group-hover:scale-110"
                   >
                     <ArrowRight className="w-6 h-6" />
                   </Link>
@@ -120,17 +120,17 @@ const Deals: React.FC = () => {
         </div>
 
         {/* Footer CTA */}
-        <div className="mt-20 text-center bg-[#2b1200]/40 border border-white/5 rounded-[24px] p-12 max-w-4xl mx-auto backdrop-blur-sm">
-          <Tag className="w-10 h-10 text-[#d4a017] mx-auto mb-6" />
-          <h2 className="font-bebas text-[32px] md:text-[40px] text-white tracking-wider mb-4">
+        <div className="mt-20 text-center bg-[#F5EDE0]/40 border border-[#E8D8C8] rounded-[24px] p-12 max-w-4xl mx-auto backdrop-blur-sm">
+          <Tag className="w-10 h-10 text-[#D4952A] mx-auto mb-6" />
+          <h2 className="font-bebas text-[32px] md:text-[40px] text-[#1A1A1A] tracking-wider mb-4">
             Got a large group?
           </h2>
-          <p className="font-inter text-white/40 text-[15px] mb-8 max-w-md mx-auto">
+          <p className="font-inter text-[#555555] text-[15px] mb-8 max-w-md mx-auto">
             We provide specialized catering for events, parties, and offices. Contact us for a custom quote.
           </p>
           <Link
             to="/contact"
-            className="inline-flex items-center gap-2 font-barlow font-800 text-[14px] uppercase tracking-widest text-[#d4a017] hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 font-barlow font-800 text-[14px] uppercase tracking-widest text-[#D4952A] hover:text-[#1A1A1A] transition-colors"
           >
             Inquire About Catering <ArrowRight className="w-4 h-4" />
           </Link>

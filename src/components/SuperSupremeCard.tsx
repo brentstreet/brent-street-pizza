@@ -88,17 +88,17 @@ export default function SuperSupremeCard() {
   };
 
   return (
-    <div className="relative bg-[#1a0a00] rounded-2xl border border-white/10 overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.6)] max-w-md w-full mx-auto flex flex-col">
+    <div className="relative bg-[#FDF8F2] rounded-2xl border border-[#E8D8C8] overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.6)] max-w-md w-full mx-auto flex flex-col">
 
       {/* Hero image */}
       <div className="relative h-52 overflow-hidden">
         <img src={PIZZA.image} alt={PIZZA.name} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1a0a00] via-[#1a0a00]/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#FDF8F2] via-[#FDF8F2]/40 to-transparent" />
         <div className="absolute bottom-4 left-5">
-          <h2 className="font-bebas text-[36px] text-white tracking-widest leading-none drop-shadow-lg">
+          <h2 className="font-bebas text-[36px] text-[#1A1A1A] tracking-widest leading-none drop-shadow-lg">
             {PIZZA.name}
           </h2>
-          <p className="font-inter text-[12px] text-white/50 mt-0.5 leading-snug max-w-[260px]">
+          <p className="font-inter text-[12px] text-[#555555] mt-0.5 leading-snug max-w-[260px]">
             {PIZZA.baseToppings.join(', ')}
           </p>
         </div>
@@ -109,7 +109,7 @@ export default function SuperSupremeCard() {
 
         {/* Size selector */}
         <div>
-          <p className="font-barlow text-[11px] font-700 uppercase tracking-[0.2em] text-[#d4a017] mb-3">Choose Size</p>
+          <p className="font-barlow text-[11px] font-700 uppercase tracking-[0.2em] text-[#D4952A] mb-3">Choose Size</p>
           <div className="grid grid-cols-3 gap-2">
             {PIZZA.sizes.map(size => (
               <button
@@ -117,8 +117,8 @@ export default function SuperSupremeCard() {
                 onClick={() => setSelectedSize(size)}
                 className={`flex flex-col items-center py-3 rounded-xl border font-barlow transition-all duration-200 ${
                   selectedSize.name === size.name
-                    ? 'bg-[#C0392B] border-[#C0392B] text-white shadow-[0_0_14px_rgba(192,57,43,0.45)]'
-                    : 'bg-white/5 border-white/10 text-white/60 hover:border-white/30 hover:text-white'
+                    ? 'bg-[#C8201A] border-[#C8201A] text-white shadow-[0_0_14px_rgba(200, 32, 26,0.45)]'
+                    : 'bg-[#1A1A1A]/5 border-[#E8D8C8] text-[#555555] hover:border-[#E8D8C8] hover:text-white'
                 }`}
               >
                 <span className="text-[13px] font-700 uppercase tracking-wider">{size.name}</span>
@@ -130,19 +130,19 @@ export default function SuperSupremeCard() {
 
         {/* Current toppings */}
         <div>
-          <p className="font-barlow text-[11px] font-700 uppercase tracking-[0.2em] text-[#d4a017] mb-3">
-            Current Toppings <span className="text-white/30 normal-case font-400">— tap × to remove</span>
+          <p className="font-barlow text-[11px] font-700 uppercase tracking-[0.2em] text-[#D4952A] mb-3">
+            Current Toppings <span className="text-[#555555] normal-case font-400">— tap × to remove</span>
           </p>
           <div className="flex flex-wrap gap-2">
             {toppings.map(t => (
               <span
                 key={t}
-                className="flex items-center gap-1.5 bg-[#2b1200] border border-white/15 text-white/80 font-inter text-[12px] px-3 py-1.5 rounded-full"
+                className="flex items-center gap-1.5 bg-[#F5EDE0] border border-[#E8D8C8] text-[#555555] font-inter text-[12px] px-3 py-1.5 rounded-full"
               >
                 {t}
                 <button
                   onClick={() => removeTopping(t)}
-                  className="text-white/40 hover:text-[#C0392B] transition-colors leading-none"
+                  className="text-[#555555] hover:text-[#C8201A] transition-colors leading-none"
                   aria-label={`Remove ${t}`}
                 >
                   <X className="w-3 h-3" />
@@ -150,28 +150,28 @@ export default function SuperSupremeCard() {
               </span>
             ))}
             {toppings.length === 0 && (
-              <span className="font-inter text-[12px] text-white/30 italic">No toppings selected</span>
+              <span className="font-inter text-[12px] text-[#555555] italic">No toppings selected</span>
             )}
           </div>
         </div>
 
         {/* Extras accordion */}
         <div>
-          <p className="font-barlow text-[11px] font-700 uppercase tracking-[0.2em] text-[#d4a017] mb-3">Extras</p>
+          <p className="font-barlow text-[11px] font-700 uppercase tracking-[0.2em] text-[#D4952A] mb-3">Extras</p>
           <div className="space-y-2">
             {PIZZA.extras.map(cat => (
-              <div key={cat.id} className="border border-white/10 rounded-xl overflow-hidden">
+              <div key={cat.id} className="border border-[#E8D8C8] rounded-xl overflow-hidden">
                 <button
                   onClick={() => setOpenAccordion(openAccordion === cat.id ? null : cat.id)}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-[#2b1200] hover:bg-[#3a1800] transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 bg-[#F5EDE0] hover:bg-[#3a1800] transition-colors"
                 >
-                  <span className="font-barlow text-[13px] font-700 uppercase tracking-wider text-white">{cat.name}</span>
+                  <span className="font-barlow text-[13px] font-700 uppercase tracking-wider text-[#2B2B2B]">{cat.name}</span>
                   <ChevronDown
-                    className={`w-4 h-4 text-white/40 transition-transform duration-200 ${openAccordion === cat.id ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 text-[#555555] transition-transform duration-200 ${openAccordion === cat.id ? 'rotate-180' : ''}`}
                   />
                 </button>
                 {openAccordion === cat.id && (
-                  <div className="px-4 py-3 bg-[#1a0a00] flex flex-wrap gap-2">
+                  <div className="px-4 py-3 bg-[#FDF8F2] flex flex-wrap gap-2">
                     {cat.options.map(opt => {
                       const isAdded = extras.some(e => e.name === opt.name);
                       return (
@@ -180,8 +180,8 @@ export default function SuperSupremeCard() {
                           onClick={() => toggleExtra(opt)}
                           className={`font-inter text-[12px] px-3 py-1.5 rounded-full border transition-all duration-150 ${
                             isAdded
-                              ? 'bg-[#C0392B] border-[#C0392B] text-white'
-                              : 'bg-white/5 border-white/15 text-white/70 hover:border-white/40 hover:text-white'
+                              ? 'bg-[#C8201A] border-[#C8201A] text-white'
+                              : 'bg-[#1A1A1A]/5 border-[#E8D8C8] text-[#555555] hover:border-[#E8D8C8] hover:text-white'
                           }`}
                         >
                           {opt.name}
@@ -199,15 +199,15 @@ export default function SuperSupremeCard() {
         {/* Added extras summary */}
         {extras.length > 0 && (
           <div>
-            <p className="font-barlow text-[11px] font-700 uppercase tracking-[0.2em] text-[#d4a017] mb-2">Added Extras</p>
+            <p className="font-barlow text-[11px] font-700 uppercase tracking-[0.2em] text-[#D4952A] mb-2">Added Extras</p>
             <div className="flex flex-wrap gap-2">
               {extras.map(e => (
                 <span
                   key={e.name}
-                  className="flex items-center gap-1.5 bg-[#C0392B]/15 border border-[#C0392B]/40 text-white/80 font-inter text-[12px] px-3 py-1.5 rounded-full"
+                  className="flex items-center gap-1.5 bg-[#C8201A]/15 border border-[#C8201A]/40 text-[#555555] font-inter text-[12px] px-3 py-1.5 rounded-full"
                 >
-                  {e.name} {e.price > 0 && <span className="text-[#d4a017]">+${e.price.toFixed(2)}</span>}
-                  <button onClick={() => toggleExtra(e)} className="text-white/40 hover:text-white transition-colors">
+                  {e.name} {e.price > 0 && <span className="text-[#D4952A]">+${e.price.toFixed(2)}</span>}
+                  <button onClick={() => toggleExtra(e)} className="text-[#555555] hover:text-[#1A1A1A] transition-colors">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -218,17 +218,17 @@ export default function SuperSupremeCard() {
       </div>
 
       {/* Sticky bottom bar */}
-      <div className="absolute bottom-0 left-0 right-0 bg-[#1a0a00]/95 backdrop-blur-md border-t border-white/10 px-5 py-4 flex items-center justify-between gap-4">
+      <div className="absolute bottom-0 left-0 right-0 bg-[#FDF8F2]/95 backdrop-blur-md border-t border-[#E8D8C8] px-5 py-4 flex items-center justify-between gap-4">
         <div className="leading-tight">
-          <div className="font-inter text-[11px] text-white/40 flex gap-1 items-center">
+          <div className="font-inter text-[11px] text-[#555555] flex gap-1 items-center">
             <span>${selectedSize.price.toFixed(2)}</span>
-            {extrasTotal > 0 && <><span>+</span><span className="text-[#d4a017]">${extrasTotal.toFixed(2)}</span></>}
+            {extrasTotal > 0 && <><span>+</span><span className="text-[#D4952A]">${extrasTotal.toFixed(2)}</span></>}
           </div>
-          <div className="font-bebas text-[28px] text-white leading-none tracking-wider">
+          <div className="font-bebas text-[28px] text-[#2B2B2B] leading-none tracking-wider">
             ${orderTotal.toFixed(2)}
           </div>
         </div>
-        <button className="flex items-center gap-2 bg-[#C0392B] hover:bg-[#a93226] active:scale-95 text-white font-barlow font-700 text-[14px] uppercase tracking-wider px-6 py-3 rounded-xl transition-all duration-200 shadow-[0_4px_20px_rgba(192,57,43,0.4)] hover:shadow-[0_6px_28px_rgba(192,57,43,0.6)]">
+        <button className="flex items-center gap-2 bg-[#C8201A] hover:bg-[#9E1510] active:scale-95 text-[#FFFCF7] font-barlow font-700 text-[14px] uppercase tracking-wider px-6 py-3 rounded-xl transition-all duration-200 shadow-[0_4px_20px_rgba(200, 32, 26,0.4)] hover:shadow-[0_6px_28px_rgba(200, 32, 26,0.6)]">
           <ShoppingBag className="w-4 h-4" />
           Add to Cart
         </button>
