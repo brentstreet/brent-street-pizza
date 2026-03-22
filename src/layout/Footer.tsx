@@ -42,7 +42,7 @@ const Footer: React.FC = () => {
               <h2 className="font-bebas text-[30px] tracking-widest text-[#CCCCCC] leading-none">PIZZA</h2>
             </div>
             <p className="font-inter text-[13px] text-[#CCCCCC] leading-relaxed max-w-[200px]">
-              Brent Street Pizza is your local go-to for hot, fresh pizza made to order. Simple ingredients. Big flavour.
+              Brent Street Pizza is your local go-to for hot, fresh pizza made to order. Premium ingredients. Big flavour.
             </p>
             <div className="flex gap-3">
               <a href="#" aria-label="Instagram" className="w-9 h-9 rounded-full border border-[#E8D8C8] hover:border-[#C8201A] hover:bg-[#1A1A1A]/10 flex items-center justify-center text-[#CCCCCC] hover:text-[#C8201A] transition-all hover:scale-110">
