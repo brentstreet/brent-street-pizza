@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, Phone, Star, ArrowRight, Plus, Check } from 'lucide-react';
+import { ShoppingCart, Phone, ArrowRight, Plus, Check } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useMenu } from '../context/MenuContext';
 import { useCart } from '../context/CartContext';
@@ -13,11 +13,6 @@ const BADGES: Record<string, { label: string; color: string }> = {
   'pizza-meat-lovers':   { label: 'POPULAR', color: 'from-[#C8201A] to-[#9E1510]' },
   'pizza-tandoori-chicken': { label: "CHEF'S PICK", color: 'from-[#D4952A] to-[#D4952A]' },
   'pizza-margherita':    { label: 'CLASSIC', color: 'from-[#D4952A] to-[#D4952A]' },
-};
-
-const RATINGS: Record<string, number> = {
-  'pizza-super-supreme': 4.9, 'pizza-meat-lovers': 4.9, 'pizza-margherita': 4.8,
-  'pizza-tandoori-chicken': 4.9, 'pizza-pepperoni': 4.8, 'pizza-bbq-chicken-classic': 4.7,
 };
 
 export default function Menu() {
@@ -203,7 +198,6 @@ export default function Menu() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {menuItems.filter(item => item.categoryId === category.id).map((item) => {
                 const badge = BADGES[item.id];
-                const rating = RATINGS[item.id] ?? 4.8;
                 const isJustAdded = justAdded === item.id;
 
                 return (
@@ -241,13 +235,7 @@ export default function Menu() {
                         </div>
                       )}
 
-                      {/* Rating */}
-                      <div className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-2.5 py-1 border border-[#E8D8C8]">
-                        <Star className="w-3 h-3 fill-[#D4952A] text-[#D4952A]" />
-                        <span className="font-barlow text-[11px] font-700 text-[#2B2B2B]">{rating}</span>
-                      </div>
-
-                      {/* Tags */}
+{/* Tags */}
                       <div className="absolute bottom-3 right-3 flex gap-1.5">
                         {item.tags?.isSpicy && (
                           <span className="bg-[#C8201A]/85 backdrop-blur-sm text-[#FFFCF7] font-barlow text-[9px] font-700 uppercase tracking-wider px-2 py-0.5 rounded-full">🌶 Hot</span>
@@ -270,7 +258,7 @@ export default function Menu() {
                         </span>
                       </div>
 
-                      <p className="font-inter text-[12px] text-[#555555] leading-relaxed line-clamp-2 flex-grow">
+                      <p className="font-inter text-[12px] text-[#555555] leading-relaxed line-clamp-2 flex-grow font-600">
                         {item.description}
                       </p>
 
@@ -285,10 +273,10 @@ export default function Menu() {
                                 hover:bg-[#1A1A1A] hover:text-white
                                 font-barlow text-[#555555] transition-all duration-200 group/size"
                             >
-                              <span className="text-[10px] font-800 uppercase tracking-widest">
+                              <span className="text-[12px] font-black uppercase tracking-widest">
                                 {size.name[0]}
                               </span>
-                              <span className="text-[11px] font-700 group-hover/size:text-white transition-colors">
+                              <span className="text-[13px] font-black group-hover/size:text-white transition-colors">
                                 ${size.price}
                               </span>
                             </button>
