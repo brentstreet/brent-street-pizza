@@ -73,6 +73,7 @@ const Navbar: React.FC = () => {
               className="hidden md:flex items-center gap-2 text-black hover:text-[#C8201A] transition-colors duration-300 group"
             >
               <Phone className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              <span className="font-barlow text-[14px] font-700 tracking-wider">03 6272 4004</span>
             </a>
 
 

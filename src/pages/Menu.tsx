@@ -271,12 +271,12 @@ export default function Menu() {
                               onClick={(e) => { e.stopPropagation(); openModal(item, size.name); }}
                               className="flex-1 flex flex-col items-center py-1.5 rounded-lg bg-[#F5F5F5]
                                 hover:bg-[#1A1A1A] hover:text-white
-                                font-barlow text-[#555555] transition-all duration-200 group/size"
+                                font-inter text-[#555555] transition-all duration-200 group/size"
                             >
-                              <span className="text-[12px] font-black uppercase tracking-widest">
+                              <span className="text-[11px] font-semibold">
                                 {size.name[0]}
                               </span>
-                              <span className="text-[13px] font-black group-hover/size:text-white transition-colors">
+                              <span className="text-[12px] font-bold group-hover/size:text-white transition-colors">
                                 ${size.price}
                               </span>
                             </button>
