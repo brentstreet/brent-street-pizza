@@ -221,8 +221,7 @@ export default function Menu() {
                         alt={item.name}
                         className="absolute inset-0 w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
                       />
-                      {/* Gradient */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#FFFCF7] via-[#FFFCF7]/20 to-transparent" />
+                      {/* No gradient — image shows fully clear */}
 
                       {/* Hover overlay: CUSTOMIZE → */}
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
