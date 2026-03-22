@@ -4,43 +4,48 @@ import { Link } from 'react-router-dom';
 
 const DEALS = [
   {
-    id: 'double-trouble',
-    title: 'Double Trouble',
-    price: '39.90',
-    originalPrice: '48.50',
-    description: '2 Large Pizzas + Garlic Bread + 1.25L Drink. Perfect for a cozy night in.',
-    tag: 'BEST SELLER',
+    id: 'quick-deal',
+    title: 'Quick Deal',
+    price: '',
+    description: '1 Large Pizza + Garlic Bread + 375ml Drink.',
+    tag: 'DEAL 1',
     icon: <Flame className="w-5 h-5" />,
     color: '#C8201A',
   },
   {
-    id: 'family-feast',
-    title: 'Family Feast',
-    price: '54.90',
-    originalPrice: '68.00',
-    description: '3 Large Pizzas + 2 Garlic Breads + 2 x 1.25L Drinks. Feeds the whole crew.',
-    tag: 'POPULAR',
+    id: 'double-deal',
+    title: 'Double Deal',
+    price: '',
+    description: '2 Large Pizzas + Garlic Bread + 1.25L Drink.',
+    tag: 'DEAL 2',
+    icon: <Star className="w-5 h-5" />,
+    color: '#C8201A',
+  },
+  {
+    id: 'family-deal',
+    title: 'Family Deal',
+    price: '',
+    description: '3 Large Pizzas + 2 Garlic Breads + 2 x 1.25L Drinks.',
+    tag: 'DEAL 3',
     icon: <Star className="w-5 h-5" />,
     color: '#D4952A',
   },
   {
-    id: 'lunch-special',
-    title: 'Lunch Special',
-    price: '14.90',
-    originalPrice: '19.50',
-    description: 'Any Small Pizza + Can of Drink. Available daily until 4 PM. (Pick up only)',
-    tag: 'VALUE',
-    icon: <Clock className="w-5 h-5" />,
+    id: 'party-deal',
+    title: 'Party Deal',
+    price: '',
+    description: '5 Large Pizzas + 2 Sides + 2 x 1.25L Drinks.',
+    tag: 'DEAL 4',
+    icon: <Zap className="w-5 h-5" />,
     color: '#C8201A',
   },
   {
-    id: 'party-pack',
-    title: 'Party Pack',
-    price: '89.90',
-    originalPrice: '115.00',
-    description: '5 Large Pizzas + 3 Garlic Breads + 3 x 1.25L Drinks. The ultimate celebration deal.',
-    tag: 'ULTIMATE',
-    icon: <Zap className="w-5 h-5" />,
+    id: 'lunch-special',
+    title: 'Lunch Special',
+    price: '',
+    description: 'Any Small Pizza + Can of Drink. Available daily until 4 PM. (Pick up only)',
+    tag: 'DEAL 5',
+    icon: <Clock className="w-5 h-5" />,
     color: '#C8201A',
   },
 ];
@@ -88,18 +93,12 @@ const Deals: React.FC = () => {
                 </p>
 
                 <div className="flex items-end justify-between mt-auto">
-                  <div className="flex flex-col">
-                    <span className="font-inter text-[14px] text-[#555555] line-through mb-1">
-                      Was ${deal.originalPrice}
-                    </span>
-                    <div className="flex items-start">
-                      <span className="font-bebas text-[24px] text-[#2B2B2B] mt-1 mr-1">$</span>
-                      <span className="font-bebas text-[56px] text-[#2B2B2B] leading-none tracking-tighter">
-                        {deal.price.split('.')[0]}
-                        <span className="text-[28px] opacity-60">.{deal.price.split('.')[1]}</span>
-                      </span>
-                    </div>
-                  </div>
+                  <Link
+                    to="/contact"
+                    className="font-barlow font-700 text-[13px] uppercase tracking-wider text-[#C8201A] hover:text-[#D4952A] transition-colors"
+                  >
+                    📞 Call for pricing
+                  </Link>
 
                   <Link
                     to="/menu"
