@@ -117,7 +117,6 @@ const Footer: React.FC = () => {
           <div className="flex flex-wrap gap-4 justify-center">
             <Link to="/contact" className="font-barlow text-[11px] text-[#CCCCCC] hover:text-[#C8201A] transition-colors tracking-widest uppercase">Privacy Policy</Link>
             <Link to="/contact" className="font-barlow text-[11px] text-[#CCCCCC] hover:text-[#C8201A] transition-colors tracking-widest uppercase">Terms of Service</Link>
-            <Link to="/admin" className="font-barlow text-[11px] text-[#CCCCCC]/50 hover:text-[#C8201A] transition-colors tracking-widest uppercase">Admin Login</Link>
             {/* Uber Eats — last resort fallback only */}
             <a
               href="https://www.ubereats.com"
