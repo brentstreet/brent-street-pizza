@@ -54,7 +54,7 @@ export default function App() {
                 <Route path="*" element={<DashboardOverview />} />
               </Route>
 
-              {/* Public Routes - Catches everything else */}
+              {/* Public Sub-routing */}
               <Route path="/" element={<PublicLayout />}>
                 <Route index element={<Home />} />
                 <Route path="menu" element={<Menu />} />
