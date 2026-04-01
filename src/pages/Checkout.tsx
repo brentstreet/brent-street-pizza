@@ -94,8 +94,8 @@ export default function Checkout() {
       if (paymentMethod === 'COD') {
         setFinalOrderItems([...cartItems]);
         setFinalTotal(total);
-        await clearCart();
-        setStep('success');
+        setStep('success'); // Show success immediately
+        clearCart(); // Clear cart in background — no await
         return;
       }
 
