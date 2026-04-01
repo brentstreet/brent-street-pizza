@@ -37,13 +37,14 @@ function PublicLayout() {
 }
 
 export default function App() {
+  console.log("App Version: 1.0.6 - Final Production Routing");
   return (
     <Router>
       <ContentProvider>
         <MenuProvider>
           <CartProvider>
             <Routes>
-              {/* Admin Routes - Strict Priority */}
+              {/* 1. Admin Routes - Strict Priority */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<DashboardOverview />} />
@@ -54,7 +55,7 @@ export default function App() {
                 <Route path="*" element={<DashboardOverview />} />
               </Route>
 
-              {/* Public Sub-routing */}
+              {/* 2. Public Routes */}
               <Route path="/" element={<PublicLayout />}>
                 <Route index element={<Home />} />
                 <Route path="menu" element={<Menu />} />
@@ -63,7 +64,7 @@ export default function App() {
                 <Route path="about" element={<About />} />
                 <Route path="deals" element={<Deals />} />
                 <Route path="ice-cream" element={<IceCream />} />
-                {/* 404 handler within public layout if needed */}
+                {/* Fallback for customer routes */}
                 <Route path="*" element={<Home />} />
               </Route>
             </Routes>
