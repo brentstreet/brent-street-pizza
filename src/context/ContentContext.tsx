@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_URL } from '../config/api';
 
 interface ContentContextType {
   content: any;
@@ -17,7 +18,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const fetchContent = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/content`);
+      const res = await fetch(`${API_URL}/api/content`);
       if (!res.ok) throw new Error('Failed to fetch content');
       const data = await res.json();
       setContent(data.content);

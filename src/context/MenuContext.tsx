@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { API_URL } from '../config/api';
 import type { MenuItem, MenuCategory, ExtraCategory } from '../types/menu';
 
 interface MenuContextType {
@@ -22,9 +23,9 @@ export const MenuProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Run all three fetches in parallel for speed
       const [catRes, prodRes, extrasRes] = await Promise.all([
-        fetch('/api/catalog/categories'),
-        fetch('/api/catalog/products'),
-        fetch('/api/catalog/pizza-extras'),
+        fetch(`${API_URL}/api/catalog/categories`),
+        fetch(`${API_URL}/api/catalog/products`),
+        fetch(`${API_URL}/api/catalog/pizza-extras`),
       ]);
 
       const [catData, prodData, extrasData] = await Promise.all([
@@ -43,8 +44,8 @@ export const MenuProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setTimeout(async () => {
         try {
           const [catRes, prodRes] = await Promise.all([
-            fetch('/api/catalog/categories'),
-            fetch('/api/catalog/products'),
+            fetch(`${API_URL}/api/catalog/categories`),
+            fetch(`${API_URL}/api/catalog/products`),
           ]);
           const [catData, prodData] = await Promise.all([catRes.json(), prodRes.json()]);
           if (catData.categories?.length) setCategories(catData.categories);

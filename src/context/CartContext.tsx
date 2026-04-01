@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { type MenuItem, type CartItem } from '../types/menu';
+import { API_URL } from '../config/api';
 
 interface CartContextType {
   cartItems: CartItem[];
@@ -17,7 +18,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 const createGuestUser = async (): Promise<string | null> => {
   try {
     const rand = Math.floor(Math.random() * 10000000);
-    const res = await fetch('/api/auth/register', {
+    const res = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -44,7 +45,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (stored) {
         // Validate the token by hitting a protected endpoint
-        const res = await fetch('/api/cart', {
+        const res = await fetch(`${API_URL}/api/cart`, {
           headers: { 'Authorization': `Bearer ${stored}` }
         });
         if (res.ok) {
@@ -98,7 +99,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Background DB sync — best effort
     if (token) {
       try {
-        const res = await fetch('/api/cart', {
+        const res = await fetch(`${API_URL}/api/cart`, {
           method: 'POST',
           headers: authHeaders(),
           body: JSON.stringify({
@@ -111,7 +112,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         if (res.ok) {
-          const cartRes = await fetch('/api/cart', { headers: authHeaders() });
+          const cartRes = await fetch(`${API_URL}/api/cart`, { headers: authHeaders() });
           const data = await cartRes.json();
           if (data.cartItems) setCartItems(data.cartItems);
         }
@@ -126,7 +127,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!item) return;
     setCartItems(prev => prev.map(i => i.id === id ? { ...i, quantity: i.quantity + 1 } : i));
     if (token && !id.startsWith('local_')) {
-      fetch(`/api/cart/${id}`, {
+      fetch(`${API_URL}/api/cart/${id}`, {
         method: 'PUT', headers: authHeaders(),
         body: JSON.stringify({ quantity: item.quantity + 1 })
       }).catch(console.error);
@@ -139,12 +140,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (item.quantity === 1) {
       setCartItems(prev => prev.filter(i => i.id !== id));
       if (token && !id.startsWith('local_')) {
-        fetch(`/api/cart/${id}`, { method: 'DELETE', headers: authHeaders() }).catch(console.error);
+        fetch(`${API_URL}/api/cart/${id}`, { method: 'DELETE', headers: authHeaders() }).catch(console.error);
       }
     } else {
       setCartItems(prev => prev.map(i => i.id === id ? { ...i, quantity: i.quantity - 1 } : i));
       if (token && !id.startsWith('local_')) {
-        fetch(`/api/cart/${id}`, {
+        fetch(`${API_URL}/api/cart/${id}`, {
           method: 'PUT', headers: authHeaders(),
           body: JSON.stringify({ quantity: item.quantity - 1 })
         }).catch(console.error);
@@ -155,7 +156,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearCart = async () => {
     setCartItems([]);
     if (token) {
-      fetch('/api/cart', { method: 'DELETE', headers: authHeaders() }).catch(console.error);
+      fetch(`${API_URL}/api/cart`, { method: 'DELETE', headers: authHeaders() }).catch(console.error);
     }
   };
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config/api';
 import { useCart } from '../context/CartContext';
 import {
   MapPin, CreditCard, Banknote, ChevronRight, ShieldCheck,
@@ -62,7 +63,7 @@ export default function Checkout() {
     }
 
     try {
-      const res = await fetch('/api/orders', {
+      const res = await fetch(`${API_URL}/api/orders`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

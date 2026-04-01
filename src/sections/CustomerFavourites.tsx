@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Star, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useSectionContent } from '../context/ContentContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { API_URL } from '../config/api';
 
 // We now fetch ratings from the database field `rating`
 

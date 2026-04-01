@@ -15,7 +15,15 @@ import { stripeWebhook } from './controllers/orderController';
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+// Set FRONTEND_URL in your cloud provider's environment variables
+app.use(cors({
+  origin: process.env.FRONTEND_URL || [
+    'http://localhost:5173', 
+    'http://localhost:3000',
+    'https://brent-street-pizza.vercel.app' // Fallback for standard Vercel deploy
+  ],
+  credentials: true
+}));
 
 // Stripe Webhook needs raw body
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
