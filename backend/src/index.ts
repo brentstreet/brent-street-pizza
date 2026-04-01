@@ -17,11 +17,24 @@ const port = process.env.PORT || 5000;
 
 // Set FRONTEND_URL in your cloud provider's environment variables
 app.use(cors({
-  origin: process.env.FRONTEND_URL || [
-    'http://localhost:5173', 
-    'http://localhost:3000',
-    'https://brent-street-pizza.vercel.app' // Fallback for standard Vercel deploy
-  ],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    
+    if (origin.startsWith('http://localhost:')) {
+      return callback(null, true);
+    }
+    
+    if (origin.includes('vercel.app')) {
+      return callback(null, true);
+    }
+    
+    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+      return callback(null, true);
+    }
+    
+    // Otherwise fallback to false
+    callback(null, false);
+  },
   credentials: true
 }));
 
