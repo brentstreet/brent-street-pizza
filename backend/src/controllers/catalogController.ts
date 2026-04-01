@@ -5,8 +5,9 @@ export const getCategories = async (req: Request, res: Response): Promise<void> 
   try {
     const categories = await prisma.category.findMany();
     res.status(200).json({ categories });
-  } catch (err) {
-    res.status(500).json({ error: 'Internal server error while fetching categories' });
+  } catch (err: any) {
+    console.error('Error fetching categories:', err);
+    res.status(500).json({ error: 'Internal server error while fetching categories', details: err.message });
   }
 };
 
@@ -33,8 +34,9 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     }));
 
     res.status(200).json({ products: serialized });
-  } catch (err) {
-    res.status(500).json({ error: 'Internal server error while fetching products' });
+  } catch (err: any) {
+    console.error('Error fetching products:', err);
+    res.status(500).json({ error: 'Internal server error while fetching products', details: err.message });
   }
 };
 
@@ -43,7 +45,8 @@ export const getPizzaExtras = async (req: Request, res: Response): Promise<void>
     const pizzaExtras = await prisma.pizzaExtra.findMany();
     // frontend might expect it as `pizza_extras` key
     res.status(200).json({ pizza_extras: pizzaExtras });
-  } catch (err) {
-    res.status(500).json({ error: 'Internal server error while fetching pizza extras' });
+  } catch (err: any) {
+    console.error('Error fetching pizza extras:', err);
+    res.status(500).json({ error: 'Internal server error while fetching pizza extras', details: err.message });
   }
 };
