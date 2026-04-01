@@ -1,14 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, ShoppingBag, ArrowRight } from 'lucide-react';
-import { MENU_ITEMS } from '../data/dummyMenuData';
+import { useSectionContent } from '../context/ContentContext';
 
-const RATINGS: Record<string, number> = {
-  'pizza-margherita': 4.9,
-  'pizza-super-supreme': 4.9,
-  'pizza-meat-lovers': 4.9,
-  'pizza-tandoori-chicken': 4.9,
-};
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+// We now fetch ratings from the database field `rating`
 
 const StarRating: React.FC<{ rating: number }> = ({ rating }) => (
   <div className="flex items-center gap-1">
@@ -24,7 +21,28 @@ const StarRating: React.FC<{ rating: number }> = ({ rating }) => (
 
 const CustomerFavourites: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const favorites = MENU_ITEMS.filter(item => item.tags.isFavorite).slice(0, 4);
+  const { sectionContent, loading: contentLoading } = useSectionContent('favourites');
+  const [favorites, setFavorites] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/catalog/products?isFavorite=true`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.products)) {
+            setFavorites(data.products.slice(0, 4));
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching favorites:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFavorites();
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -40,7 +58,9 @@ const CustomerFavourites: React.FC = () => {
     const reveals = sectionRef.current?.querySelectorAll('.reveal, .reveal-left, .reveal-right');
     reveals?.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [loading, contentLoading]);
+
+  if (loading || contentLoading) return <div className="min-h-[400px] bg-[#FDF8F2]" />;
 
   return (
     <section ref={sectionRef} className="bg-[#FDF8F2] py-24 md:py-32 overflow-hidden relative">
@@ -55,13 +75,13 @@ const CustomerFavourites: React.FC = () => {
         {/* Section header */}
         <div className="flex flex-col items-center text-center mb-16 reveal">
           <span className="font-barlow text-[13px] font-600 uppercase tracking-[0.3em] text-[#D4952A] mb-4">
-            — Community Picks —
+            {sectionContent.subtitle || '— Community Picks —'}
           </span>
           <h2 className="font-bebas text-[52px] md:text-[68px] text-[#1A1A1A] tracking-wider leading-none mb-4">
-            Customer Favourites
+            {sectionContent.title || 'Customer Favourites'}
           </h2>
           <p className="font-inter text-[#555555] text-[16px] max-w-md">
-            The most-loved pizzas from our menu, ordered again and again.
+            {sectionContent.description || 'The most-loved pizzas from our menu, ordered again and again.'}
           </p>
           <div className="divider-gold w-24 mt-6" />
         </div>
@@ -78,15 +98,13 @@ const CustomerFavourites: React.FC = () => {
               {/* Image */}
               <div className="relative overflow-hidden aspect-square">
                 <img
-                  src={item.image}
+                  src={item.image || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&q=80'}
                   alt={item.name}
+                  loading="lazy"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                {/* No gradient overlay — image shows fully clear */}
-
-                {/* Price badge */}
                 <div className="absolute top-4 left-4 bg-[#1A1A1A] text-white font-bebas text-[18px] px-3 py-1 rounded shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
-                  ${item.sizes?.[0]?.price ?? item.price}
+                  ${item.sizes?.length ? item.sizes[0].price : item.price}
                 </div>
 
                 {/* Favourite badge */}
@@ -97,7 +115,7 @@ const CustomerFavourites: React.FC = () => {
 
               {/* Info */}
               <div className="p-5 flex flex-col flex-grow gap-3">
-                <StarRating rating={RATINGS[item.id] ?? 4.8} />
+                <StarRating rating={Number(item.rating) || 4.8} />
 
                 <h3 className="font-bebas text-[22px] tracking-widest text-[#1A1A1A] leading-none">
                   {item.name}

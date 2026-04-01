@@ -1,15 +1,27 @@
 import { useState } from 'react';
 import { Phone, Mail, MapPin, Send, Clock, Instagram, Facebook, Check } from 'lucide-react';
+import { useSectionContent, useContent } from '../context/ContentContext';
+
+const ICON_MAP: Record<string, any> = {
+  Phone: <Phone className="w-6 h-6" />,
+  Mail: <Mail className="w-6 h-6" />,
+  MapPin: <MapPin className="w-6 h-6" />,
+};
 
 
 export default function ContactUs() {
   const [formState, setFormState] = useState({ name: '', email: '', subject: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
+  const { sectionContent, loading } = useSectionContent('contact');
+  const { content } = useContent();
+  const global = content.global || {};
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formState.name && formState.email && formState.message) setSubmitted(true);
   };
+
+  if (loading) return <div className="min-h-screen bg-[#FDF8F2]" />;
 
   return (
     <div className="bg-[#FDF8F2] min-h-screen text-[#2B2B2B]">
@@ -18,15 +30,15 @@ export default function ContactUs() {
       <div className="relative w-full h-[40vh] min-h-[300px] flex items-center justify-center overflow-hidden pt-20">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-25"
-          style={{ backgroundImage: 'url(/heropic.jpeg)' }}
+          style={{ backgroundImage: `url(${sectionContent.hero_image || '/heropic.jpeg'})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#FDF8F2] via-[#FDF8F2]/60 to-transparent" />
         <div className="relative z-10 text-center px-4">
-          <span className="font-barlow text-[13px] font-600 uppercase tracking-[0.3em] text-[#D4952A] block mb-3">
-            — Get In Touch —
+          <span className="font-barlow text-[13px] font-600 uppercase tracking-[0.3em] text-[#D4952A] block mb-3 text-center">
+            {sectionContent.subtitle || '— Get In Touch —'}
           </span>
-          <h1 className="font-bebas text-[72px] md:text-[110px] text-[#1A1A1A] leading-none tracking-wider drop-shadow-2xl">
-            CONTACT US
+          <h1 className="font-bebas text-[72px] md:text-[110px] text-[#1A1A1A] leading-none tracking-wider drop-shadow-2xl text-center">
+            {sectionContent.title || 'CONTACT US'}
           </h1>
           <div className="w-20 h-[3px] bg-gradient-to-r from-[#C8201A] via-[#D4952A] to-transparent mx-auto mt-5" />
         </div>
@@ -34,31 +46,9 @@ export default function ContactUs() {
 
       <div className="container-custom py-20 px-4">
 
-        {/* Top: Quick contact cards */}
+        {/* Top: Quick contact contact cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-16">
-          {[
-            {
-              icon: <Phone className="w-6 h-6" />,
-              label: 'Call Us Directly',
-              value: '03 6272 4004',
-              href: 'tel:0362724004',
-              color: '#C8201A',
-            },
-            {
-              icon: <Mail className="w-6 h-6" />,
-              label: 'Email Support',
-              value: 'brentstreetgroup@gmail.com',
-              href: 'mailto:brentstreetgroup@gmail.com',
-              color: '#D4952A',
-            },
-            {
-              icon: <MapPin className="w-6 h-6" />,
-              label: 'Our Location',
-              value: '2 Brent St, Glenorchy 7010',
-              href: 'https://maps.google.com/?q=2+Brent+St+Glenorchy',
-              color: '#C8201A',
-            },
-          ].map(card => (
+          {(sectionContent.cards || []).map((card: any) => (
             <a
               key={card.label}
               href={card.href}
@@ -70,7 +60,7 @@ export default function ContactUs() {
                 className="w-12 h-12 rounded-[10px] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"
                 style={{ background: `${card.color}15`, border: `1px solid ${card.color}30`, color: card.color }}
               >
-                {card.icon}
+                {ICON_MAP[card.icon] || <Phone className="w-6 h-6" />}
               </div>
               <div>
                 <p className="font-barlow text-[11px] font-700 uppercase tracking-wider text-[#555555] mb-0.5">{card.label}</p>
@@ -86,7 +76,7 @@ export default function ContactUs() {
           {/* Left: Message form */}
           <div className="bg-[#F5EDE0] rounded-[20px] border border-[#E8D8C8] p-8 md:p-10">
             <h2 className="font-bebas text-[36px] md:text-[44px] text-[#1A1A1A] tracking-wider mb-2">Send a Message</h2>
-            <p className="font-inter text-[#555555] text-[14px] mb-8">For catering, large orders, or general enquiries — we reply within 4 hours.</p>
+            <p className="font-inter text-[#555555] text-[14px] mb-8">{sectionContent.description || 'For catering, large orders, or general enquiries — we reply within 4 hours.'}</p>
 
             {!submitted ? (
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -150,9 +140,9 @@ export default function ContactUs() {
                   <Check className="w-8 h-8 text-[#C8201A]" />
                 </div>
                 <h3 className="font-bebas text-[30px] text-[#1A1A1A] tracking-wider">Message Received!</h3>
-                <p className="font-inter text-[14px] text-[#555555] max-w-xs">We'll reply to your email within a few hours. For urgent matters, call us directly.</p>
-                <a href="tel:0362724004" className="font-bebas text-[28px] text-[#C8201A] tracking-wider hover:text-[#D4952A] transition-colors">
-                  03 6272 4004
+                <p className="font-inter text-[14px] text-[#555555] max-w-xs text-center">We'll reply to your email within a few hours. For urgent matters, call us directly.</p>
+                <a href={`tel:${global.phone || '0362724004'}`} className="font-bebas text-[28px] text-[#C8201A] tracking-wider hover:text-[#D4952A] transition-colors">
+                  {global.phone_display || '03 6272 4004'}
                 </a>
               </div>
             )}
@@ -169,30 +159,17 @@ export default function ContactUs() {
                 <h3 className="font-bebas text-[26px] text-[#1A1A1A] tracking-wider">Trading Hours</h3>
               </div>
 
-              {/* Pickup block */}
-              <div className="bg-[#FDF8F2] rounded-[12px] border border-[#E8D8C8] p-4 mb-3">
-                <p className="font-barlow text-[13px] font-900 uppercase tracking-[0.2em] text-[#C8201A] mb-3">In-Store Pickup</p>
-                <div className="flex justify-between items-center">
-                  <span className="font-inter text-[14px] text-[#555555]">Daily</span>
-                  <span className="font-bebas text-[22px] text-[#2B2B2B] tracking-wider">11am – 8pm</span>
-                </div>
-              </div>
-
-              {/* Delivery block */}
-              <div className="bg-[#FDF8F2] rounded-[12px] border border-[#E8D8C8] p-4">
-                <p className="font-barlow text-[13px] font-900 uppercase tracking-[0.2em] text-[#C8201A] mb-3">Delivery &amp; Uber Eats</p>
-                <div className="space-y-2.5">
+              {/* Hours blocks from footer content or defaults */}
+              {(content.footer?.trading_hours || []).map((th: any) => (
+                <div key={th.label} className="bg-[#FDF8F2] rounded-[12px] border border-[#E8D8C8] p-4 mb-3 last:mb-0">
+                  <p className="font-barlow text-[13px] font-900 uppercase tracking-[0.2em] text-[#C8201A] mb-3">{th.label}</p>
                   <div className="flex justify-between items-center">
-                    <span className="font-inter text-[14px] text-[#555555]">Sun – Thu</span>
-                    <span className="font-bebas text-[22px] text-[#2B2B2B] tracking-wider">11am – 9:30pm</span>
-                  </div>
-                  <div className="h-px bg-[#1A1A1A]/5" />
-                  <div className="flex justify-between items-center">
-                    <span className="font-inter text-[14px] text-[#555555]">Fri – Sat</span>
-                    <span className="font-bebas text-[22px] text-[#2B2B2B] tracking-wider">11am – 11pm</span>
+                    <span className="font-inter text-[14px] text-[#555555]">
+                      {Array.isArray(th.value) ? th.value.join(', ') : th.value}
+                    </span>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
 
             {/* Map embed */}

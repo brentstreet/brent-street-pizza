@@ -4,6 +4,7 @@ import Footer from './layout/Footer';
 import MobileCTABar from './layout/MobileCTABar';
 import { CartProvider } from './context/CartContext';
 import { MenuProvider } from './context/MenuContext';
+import { ContentProvider } from './context/ContentContext';
 
 // Pages
 import Home from './pages/Home';
@@ -17,7 +18,8 @@ import Checkout from './pages/Checkout';
 export default function App() {
   return (
     <Router>
-      <MenuProvider>
+      <ContentProvider>
+        <MenuProvider>
         <CartProvider>
           <div className="font-inter bg-[#FDF8F2] min-h-screen text-[#2B2B2B] antialiased overflow-x-hidden selection:bg-[#C8201A] selection:text-white flex flex-col pb-[52px] sm:pb-0">
             <Navbar />
@@ -30,7 +32,7 @@ export default function App() {
                 <Route path="/contact" element={<ContactUs />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/deals" element={<Deals />} />
-                <Route path="/icecream" element={<IceCream />} />
+                <Route path="/ice-cream" element={<IceCream />} />
               </Routes>
             </main>
 
@@ -39,6 +41,7 @@ export default function App() {
           </div>
         </CartProvider>
       </MenuProvider>
+      </ContentProvider>
     </Router>
   );
 }

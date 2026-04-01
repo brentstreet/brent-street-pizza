@@ -6,12 +6,11 @@ import {
   ArrowLeft, Bike, Store, Trash2, CheckCircle2, Clock, Package,
   FileText, MessageSquare, Download
 } from 'lucide-react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import StripePaymentForm from '../components/StripePaymentForm';
 
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 type Step = 'address' | 'payment' | 'success';
 
@@ -23,6 +22,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'COD'>('ONLINE');
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderId, setOrderId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
   const [finalOrderItems, setFinalOrderItems] = useState<any[]>([]);
   const [finalTotal, setFinalTotal] = useState(0);
   const [address, setAddress] = useState({
@@ -34,15 +34,6 @@ export default function Checkout() {
     postcode: '',
     notes: '',
   });
-
-  // Load Razorpay SDK
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
-  }, []);
 
   // If cart is empty, redirect to menu
   useEffect(() => {
@@ -107,51 +98,11 @@ export default function Checkout() {
         return;
       }
 
-      // Online payment via Razorpay
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: Math.round(total * 100),
-        currency: 'INR',
-        name: 'Brent Street Pizza',
-        description: 'Your delicious pizza order',
-        image: '/logo.png',
-        order_id: data.razorpayOrderId,
-        handler: async (response: any) => {
-          // Verify payment
-          const verifyRes = await fetch('/api/orders/verify-payment', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              order_id: data.order.id,
-            }),
-          });
-
-          if (verifyRes.ok) {
-            setFinalOrderItems([...cartItems]);
-            setFinalTotal(total);
-            await clearCart();
-            setStep('success');
-          }
-        },
-        prefill: {
-          name: address.name,
-          contact: address.phone,
-        },
-        theme: { color: '#C8201A' },
-        modal: {
-          ondismiss: () => setIsProcessing(false),
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-      setIsProcessing(false);
+      if (paymentMethod === 'ONLINE') {
+        setClientSecret(data.clientSecret);
+        setIsProcessing(false);
+        return;
+      }
 
     } catch (err: any) {
       console.error(err);
@@ -161,7 +112,7 @@ export default function Checkout() {
   };
 
   const generateWhatsAppMessage = () => {
-    const itemsList = cartItems.map(item => {
+    const itemsList = cartItems.map((item: any) => {
       let details = `*${item.quantity}x ${item.name}*`;
       if (item.size) details += ` (${item.size})`;
       if (item.removedToppings?.length) details += `\n   - No: ${item.removedToppings.join(', ')}`;
@@ -325,7 +276,7 @@ export default function Checkout() {
             <div className="p-8">
               {/* Receipt Items */}
               <div className="divide-y divide-[#F0E8DC] mb-8">
-                {finalOrderItems.map((item, idx) => (
+                {finalOrderItems.map((item: any, idx: number) => (
                   <div key={idx} className="py-4 flex justify-between items-start gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
@@ -608,12 +559,12 @@ export default function Checkout() {
                     <CreditCard className="w-5 h-5 text-[#C8201A]" />
                     <div className="text-left flex-1">
                       <p className="font-barlow text-[13px] font-700 uppercase tracking-wide text-[#1A1A1A]">Pay Online</p>
-                      <p className="font-inter text-[11px] text-[#555555]">Credit / Debit Card, UPI, Net Banking via Razorpay</p>
+                      <p className="font-inter text-[11px] text-[#555555]">Secure Credit / Debit Card payment via Stripe</p>
                     </div>
                     <div className="flex gap-1.5 flex-shrink-0">
-                      <div className="bg-[#1A1A1A] text-white font-barlow font-700 text-[9px] px-2 py-0.5 rounded">VISA</div>
-                      <div className="bg-[#EB001B]/10 text-[#EB001B] font-barlow font-700 text-[9px] px-2 py-0.5 rounded border border-[#EB001B]/20">MC</div>
-                      <div className="bg-[#00589C]/10 text-[#00589C] font-barlow font-700 text-[9px] px-2 py-0.5 rounded border border-[#00589C]/20">UPI</div>
+                      <div className="bg-[#1A1A1A] text-white font-barlow font-700 text-[9px] px-2 py-0.5 rounded uppercase">Visa</div>
+                      <div className="bg-[#EB001B]/10 text-[#EB001B] font-barlow font-700 text-[9px] px-2 py-0.5 rounded border border-[#EB001B]/20 uppercase">MC</div>
+                      <div className="bg-[#0070BA]/10 text-[#0070BA] font-barlow font-700 text-[9px] px-2 py-0.5 rounded border border-[#0070BA]/20 uppercase">Amex</div>
                     </div>
                   </button>
 
@@ -639,19 +590,41 @@ export default function Checkout() {
               <div className="flex items-center gap-2 px-1 text-[#555555]">
                 <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                 <p className="font-inter text-[12px]">
-                  Payments secured by <span className="font-semibold text-[#1A1A1A]">Razorpay</span>. Your info is never stored.
+                  Payments secured by <span className="font-semibold text-[#1A1A1A]">Stripe</span>. Your info is never stored.
                 </p>
               </div>
 
-              {/* Place Order button */}
-              <button
-                onClick={handlePlaceOrder}
-                disabled={isProcessing}
-                className="w-full flex items-center justify-between bg-[#C8201A] hover:bg-[#9E1510] disabled:opacity-70 disabled:cursor-wait text-white font-barlow font-700 text-[14px] uppercase tracking-wider px-6 py-5 rounded-xl transition-all shadow-[0_8px_24px_rgba(200,32,26,0.35)]"
-              >
-                <span>{isProcessing ? 'Processing...' : paymentMethod === 'ONLINE' ? 'Pay Now' : 'Place Order'}</span>
-                <span className="font-bebas text-[22px] leading-none">${total.toFixed(2)}</span>
-              </button>
+              {/* Online Payment Form or Place Order button */}
+              {paymentMethod === 'ONLINE' && clientSecret ? (
+                <div className="bg-white border border-[#E8D8C8] rounded-2xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <p className="font-barlow text-[13px] font-800 uppercase tracking-widest text-[#1A1A1A] mb-6 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-[#C8201A]" />
+                    Complete Your Secure Payment
+                  </p>
+                  <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
+                    <StripePaymentForm 
+                      clientSecret={clientSecret} 
+                      total={total}
+                      onSuccess={async () => {
+                        setFinalOrderItems([...cartItems]);
+                        setFinalTotal(total);
+                        await clearCart();
+                        setStep('success');
+                      }}
+                      onCancel={() => setClientSecret('')}
+                    />
+                  </Elements>
+                </div>
+              ) : (
+                <button
+                  onClick={handlePlaceOrder}
+                  disabled={isProcessing}
+                  className="w-full flex items-center justify-between bg-[#C8201A] hover:bg-[#9E1510] disabled:opacity-70 disabled:cursor-wait text-white font-barlow font-700 text-[14px] uppercase tracking-wider px-6 py-5 rounded-xl transition-all shadow-[0_8px_24px_rgba(200,32,26,0.35)]"
+                >
+                  <span>{isProcessing ? 'Processing...' : paymentMethod === 'ONLINE' ? 'Initialize Payment' : 'Place Order'}</span>
+                  <span className="font-bebas text-[22px] leading-none">${total.toFixed(2)}</span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -667,7 +640,7 @@ export default function Checkout() {
             </div>
 
             <div className="divide-y divide-[#F0E8DC]">
-              {cartItems.map(item => (
+              {cartItems.map((item: any) => (
                 <div key={item.id} className="px-5 py-3.5 flex items-start gap-3">
                   <span className="w-5 h-5 rounded-full bg-[#C8201A] text-white font-barlow font-700 text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
                     {item.quantity}

@@ -1,8 +1,8 @@
 import { Response } from 'express';
 import prisma from '../config/db';
-import { razorpay } from '../config/razorpay';
+import { stripe } from '../config/stripe';
 import { AuthRequest } from '../middleware/auth';
-import crypto from 'crypto';
+import type Stripe from 'stripe';
 
 export const placeOrder = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -74,35 +74,36 @@ export const placeOrder = async (req: AuthRequest, res: Response): Promise<void>
 
     const order = result;
 
-    // 5. Razorpay integration for ONLINE payment
+    // 5. Stripe integration for ONLINE payment
     if (paymentMethod === 'ONLINE') {
-      const options = {
-        amount: Math.round(totalAmount * 100),
-        currency: 'INR',
-        receipt: `rcpt_${order.id.replace(/-/g, '').slice(0, 32)}`,
-      };
-
       try {
-        const rpOrder = await razorpay.orders.create(options);
-        
-        await prisma.payment.create({
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: Math.round(totalAmount * 100),
+          currency: 'aud', // Pizzas are Australian-based
+          metadata: {
+            orderId: order.id,
+            userId: userId
+          }
+        });
+
+        await (prisma.payment as any).create({
           data: {
             orderId: order.id,
-            razorpayOrderId: rpOrder.id,
-            status: 'Created'
+            provider: 'Stripe',
+            gatewayOrderId: paymentIntent.id,
+            status: 'Requires_Payment_Method'
           }
         });
 
         res.status(201).json({
           message: 'Order placed, proceed to payment',
           order,
-          razorpayOrderId: rpOrder.id,
-          amount: rpOrder.amount,
-          currency: rpOrder.currency,
+          clientSecret: paymentIntent.client_secret,
+          stripePublishableKey: process.env.VITE_STRIPE_PUBLISHABLE_KEY,
         });
         return;
-      } catch (rpError) {
-        console.error('Razorpay Error:', rpError);
+      } catch (stripeError) {
+        console.error('Stripe Error:', stripeError);
         res.status(500).json({ error: 'Failed to initialize payment gateway' });
         return;
       }
@@ -118,55 +119,41 @@ export const placeOrder = async (req: AuthRequest, res: Response): Promise<void>
 };
 
 
-export const verifyPayment = async (req: AuthRequest, res: Response): Promise<void> => {
+export const stripeWebhook = async (req: any, res: Response): Promise<void> => {
+  const sig = req.headers['stripe-signature'] as string;
+  let event: Stripe.Event;
+
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order_id } = req.body;
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET || ''
+    );
+  } catch (err: any) {
+    res.status(400).send(`Webhook Error: ${err.message}`);
+    return;
+  }
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      res.status(400).json({ error: 'Missing payment details' });
-      return;
-    }
+  // Handle successful payments
+  if (event.type === 'payment_intent.succeeded') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    const orderId = paymentIntent.metadata.orderId;
 
-    const secret = process.env.RAZORPAY_KEY_SECRET as string;
-
-    const generated_signature = crypto
-      .createHmac('sha256', secret)
-      .update(razorpay_order_id + '|' + razorpay_payment_id)
-      .digest('hex');
-
-    if (generated_signature !== razorpay_signature) {
-      // Payment Failed
+    if (orderId) {
       await prisma.$transaction([
-        prisma.payment.updateMany({
-          where: { razorpayOrderId: razorpay_order_id },
-          data: { status: 'Failed' }
+        (prisma.payment as any).updateMany({
+          where: { gatewayOrderId: paymentIntent.id },
+          data: { status: 'Success', gatewayPaymentId: paymentIntent.latest_charge as string }
         }),
         prisma.order.update({
-          where: { id: order_id },
-          data: { paymentStatus: 'Failed' }
+          where: { id: orderId },
+          data: { paymentStatus: 'Success' }
         })
       ]);
-      res.status(400).json({ error: 'Payment verification failed' });
-      return;
     }
-
-    // Payment Success
-    await prisma.$transaction([
-      prisma.payment.updateMany({
-        where: { razorpayOrderId: razorpay_order_id },
-        data: { status: 'Success', razorpayPaymentId: razorpay_payment_id }
-      }),
-      prisma.order.update({
-        where: { id: order_id },
-        data: { paymentStatus: 'Success' }
-      })
-    ]);
-
-    res.status(200).json({ message: 'Payment verified successfully' });
-
-  } catch (err) {
-    res.status(500).json({ error: 'Internal server error during verification' });
   }
+
+  res.json({ received: true });
 };
 
 export const getOrders = async (req: AuthRequest, res: Response): Promise<void> => {

@@ -1,17 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
-
 import { Send, Users, Calendar, MessageSquare, ArrowRight, Check } from 'lucide-react';
-
-const eventTypes = [
-  { emoji: '🎂', label: 'Birthdays' },
-  { emoji: '💼', label: 'Corporate Events' },
-  { emoji: '🏈', label: 'Footy Nights' },
-  { emoji: '🎉', label: 'Private Parties' },
-  { emoji: '🎓', label: 'Graduations' },
-  { emoji: '🎪', label: 'Community Events' },
-];
+import { useSectionContent } from '../context/ContentContext';
 
 const CateringSection: React.FC = () => {
+  const { sectionContent, loading } = useSectionContent('catering');
   const sectionRef = useRef<HTMLDivElement>(null);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({ name: '', date: '', guests: '', message: '' });
@@ -23,7 +15,7 @@ const CateringSection: React.FC = () => {
     );
     sectionRef.current?.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => obs.observe(el));
     return () => obs.disconnect();
-  }, []);
+  }, [loading]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,18 +33,18 @@ const CateringSection: React.FC = () => {
           {/* Left: Info */}
           <div className="reveal-left">
             <span className="font-barlow text-[13px] font-600 uppercase tracking-[0.3em] text-[#D4952A] block mb-4">
-              — For Groups —
+              {sectionContent.subtitle || '— For Groups —'}
             </span>
             <h2 className="font-bebas text-[52px] md:text-[64px] text-[#1A1A1A] tracking-wider leading-none mb-4">
-              Feeding a Crowd?
+              {sectionContent.title || 'Feeding a Crowd?'}
             </h2>
             <p className="font-inter text-[#555555] text-[16px] leading-relaxed mb-8">
-              Whether it's 20 or 200 — we've got you covered. Our catering team works with your schedule, your budget, and your crowd to deliver a pizza experience everyone will remember.
+              {sectionContent.description || "Whether it's 20 or 200 — we've got you covered. Our catering team works with your schedule, your budget, and your crowd to deliver a pizza experience everyone will remember."}
             </p>
 
             {/* Event types */}
             <div className="flex flex-wrap gap-2 mb-10">
-              {eventTypes.map(ev => (
+              {(sectionContent.event_types || []).map((ev: any) => (
                 <div
                   key={ev.label}
                   className="flex items-center gap-2 bg-[#1A1A1A]/5 border border-[#E8D8C8] rounded-full px-4 py-2"
@@ -65,13 +57,7 @@ const CateringSection: React.FC = () => {
 
             {/* Details */}
             <div className="space-y-4">
-              {[
-                'Minimum 20 pizzas for catering',
-                'Fresh, made-to-order on the day',
-                'Delivery or pickup available',
-                'Custom menu options available',
-                'Early booking discounts for 50+ orders',
-              ].map(item => (
+              {(sectionContent.details || []).map((item: string) => (
                 <div key={item} className="flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-[#C8201A]/20 border border-[#C8201A]/40 flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 text-[#C8201A]" />
@@ -83,7 +69,7 @@ const CateringSection: React.FC = () => {
 
             {/* Quick call CTA */}
             <a
-              href="tel:0362724004"
+              href={`tel:${sectionContent.phone || '0362724004'}`}
               className="mt-10 inline-flex items-center gap-3 btn-outline border-[#D4952A]/30 text-[#D4952A] hover:border-[#D4952A] hover:bg-[#D4952A]/10"
             >
               Talk to Us Directly <ArrowRight className="w-4 h-4" />
@@ -165,8 +151,8 @@ const CateringSection: React.FC = () => {
                   </div>
                   <h4 className="font-bebas text-[28px] text-[#1A1A1A] tracking-wider">Enquiry Received!</h4>
                   <p className="font-inter text-[14px] text-[#555555]">We'll be in touch within 24 hours to discuss your event.</p>
-                  <a href="tel:0362724004" className="font-barlow font-700 text-[15px] uppercase tracking-wider text-[#D4952A] hover:underline mt-2">
-                    Or call us now: 03 6272 4004
+                  <a href={`tel:${sectionContent.phone || '0362724004'}`} className="font-barlow font-700 text-[15px] uppercase tracking-wider text-[#D4952A] hover:underline mt-2">
+                    Or call us now: {sectionContent.phone_display || '03 6272 4004'}
                   </a>
                 </div>
               )}

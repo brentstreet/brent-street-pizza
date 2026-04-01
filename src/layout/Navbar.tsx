@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu as MenuIcon, X, Phone } from 'lucide-react';
 import Logo from './Logo';
+import { useContent } from '../context/ContentContext';
 
 const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -15,9 +16,11 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  const { content } = useContent();
+  const global = content.global || {};
+  
   const isHero = currentPath === '/' && !scrolled;
-
-
+  
   const navLinks = [
     { name: 'HOME', path: '/' },
     { name: 'MENU', path: '/menu' },
@@ -69,11 +72,11 @@ const Navbar: React.FC = () => {
           {/* Right: Phone + Cart + CTA */}
           <div className="flex items-center gap-4 md:gap-6 ml-auto relative z-[120]">
             <a
-              href="tel:0362724004"
+              href={`tel:${global.phone || '0362724004'}`}
               className="hidden md:flex items-center gap-2 text-black hover:text-[#C8201A] transition-colors duration-300 group"
             >
               <Phone className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              <span className="font-barlow text-[14px] font-700 tracking-wider">03 6272 4004</span>
+              <span className="font-barlow text-[14px] font-700 tracking-wider">{global.phone_display || '03 6272 4004'}</span>
             </a>
 
 
@@ -132,9 +135,9 @@ const Navbar: React.FC = () => {
             ))}
           </div>
           <div className="p-6 border-t border-[#E8D8C8]">
-            <a href="tel:0362724004" className="flex items-center gap-3 text-[#1A1A1A] hover:text-[#C8201A] transition-colors">
+            <a href={`tel:${global.phone || '0362724004'}`} className="flex items-center gap-3 text-[#1A1A1A] hover:text-[#C8201A] transition-colors">
               <Phone className="w-5 h-5" />
-              <span className="font-barlow text-[20px] font-700 tracking-wider">03 6272 4004</span>
+              <span className="font-barlow text-[20px] font-700 tracking-wider">{global.phone_display || '03 6272 4004'}</span>
             </a>
           </div>
         </div>

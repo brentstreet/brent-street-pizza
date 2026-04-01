@@ -1,9 +1,12 @@
 import React from 'react';
-
-const ITEMS = ['FRESH PIZZA', '•', 'MADE TO ORDER', '•', 'QUALITY INGREDIENTS', '•', '$5 FLAT DELIVERY', '•', 'ORDER ONLINE OR CALL NOW'];
+import { useSectionContent } from '../context/ContentContext';
 
 const MarqueeBanner: React.FC = () => {
-  const doubled = [...ITEMS, ...ITEMS];
+  const { sectionContent, loading } = useSectionContent('marquee');
+  const items = sectionContent.items || ['FRESH PIZZA', '•', 'MADE TO ORDER', '•', 'QUALITY INGREDIENTS', '•', '$5 FLAT DELIVERY', '•', 'ORDER ONLINE OR CALL NOW'];
+  const doubled = [...items, ...items];
+
+  if (loading) return <div className="bg-[#1A1A1A] h-[54px]" />;
 
   return (
     <section className="bg-[#1A1A1A] w-full overflow-hidden py-0 relative" style={{ height: '54px' }}>

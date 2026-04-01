@@ -12,11 +12,15 @@ export const getCategories = async (req: Request, res: Response): Promise<void> 
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { category } = req.query;
-    let whereClause = {};
+    const { category, isFavorite } = req.query;
+    let whereClause: any = {};
     
     if (category) {
-      whereClause = { categoryId: String(category) };
+      whereClause.categoryId = String(category);
+    }
+    
+    if (isFavorite === 'true') {
+      whereClause.isFavorite = true;
     }
 
     const products = await prisma.product.findMany({ where: whereClause });

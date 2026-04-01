@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { Flame } from 'lucide-react';
+import { useSectionContent } from '../context/ContentContext';
 
 const InfoSection: React.FC = () => {
+  const { sectionContent, loading } = useSectionContent('info');
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -11,7 +13,9 @@ const InfoSection: React.FC = () => {
     );
     sectionRef.current?.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [loading]);
+
+  if (loading) return null;
 
   return (
     <section ref={sectionRef} className="bg-[#F5EDE0] py-24 md:py-32 overflow-hidden relative">
@@ -26,39 +30,34 @@ const InfoSection: React.FC = () => {
           {/* Left: Text */}
           <div className="reveal-left">
             <span className="font-barlow text-[13px] font-600 uppercase tracking-[0.3em] text-[#D4952A] block mb-4">
-              — our story —
+              {sectionContent.subtitle || '— our story —'}
             </span>
             <h2 className="font-bebas text-[52px] md:text-[72px] lg:text-[80px] text-[#1A1A1A] tracking-[0.02em] leading-[0.9] uppercase mb-8">
-              Crafted<br />
-              <span className="text-gradient-gold">With Passion</span>
+              {sectionContent.title_1 || 'Crafted'}<br />
+              <span className="text-gradient-gold">{sectionContent.title_2 || 'With Passion'}</span>
             </h2>
             <div className="space-y-5">
               <p className="font-inter text-[#555555] text-[16px] md:text-[17px] leading-[1.8]">
-                Brent Street Pizza was created with one simple goal — to serve great pizza that brings people together.
+                {sectionContent.description_1 || 'Brent Street Pizza was created with one simple goal — to serve great pizza that brings people together.'}
               </p>
               <p className="font-inter text-[#555555] text-[16px] md:text-[17px] leading-[1.8]">
-                Located in the heart of Glenorchy, we make fresh, classic pizzas using quality ingredients, from Margherita and Hawaiian to favourites like The Lot and Meat Lovers.
+                {sectionContent.description_2 || 'Located in the heart of Glenorchy, we make fresh, classic pizzas using quality ingredients, from Margherita and Hawaiian to favourites like The Lot and Meat Lovers.'}
               </p>
               <p className="font-inter text-[#555555] text-[16px] leading-[1.8] pl-5 border-l-2 border-[#D4952A]/40 italic">
-                Simple, delicious, and made fresh — that’s Brent Street Pizza. Proudly local, we look forward to serving the Glenorchy community. See you soon at Brent Street Pizza. 🍕
+                {sectionContent.quote || 'Simple, delicious, and made fresh — that’s Brent Street Pizza. Proudly local, we look forward to serving the Glenorchy community. See you soon at Brent Street Pizza. 🍕'}
               </p>
             </div>
 
             <div className="flex items-center gap-6 mt-10">
-              <div className="text-center">
-                <p className="font-bebas text-[40px] text-[#2B2B2B] leading-none">2026</p>
-                <p className="font-barlow text-[11px] uppercase tracking-wider text-[#555555]">Founded</p>
-              </div>
-              <div className="w-[1px] h-12 bg-[#1A1A1A]/5" />
-              <div className="text-center">
-                <p className="font-bebas text-[40px] text-[#2B2B2B] leading-none">100%</p>
-                <p className="font-barlow text-[11px] uppercase tracking-wider text-[#555555]">Fresh Daily</p>
-              </div>
-              <div className="w-[1px] h-12 bg-[#1A1A1A]/5" />
-              <div className="text-center">
-                <p className="font-bebas text-[40px] text-[#2B2B2B] leading-none">232°C</p>
-                <p className="font-barlow text-[11px] uppercase tracking-wider text-[#555555]">Oven Temp</p>
-              </div>
+              {(sectionContent.stats || []).map((stat: any, idx: number) => (
+                <React.Fragment key={stat.label}>
+                  <div className="text-center">
+                    <p className="font-bebas text-[40px] text-[#2B2B2B] leading-none">{stat.value}</p>
+                    <p className="font-barlow text-[11px] uppercase tracking-wider text-[#555555]">{stat.label}</p>
+                  </div>
+                  {idx < (sectionContent.stats.length - 1) && <div className="w-[1px] h-12 bg-[#1A1A1A]/5" />}
+                </React.Fragment>
+              ))}
             </div>
           </div>
 
@@ -66,7 +65,7 @@ const InfoSection: React.FC = () => {
           <div className="reveal-right relative">
             <div className="relative aspect-[4/5] rounded-[16px] overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)]">
               <img
-                src="https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?w=900&q=90"
+                src={sectionContent.image || "https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?w=900&q=90"}
                 alt="Artisan Pizza making"
                 className="w-full h-full object-cover"
                 style={{ transform: 'scale(1.1)' }}

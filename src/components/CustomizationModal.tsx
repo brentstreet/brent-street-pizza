@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import { type MenuItem } from '../types/menu';
 import { useMenu } from '../context/MenuContext';
+import { useSectionContent } from '../context/ContentContext';
+import IceCreamBuilder from './IceCreamBuilder';
 
 interface Props {
   item: MenuItem | null;
@@ -39,13 +41,15 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 const CustomizationModal: React.FC<Props> = ({
   item, isOpen, preselectedSize, onClose, onAddToCart,
 }) => {
-  const { extras } = useMenu();
+  const { extras: menuExtras } = useMenu();
   const [selectedSize, setSelectedSize] = useState('');
   const [removedToppings, setRemovedToppings] = useState<Set<string>>(new Set());
   const [addedExtras, setAddedExtras] = useState<Map<string, { name: string; price: number }>>(new Map());
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [visible, setVisible] = useState(false);
+  const [icCustoms, setIcCustoms] = useState<any>(null);
+  const { sectionContent: icContent } = useSectionContent('icecream');
   const rightPanelRef = useRef<HTMLDivElement>(null);
 
   // Reset on open
@@ -78,7 +82,7 @@ const CustomizationModal: React.FC<Props> = ({
   addedExtras.forEach(e => { extrasTotal += Number(e.price); });
   const orderTotal = (basePrice + extrasTotal) * quantity;
   const rating = RATINGS[item.id] ?? 4.8;
-  const pizzaExtras = item.hasPizzaExtras ? extras : [];
+  const pizzaExtras = item.hasPizzaExtras ? menuExtras : [];
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const toggleTopping = (t: string) => {
@@ -94,13 +98,20 @@ const CustomizationModal: React.FC<Props> = ({
   };
 
   const handleAdd = () => {
-    onAddToCart(item, {
-      size: selectedSize || undefined,
-      price: basePrice,
-      removedToppings: Array.from(removedToppings),
-      addedExtras: Array.from(addedExtras.values()),
-      quantity,
-    });
+    if (item.categoryId === 'cat-ice-cream') {
+      onAddToCart(item, {
+        ...icCustoms,
+        quantity,
+      });
+    } else {
+      onAddToCart(item, {
+        size: selectedSize || undefined,
+        price: basePrice,
+        removedToppings: Array.from(removedToppings),
+        addedExtras: Array.from(addedExtras.values()),
+        quantity,
+      });
+    }
     onClose();
   };
 
@@ -229,200 +240,217 @@ const CustomizationModal: React.FC<Props> = ({
           >
             <div className="px-5 sm:px-6 pt-5 pb-4 space-y-7">
 
-              {/* ── Size selector ─────────────────────────────────────────── */}
-              {item.sizes && item.sizes.length > 0 && (
+              {/* ── Custom UI for Ice Cream ────────────────────────────────────── */}
+              {item.categoryId === 'cat-ice-cream' ? (
                 <section>
-                  <FieldLabel>Choose Size</FieldLabel>
-                  <div className="grid grid-cols-3 gap-2.5">
-                    {item.sizes.map(size => {
-                      const active = selectedSize === size.name;
-                      return (
-                        <button
-                          key={size.name}
-                          onClick={() => setSelectedSize(size.name)}
-                          className={`relative flex flex-col items-center justify-center
-                            py-4 px-2 rounded-xl border-2 transition-all duration-200 overflow-hidden
-                            ${active
-                              ? 'border-[#C8201A] bg-[#C8201A]/12 shadow-[0_0_20px_rgba(200, 32, 26,0.2),inset_0_1px_0_rgba(255,255,255,0.05)]'
-                              : 'border-[#E8D8C8] bg-[#1A1A1A]/5 hover:border-[#E8D8C8] hover:bg-[#1A1A1A]/5'
-                            }`}
-                        >
-                          {/* Scaled pizza emoji */}
-                          <span className={`mb-2 block transition-transform duration-200 leading-none
-                            ${size.name === 'Small' ? 'text-[16px]' : size.name === 'Large' ? 'text-[20px]' : 'text-[24px]'}
-                            ${active ? 'scale-110' : ''}`}>
-                            🍕
-                          </span>
-                          <span className={`font-barlow text-[11px] font-700 uppercase tracking-wider mb-1 transition-colors
-                            ${active ? 'text-white' : 'text-[#555555]'}`}>
-                            {size.name}
-                          </span>
-                          <span className={`font-bebas text-[22px] leading-none transition-colors
-                            ${active ? 'text-[#C8201A]' : 'text-[#555555]'}`}>
-                            ${size.price}
-                          </span>
-                          {active && (
-                            <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#C8201A]
-                              flex items-center justify-center shadow-[0_0_8px_rgba(200, 32, 26,0.7)]">
-                              <Check className="w-2.5 h-2.5 text-[#1A1A1A]" strokeWidth={3} />
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <FieldLabel>Customize Your Bowl</FieldLabel>
+                  <IceCreamBuilder 
+                    scoops={icContent.scoops}
+                    flavours={icContent.flavours}
+                    toppings={icContent.toppings}
+                    sauces={icContent.sauces}
+                    onChange={setIcCustoms}
+                    compact
+                  />
                 </section>
-              )}
-
-              {/* ── Current toppings ──────────────────────────────────────── */}
-              {item.toppings && item.toppings.length > 0 && (
-                <section>
-                  <div className="flex items-center justify-between mb-3">
-                    <FieldLabel>Current Toppings</FieldLabel>
-                    <span className="font-inter text-[10px] text-[#555555] ml-2 flex-shrink-0">tap × to remove</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {item.toppings.map(t => {
-                      const removed = removedToppings.has(t);
-                      return (
-                        <button
-                          key={t}
-                          onClick={() => toggleTopping(t)}
-                          className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-full border
-                            font-inter text-[12px] transition-all duration-200
-                            ${removed
-                              ? 'border-[#E8D8C8] bg-transparent text-[#555555] line-through'
-                              : 'border-[#D4952A]/28 bg-white text-[#555555] hover:border-[#C8201A]/50 hover:bg-[#C8201A]/8'
-                            }`}
-                        >
-                          {t}
-                          <span className={`text-[14px] leading-none transition-colors
-                            ${removed ? 'text-[#555555]' : 'text-[#555555] group-hover:text-[#C8201A]'}`}>
-                            ×
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {removedToppings.size > 0 && (
-                    <button
-                      onClick={() => setRemovedToppings(new Set())}
-                      className="mt-2.5 font-barlow text-[10px] font-700 uppercase tracking-wider
-                        text-[#D4952A]/50 hover:text-[#D4952A] transition-colors"
-                    >
-                      ↺ Restore all
-                    </button>
-                  )}
-                </section>
-              )}
-
-              {/* ── Extras accordion ──────────────────────────────────────── */}
-              {pizzaExtras.length > 0 && (
-                <section>
-                  <FieldLabel>Add Extras</FieldLabel>
-                  <div className="space-y-1.5">
-                    {pizzaExtras.map(cat => {
-                      const open = openAccordion === cat.id;
-                      const count = cat.options.filter(o => addedExtras.has(o.name)).length;
-                      return (
-                        <div
-                          key={cat.id}
-                          className={`rounded-xl border overflow-hidden transition-colors duration-200
-                            ${open ? 'border-[#E8D8C8]' : 'border-[#E8D8C8]'}`}
-                        >
-                          {/* Header */}
-                          <button
-                            onClick={() => setOpenAccordion(open ? null : cat.id)}
-                            className={`w-full flex items-center justify-between px-4 py-3 transition-colors duration-200
-                              ${open ? 'bg-[#F0E8DC]' : 'bg-[#EDE4D8] hover:bg-[#E8DDD0]'}`}
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <span className="text-[14px]">{CAT_ICONS[cat.id] ?? '➕'}</span>
-                              <span className="font-barlow text-[12px] font-700 uppercase tracking-wider text-[#2B2B2B]">
-                                {cat.name}
+              ) : (
+                <>
+                  {/* ── Size selector ─────────────────────────────────────────── */}
+                  {item.sizes && item.sizes.length > 0 && (
+                    <section>
+                      <FieldLabel>Choose Size</FieldLabel>
+                      <div className="grid grid-cols-3 gap-2.5">
+                        {item.sizes.map(size => {
+                          const active = selectedSize === size.name;
+                          return (
+                            <button
+                              key={size.name}
+                              onClick={() => setSelectedSize(size.name)}
+                              className={`relative flex flex-col items-center justify-center
+                                py-4 px-2 rounded-xl border-2 transition-all duration-200 overflow-hidden
+                                ${active
+                                  ? 'border-[#C8201A] bg-[#C8201A]/12 shadow-[0_0_20px_rgba(200, 32, 26,0.2),inset_0_1px_0_rgba(255,255,255,0.05)]'
+                                  : 'border-[#E8D8C8] bg-[#1A1A1A]/5 hover:border-[#E8D8C8] hover:bg-[#1A1A1A]/5'
+                                }`}
+                            >
+                              {/* Scaled pizza emoji */}
+                              <span className={`mb-2 block transition-transform duration-200 leading-none
+                                ${size.name === 'Small' ? 'text-[16px]' : size.name === 'Large' ? 'text-[20px]' : 'text-[24px]'}
+                                ${active ? 'scale-110' : ''}`}>
+                                🍕
                               </span>
-                              {count > 0 && (
-                                <span className="bg-[#C8201A] text-[#FFFCF7] font-barlow text-[10px] font-700
-                                  px-1.5 py-0.5 rounded-full leading-none min-w-[18px] text-center">
-                                  {count}
-                                </span>
+                              <span className={`font-barlow text-[11px] font-700 uppercase tracking-wider mb-1 transition-colors
+                                ${active ? 'text-white' : 'text-[#555555]'}`}>
+                                {size.name}
+                              </span>
+                              <span className={`font-bebas text-[22px] leading-none transition-colors
+                                ${active ? 'text-[#C8201A]' : 'text-[#555555]'}`}>
+                                ${size.price}
+                              </span>
+                              {active && (
+                                <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#C8201A]
+                                  flex items-center justify-center shadow-[0_0_8px_rgba(200, 32, 26,0.7)]">
+                                  <Check className="w-2.5 h-2.5 text-[#1A1A1A]" strokeWidth={3} />
+                                </div>
                               )}
-                            </div>
-                            <ChevronDown className={`w-4 h-4 text-[#555555] transition-transform duration-300
-                              ${open ? 'rotate-180 text-[#555555]' : ''}`} />
-                          </button>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  )}
 
-                          {/* Body */}
-                          <div className={`overflow-hidden transition-all duration-300 ease-in-out
-                            ${open ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                            <div className="px-4 py-3.5 bg-[#F5EDE0] flex flex-wrap gap-1.5">
-                              {cat.options.map(opt => {
-                                const added = addedExtras.has(opt.name);
-                                return (
-                                  <button
-                                    key={opt.name}
-                                    onClick={() => toggleExtra(opt.name, opt.price)}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border
-                                      font-inter text-[11px] transition-all duration-150
-                                      ${added
-                                        ? 'bg-[#C8201A] border-[#C8201A] text-white'
-                                        : 'bg-white border-[#E8D8C8] text-[#555555] hover:border-[#C8201A]/40 hover:text-[#1A1A1A]'
-                                      }`}
-                                  >
-                                    {added && <Check className="w-2.5 h-2.5 flex-shrink-0" strokeWidth={3} />}
-                                    <span>{opt.name}</span>
-                                    <span className={`font-barlow font-700 text-[10px]
-                                      ${added ? 'text-[#555555]' : 'text-[#555555]'}`}>
-                                      +${opt.price.toFixed(2)}
-                                    </span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              )}
-
-              {/* ── Added extras summary ──────────────────────────────────── */}
-              {addedExtras.size > 0 && (
-                <section>
-                  <FieldLabel>Your Extras</FieldLabel>
-                  <div className="bg-[#F0E8DC] border border-[#E8D8C8] rounded-xl p-3.5">
-                    <div className="flex flex-wrap gap-1.5">
-                      {Array.from(addedExtras.values()).map(e => (
-                        <span
-                          key={e.name}
-                          className="flex items-center gap-1.5 bg-[#C8201A]/10 border border-[#C8201A]/25
-                            text-[#555555] font-inter text-[11px] px-2.5 py-1.5 rounded-full"
+                  {/* ── Current toppings ──────────────────────────────────────── */}
+                  {item.toppings && item.toppings.length > 0 && (
+                    <section>
+                      <div className="flex items-center justify-between mb-3">
+                        <FieldLabel>Current Toppings</FieldLabel>
+                        <span className="font-inter text-[10px] text-[#555555] ml-2 flex-shrink-0">tap × to remove</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.toppings.map(t => {
+                          const removed = removedToppings.has(t);
+                          return (
+                            <button
+                              key={t}
+                              onClick={() => toggleTopping(t)}
+                              className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-full border
+                                font-inter text-[12px] transition-all duration-200
+                                ${removed
+                                  ? 'border-[#E8D8C8] bg-transparent text-[#555555] line-through'
+                                  : 'border-[#D4952A]/28 bg-white text-[#555555] hover:border-[#C8201A]/50 hover:bg-[#C8201A]/8'
+                                }`}
+                            >
+                              {t}
+                              <span className={`text-[14px] leading-none transition-colors
+                                ${removed ? 'text-[#555555]' : 'text-[#555555] group-hover:text-[#C8201A]'}`}>
+                                ×
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {removedToppings.size > 0 && (
+                        <button
+                          onClick={() => setRemovedToppings(new Set())}
+                          className="mt-2.5 font-barlow text-[10px] font-700 uppercase tracking-wider
+                            text-[#D4952A]/50 hover:text-[#D4952A] transition-colors"
                         >
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#C8201A] flex-shrink-0" />
-                          {e.name}
-                          <span className="text-[#D4952A] font-barlow font-700 text-[10px]">
-                            +${e.price.toFixed(2)}
+                          ↺ Restore all
+                        </button>
+                      )}
+                    </section>
+                  )}
+
+                  {/* ── Extras accordion ──────────────────────────────────────── */}
+                  {pizzaExtras.length > 0 && (
+                    <section>
+                      <FieldLabel>Add Extras</FieldLabel>
+                      <div className="space-y-1.5">
+                        {pizzaExtras.map(cat => {
+                          const open = openAccordion === cat.id;
+                          const count = cat.options.filter(o => addedExtras.has(o.name)).length;
+                          return (
+                            <div
+                              key={cat.id}
+                              className={`rounded-xl border overflow-hidden transition-colors duration-200
+                                ${open ? 'border-[#E8D8C8]' : 'border-[#E8D8C8]'}`}
+                            >
+                              {/* Header */}
+                              <button
+                                onClick={() => setOpenAccordion(open ? null : cat.id)}
+                                className={`w-full flex items-center justify-between px-4 py-3 transition-colors duration-200
+                                  ${open ? 'bg-[#F0E8DC]' : 'bg-[#EDE4D8] hover:bg-[#E8DDD0]'}`}
+                              >
+                                <div className="flex items-center gap-2.5">
+                                  <span className="text-[14px]">{CAT_ICONS[cat.id] ?? '➕'}</span>
+                                  <span className="font-barlow text-[12px] font-700 uppercase tracking-wider text-[#2B2B2B]">
+                                    {cat.name}
+                                  </span>
+                                  {count > 0 && (
+                                    <span className="bg-[#C8201A] text-[#FFFCF7] font-barlow text-[10px] font-700
+                                      px-1.5 py-0.5 rounded-full leading-none min-w-[18px] text-center">
+                                      {count}
+                                    </span>
+                                  )}
+                                </div>
+                                <ChevronDown className={`w-4 h-4 text-[#555555] transition-transform duration-300
+                                  ${open ? 'rotate-180 text-[#555555]' : ''}`} />
+                              </button>
+
+                              {/* Body */}
+                              <div className={`overflow-hidden transition-all duration-300 ease-in-out
+                                ${open ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                <div className="px-4 py-3.5 bg-[#F5EDE0] flex flex-wrap gap-1.5">
+                                  {cat.options.map(opt => {
+                                    const added = addedExtras.has(opt.name);
+                                    return (
+                                      <button
+                                        key={opt.name}
+                                        onClick={() => toggleExtra(opt.name, opt.price)}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border
+                                          font-inter text-[11px] transition-all duration-150
+                                          ${added
+                                            ? 'bg-[#C8201A] border-[#C8201A] text-white'
+                                            : 'bg-white border-[#E8D8C8] text-[#555555] hover:border-[#C8201A]/40 hover:text-[#1A1A1A]'
+                                          }`}
+                                      >
+                                        {added && <Check className="w-2.5 h-2.5 flex-shrink-0" strokeWidth={3} />}
+                                        <span>{opt.name}</span>
+                                        <span className={`font-barlow font-700 text-[10px]
+                                          ${added ? 'text-[#555555]' : 'text-[#555555]'}`}>
+                                          +${opt.price.toFixed(2)}
+                                        </span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* ── Added extras summary ──────────────────────────────────── */}
+                  {addedExtras.size > 0 && (
+                    <section>
+                      <FieldLabel>Your Extras</FieldLabel>
+                      <div className="bg-[#F0E8DC] border border-[#E8D8C8] rounded-xl p-3.5">
+                        <div className="flex flex-wrap gap-1.5">
+                          {Array.from(addedExtras.values()).map(e => (
+                            <span
+                              key={e.name}
+                              className="flex items-center gap-1.5 bg-[#C8201A]/10 border border-[#C8201A]/25
+                                text-[#555555] font-inter text-[11px] px-2.5 py-1.5 rounded-full"
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#C8201A] flex-shrink-0" />
+                              {e.name}
+                              <span className="text-[#D4952A] font-barlow font-700 text-[10px]">
+                                +${e.price.toFixed(2)}
+                              </span>
+                              <button
+                                onClick={() => toggleExtra(e.name, e.price)}
+                                className="text-[#555555] hover:text-[#C8201A] transition-colors ml-0.5"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                        <div className="mt-3 pt-2.5 border-t border-[#E8D8C8] flex justify-between items-center">
+                          <span className="font-barlow text-[10px] font-700 uppercase tracking-wider text-[#555555]">
+                            Extras Total
                           </span>
-                          <button
-                            onClick={() => toggleExtra(e.name, e.price)}
-                            className="text-[#555555] hover:text-[#C8201A] transition-colors ml-0.5"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                    <div className="mt-3 pt-2.5 border-t border-[#E8D8C8] flex justify-between items-center">
-                      <span className="font-barlow text-[10px] font-700 uppercase tracking-wider text-[#555555]">
-                        Extras Total
-                      </span>
-                      <span className="font-barlow text-[13px] font-700 text-[#D4952A]">
-                        +${extrasTotal.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </section>
+                          <span className="font-barlow text-[13px] font-700 text-[#D4952A]">
+                            +${extrasTotal.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </section>
+                  )}
+                </>
               )}
 
               {/* Bottom breathing room */}
@@ -439,10 +467,16 @@ const CustomizationModal: React.FC<Props> = ({
           {/* Price breakdown — shown above controls on mobile, inline on desktop */}
           <div className="flex items-center justify-between sm:hidden mb-3">
             <span className="font-barlow text-[11px] font-700 uppercase tracking-wider text-[#555555]">
-              {selectedSize && `${selectedSize} · `}${basePrice.toFixed(2)}
-              {extrasTotal > 0 && <span className="text-[#D4952A]/60"> + ${extrasTotal.toFixed(2)} extras</span>}
+              {item.categoryId === 'cat-ice-cream' ? (
+                icCustoms?.scoops || 'Select scoops'
+              ) : (
+                <>{selectedSize && `${selectedSize} · `}${basePrice.toFixed(2)}</>
+              )}
+              {item.categoryId !== 'cat-ice-cream' && extrasTotal > 0 && <span className="text-[#D4952A]/60"> + ${extrasTotal.toFixed(2)} extras</span>}
             </span>
-            <span className="font-bebas text-[28px] text-[#2B2B2B] leading-none">${orderTotal.toFixed(2)}</span>
+            <span className="font-bebas text-[28px] text-[#2B2B2B] leading-none">
+              ${(item.categoryId === 'cat-ice-cream' ? (icCustoms?.price || 0) : orderTotal).toFixed(2)}
+            </span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -473,20 +507,27 @@ const CustomizationModal: React.FC<Props> = ({
             {/* ── Price summary (desktop only, inline) ── */}
             <div className="hidden sm:flex flex-col leading-tight flex-shrink-0">
               <span className="font-barlow text-[10px] font-700 uppercase tracking-widest text-[#555555]">
-                {selectedSize && `${selectedSize} · `}
-                {extrasTotal > 0 ? `$${basePrice.toFixed(2)} + $${extrasTotal.toFixed(2)}` : `$${basePrice.toFixed(2)}`}
+                {item.categoryId === 'cat-ice-cream' ? (
+                  icCustoms?.scoops || 'Custom Ice Cream'
+                ) : (
+                  <>
+                    {selectedSize && `${selectedSize} · `}
+                    {extrasTotal > 0 ? `$${basePrice.toFixed(2)} + $${extrasTotal.toFixed(2)}` : `$${basePrice.toFixed(2)}`}
+                  </>
+                )}
                 {quantity > 1 && ` × ${quantity}`}
               </span>
               <span className="font-bebas text-[32px] text-[#2B2B2B] leading-none tabular-nums">
-                ${orderTotal.toFixed(2)}
+                ${(item.categoryId === 'cat-ice-cream' ? (icCustoms?.price || 0) : orderTotal).toFixed(2)}
               </span>
             </div>
 
             {/* ── Add to Order button ── */}
             <button
               onClick={handleAdd}
+              disabled={item.categoryId === 'cat-ice-cream' && !icCustoms?.isValid}
               className="flex-1 relative flex items-center justify-between overflow-hidden
-                bg-[#C8201A] hover:bg-[#9E1510] active:scale-[0.98]
+                bg-[#C8201A] hover:bg-[#9E1510] active:scale-[0.98] disabled:opacity-40
                 text-[#FFFCF7] font-barlow font-700 text-[14px] uppercase tracking-wider
                 px-5 sm:px-6 py-3.5 rounded-full
                 shadow-[0_8px_28px_-4px_rgba(200, 32, 26,0.55)]
@@ -504,7 +545,7 @@ const CustomizationModal: React.FC<Props> = ({
                 Add to Order
               </span>
               <span className="flex items-center gap-1.5 relative z-10 font-bebas text-[20px] leading-none">
-                ${orderTotal.toFixed(2)}
+                ${(item.categoryId === 'cat-ice-cream' ? (icCustoms?.price || 0) : orderTotal).toFixed(2)}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </span>
             </button>

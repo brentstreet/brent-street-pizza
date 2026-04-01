@@ -37,6 +37,8 @@ model Product {
   tags           Json?     @default("{}")
   sizes          Json?
   toppings       Json?
+  rating         Decimal?  @db.Decimal(3, 2)
+  isFavorite     Boolean   @default(false)
   hasPizzaExtras Boolean   @default(false)
   createdAt      DateTime  @default(now())
 
@@ -95,10 +97,21 @@ model OrderItem {
 model Payment {
   id                String   @id @default(uuid()) @db.Uuid
   orderId           String   @db.Uuid
-  razorpayOrderId   String
-  razorpayPaymentId String?
+  provider          String   @default("Stripe") // Stripe, Razorpay, etc.
+  gatewayOrderId    String?  // Formerly razorpayOrderId
+  gatewayPaymentId  String?  // Formerly razorpayPaymentId
   status            String   @default("Pending")
   createdAt         DateTime @default(now())
 
   order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model UIContent {
+  id      String @id @default(uuid()) @db.Uuid
+  section String
+  key     String
+  value   String @db.Text
+  type    String @default("text") // text, image, json, link
+
+  @@unique([section, key])
 }

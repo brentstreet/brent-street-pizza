@@ -1,11 +1,19 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Bike, ArrowRight, Clock } from 'lucide-react';
+import { MapPin, Bike, ArrowRight, Clock, DollarSign } from 'lucide-react';
+import { useSectionContent } from '../context/ContentContext';
 
-const SUBURBS = ['Glenorchy', 'Moonah', 'West Moonah', 'Derwent Park', 'Montrose', 'Rosetta'];
+const ICON_MAP: Record<string, any> = {
+  Bike: <Bike className="w-5 h-5" />,
+  Clock: <Clock className="w-5 h-5" />,
+  DollarSign: <DollarSign className="w-5 h-5" />,
+};
 
 const DeliveryAreas: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const { sectionContent, loading } = useSectionContent('delivery');
+
+  const { sectionContent: globalContent } = useSectionContent('global');
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -14,7 +22,9 @@ const DeliveryAreas: React.FC = () => {
     );
     sectionRef.current?.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [loading]);
+
+  if (loading) return null;
 
   return (
     <section ref={sectionRef} className="bg-[#FDF8F2] py-24 md:py-32 relative overflow-hidden">
@@ -28,10 +38,10 @@ const DeliveryAreas: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-16 reveal">
           <h2 className="font-bebas text-[56px] md:text-[80px] text-[#1A1A1A] tracking-wider leading-none mb-4">
-            Delivery Areas
+            {sectionContent.title || 'Delivery Areas'}
           </h2>
           <p className="font-inter text-[#555555] text-[15px] max-w-md mx-auto leading-relaxed">
-            Hot, fresh pizza delivered within 5km of Brent Street Pizza, Glenorchy.
+            {sectionContent.description || 'Hot, fresh pizza delivered within 5km of Brent Street Pizza, Glenorchy.'}
           </p>
         </div>
 
@@ -40,14 +50,10 @@ const DeliveryAreas: React.FC = () => {
 
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-4 mb-8 reveal">
-            {[
-              { icon: <Bike className="w-5 h-5" />, value: '5km', label: 'Delivery Radius' },
-              { icon: <span className="font-bebas text-[18px] leading-none">$5</span>, value: 'Flat Fee', label: 'No hidden costs' },
-              { icon: <Clock className="w-5 h-5" />, value: 'Min $25', label: 'Minimum order' },
-            ].map(stat => (
+            {(sectionContent.stats || []).map((stat: any) => (
               <div key={stat.label} className="flex flex-col items-center justify-center bg-[#FFFCF7] border border-[#E8D8C8] rounded-2xl py-6 px-4 gap-2 hover:border-[#C8201A]/30 transition-colors">
                 <div className="w-10 h-10 rounded-full bg-[#C8201A]/15 border border-[#C8201A]/25 flex items-center justify-center text-[#C8201A]">
-                  {stat.icon}
+                  {ICON_MAP[stat.icon] || stat.icon}
                 </div>
                 <p className="font-bebas text-[28px] text-[#2B2B2B] leading-none tracking-wider">{stat.value}</p>
                 <p className="font-barlow text-[11px] font-700 uppercase tracking-wider text-[#555555]">{stat.label}</p>
@@ -65,7 +71,7 @@ const DeliveryAreas: React.FC = () => {
               <div className="flex-1 h-px bg-gradient-to-r from-[#D4952A]/20 to-transparent" />
             </div>
             <div className="flex flex-wrap gap-3">
-              {SUBURBS.map(suburb => (
+              {(sectionContent.suburbs || []).map((suburb: string) => (
                 <span
                   key={suburb}
                   className="flex items-center gap-2 bg-[#C8201A]/10 border border-[#C8201A]/25 text-[#C8201A] font-barlow font-700 text-[13px] uppercase tracking-wider px-4 py-2 rounded-full"
@@ -77,7 +83,7 @@ const DeliveryAreas: React.FC = () => {
             </div>
             <p className="font-inter text-[12px] text-[#555555] mt-5">
               Not sure if we deliver to you? Call us on{' '}
-              <a href="tel:0362724004" className="text-[#D4952A] hover:text-[#2B2B2B] transition-colors">03 6272 4004</a>
+              <a href={`tel:${globalContent.phone || '0362724004'}`} className="text-[#D4952A] hover:text-[#2B2B2B] transition-colors">{globalContent.phone_display || '03 6272 4004'}</a>
             </p>
           </div>
 

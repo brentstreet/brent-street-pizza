@@ -24,6 +24,7 @@ export interface MenuItem {
   };
   sizes?: MenuSize[];
   toppings?: string[];
+  isFavorite?: boolean;
   hasPizzaExtras?: boolean;
 }
 
