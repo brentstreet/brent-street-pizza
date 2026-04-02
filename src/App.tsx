@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import Navbar from './layout/Navbar';
 import Footer from './layout/Footer';
 import MobileCTABar from './layout/MobileCTABar';
@@ -44,29 +44,29 @@ export default function App() {
         <MenuProvider>
           <CartProvider>
             <Routes>
-              {/* 1. Admin Routes - Strict Priority */}
+              {/* 1. Admin Routes */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<DashboardOverview />} />
                 <Route path="orders" element={<OrdersManager />} />
                 <Route path="products" element={<ProductManager />} />
                 <Route path="content" element={<ContentManager />} />
-                {/* Fallback for admin sub-routes */}
                 <Route path="*" element={<DashboardOverview />} />
               </Route>
 
-              {/* 2. Public Routes */}
-              <Route path="/" element={<PublicLayout />}>
-                <Route index element={<Home />} />
-                <Route path="menu" element={<Menu />} />
-                <Route path="checkout" element={<Checkout />} />
-                <Route path="contact" element={<ContactUs />} />
-                <Route path="about" element={<About />} />
-                <Route path="deals" element={<Deals />} />
-                <Route path="ice-cream" element={<IceCream />} />
-                {/* Fallback for customer routes */}
-                <Route path="*" element={<Home />} />
+              {/* 2. Public Routes with Layout */}
+              <Route element={<PublicLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/menu" element={<Menu />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/contact" element={<ContactUs />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/deals" element={<Deals />} />
+                <Route path="/ice-cream" element={<IceCream />} />
               </Route>
+
+              {/* 3. Global Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </CartProvider>
         </MenuProvider>
