@@ -33,7 +33,7 @@ export default function AdminLogin() {
 
       localStorage.setItem('adminToken', data.token);
       localStorage.setItem('adminUser', JSON.stringify(data.user));
-      navigate('/admin');
+      navigate('/admin/overview');
     } catch (err: any) {
       setError(err.message);
     } finally {

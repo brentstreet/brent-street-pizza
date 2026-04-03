@@ -45,7 +45,7 @@ export default function AdminLayout() {
   };
 
   const navItems = [
-    { name: 'Overview', path: '/admin', icon: LayoutDashboard },
+    { name: 'Overview', path: '/admin/overview', icon: LayoutDashboard },
     { name: 'Orders Manager', path: '/admin/orders', icon: ShoppingBag },
     { name: 'Product Catalog', path: '/admin/products', icon: Pizza },
     { name: 'App Content', path: '/admin/content', icon: ImageIcon },
@@ -93,7 +93,7 @@ export default function AdminLayout() {
           
           {navItems.map((item) => {
             const isActive = location.pathname === item.path || 
-              (location.pathname.startsWith(item.path) && item.path !== '/admin');
+              (location.pathname.startsWith(item.path) && item.path !== '/admin/overview');
 
             return (
               <Link

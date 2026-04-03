@@ -23,6 +23,20 @@ import OrdersManager from './pages/admin/OrdersManager';
 import ProductManager from './pages/admin/ProductManager';
 import ContentManager from './pages/admin/ContentManager';
 
+function hasAdminSession() {
+  const token = localStorage.getItem('adminToken');
+  const userStr = localStorage.getItem('adminUser');
+
+  if (!token || !userStr) return false;
+
+  try {
+    const user = JSON.parse(userStr);
+    return user?.role === 'ADMIN';
+  } catch {
+    return false;
+  }
+}
+
 function PublicLayout() {
   return (
     <div className="font-inter bg-[#FDF8F2] min-h-screen text-[#2B2B2B] antialiased overflow-x-hidden selection:bg-[#C8201A] selection:text-white flex flex-col pb-[52px] sm:pb-0">
@@ -37,8 +51,8 @@ function PublicLayout() {
 }
 
 export default function App() {
-  console.log("App Version: 1.0.7 - Production Path Debugging");
-  console.log("Current Pathname:", window.location.pathname);
+  const isAdmin = hasAdminSession();
+
   return (
     <Router>
       <ContentProvider>
@@ -46,13 +60,23 @@ export default function App() {
           <CartProvider>
             <Routes>
               {/* 1. Admin Area */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin/*" element={<AdminLayout />}>
-                <Route index element={<DashboardOverview />} />
+              <Route
+                path="/admin/login"
+                element={isAdmin ? <Navigate to="/admin/overview" replace /> : <AdminLogin />}
+              />
+              <Route
+                path="/admin"
+                element={<Navigate to={isAdmin ? '/admin/overview' : '/admin/login'} replace />}
+              />
+              <Route
+                path="/admin/*"
+                element={isAdmin ? <AdminLayout /> : <Navigate to="/admin/login" replace />}
+              >
+                <Route path="overview" element={<DashboardOverview />} />
                 <Route path="orders" element={<OrdersManager />} />
                 <Route path="products" element={<ProductManager />} />
                 <Route path="content" element={<ContentManager />} />
-                <Route path="*" element={<DashboardOverview />} />
+                <Route path="*" element={<Navigate to="/admin/overview" replace />} />
               </Route>
 
               {/* 2. Public Routes with Layout */}
