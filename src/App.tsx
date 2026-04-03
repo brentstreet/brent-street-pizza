@@ -23,18 +23,38 @@ import OrdersManager from './pages/admin/OrdersManager';
 import ProductManager from './pages/admin/ProductManager';
 import ContentManager from './pages/admin/ContentManager';
 
-function hasAdminSession() {
+function AdminRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('adminToken');
   const userStr = localStorage.getItem('adminUser');
+  let isAdmin = false;
 
-  if (!token || !userStr) return false;
-
-  try {
-    const user = JSON.parse(userStr);
-    return user?.role === 'ADMIN';
-  } catch {
-    return false;
+  if (token && userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      isAdmin = user?.role === 'ADMIN';
+    } catch {
+      isAdmin = false;
+    }
   }
+
+  return isAdmin ? <>{children}</> : <Navigate to="/admin/login" replace />;
+}
+
+function GuestAdminRoute({ children }: { children: React.ReactNode }) {
+  const token = localStorage.getItem('adminToken');
+  const userStr = localStorage.getItem('adminUser');
+  let isAdmin = false;
+
+  if (token && userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      isAdmin = user?.role === 'ADMIN';
+    } catch {
+      isAdmin = false;
+    }
+  }
+
+  return isAdmin ? <Navigate to="/admin/overview" replace /> : <>{children}</>;
 }
 
 function PublicLayout() {
@@ -51,8 +71,6 @@ function PublicLayout() {
 }
 
 export default function App() {
-  const isAdmin = hasAdminSession();
-
   return (
     <Router>
       <ContentProvider>
@@ -60,24 +78,41 @@ export default function App() {
           <CartProvider>
             <Routes>
               {/* 1. Admin Area */}
-              <Route
-                path="/admin/login"
-                element={isAdmin ? <Navigate to="/admin/overview" replace /> : <AdminLogin />}
-              />
-              <Route
-                path="/admin"
-                element={<Navigate to={isAdmin ? '/admin/overview' : '/admin/login'} replace />}
-              />
-              <Route
-                path="/admin/*"
-                element={isAdmin ? <AdminLayout /> : <Navigate to="/admin/login" replace />}
-              >
-                <Route path="overview" element={<DashboardOverview />} />
-                <Route path="orders" element={<OrdersManager />} />
-                <Route path="products" element={<ProductManager />} />
-                <Route path="content" element={<ContentManager />} />
-                <Route path="*" element={<Navigate to="/admin/overview" replace />} />
+              <Route path="/admin">
+                <Route
+                  path="login"
+                  element={<GuestAdminRoute><AdminLogin /></GuestAdminRoute>}
+                />
+                <Route
+                  path="login/*"
+                  element={<GuestAdminRoute><AdminLogin /></GuestAdminRoute>}
+                />
+                <Route
+                  index
+                  element={<Navigate to="/admin/overview" replace />}
+                />
+                <Route
+                  element={<AdminRoute><AdminLayout /></AdminRoute>}
+                >
+                  <Route path="overview" element={<DashboardOverview />} />
+                  <Route path="orders" element={<OrdersManager />} />
+                  <Route path="products" element={<ProductManager />} />
+                  <Route path="content" element={<ContentManager />} />
+                </Route>
+                <Route
+                  path="*"
+                  element={<Navigate to="/admin/overview" replace />}
+                />
               </Route>
+
+              <Route
+                path="/login"
+                element={<Navigate to="/admin/login" replace />}
+              />
+              <Route
+                path="/admin-login"
+                element={<Navigate to="/admin/login" replace />}
+              />
 
               {/* 2. Public Routes with Layout */}
               <Route element={<PublicLayout />}>

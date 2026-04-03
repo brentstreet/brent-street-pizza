@@ -64,14 +64,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // DEBUG: Verify role via multiple methods
-    const rawResult: any = await prisma.$queryRaw`SELECT role FROM "User" WHERE email = ${email}`;
-    const dbRole = rawResult && rawResult[0] ? rawResult[0].role : null;
-    
-    console.log(`[DEBUG] Login attempt: ${email}`);
-    console.log(`[DEBUG] Prisma role: ${user.role}`);
-    console.log(`[DEBUG] Raw DB role: ${dbRole}`);
-
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       res.status(401).json({ error: 'Invalid credentials' });
@@ -85,7 +77,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role || dbRole || 'CUSTOMER' // Fallback to raw DB role if Prisma is stale
+      role: user.role || 'CUSTOMER'
     };
 
     res.status(200).json({ 

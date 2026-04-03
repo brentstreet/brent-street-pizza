@@ -39,9 +39,15 @@ export default function AdminLayout() {
   }
 
   const handleLogout = () => {
+    // Clear Admin Session
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminUser');
-    navigate('/admin/login');
+    
+    // Clear Public/Guest Session for "total logout"
+    localStorage.removeItem('pizza_token');
+    
+    // Smooth redirect to home page
+    navigate('/');
   };
 
   const navItems = [
