@@ -8,7 +8,7 @@ import { API_URL } from '../../config/api';
 interface Category {
   id: string;
   name: string;
-  description: string | null;
+  iconName: string;
   isActive: boolean;
 }
 
@@ -19,7 +19,7 @@ const CategoryManager: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Category>>({});
   const [isAdding, setIsAdding] = useState(false);
-  const [newForm, setNewForm] = useState({ id: '', name: '', description: '', isActive: true });
+  const [newForm, setNewForm] = useState({ id: '', name: '', iconName: 'Pizza', isActive: true });
 
   const token = localStorage.getItem('token');
 
@@ -72,7 +72,7 @@ const CategoryManager: React.FC = () => {
       });
       if (res.ok) {
         setIsAdding(false);
-        setNewForm({ id: '', name: '', description: '', isActive: true });
+        setNewForm({ id: '', name: '', iconName: 'Pizza', isActive: true });
         fetchCategories();
       }
     } catch (err) {
@@ -136,7 +136,7 @@ const CategoryManager: React.FC = () => {
               <tr className="bg-[#F8F1E7]">
                 <th className="px-6 py-4 text-left font-barlow text-[11px] font-700 uppercase tracking-widest text-[#555555] border-b border-[#E8D8C8]">ID / Key</th>
                 <th className="px-6 py-4 text-left font-barlow text-[11px] font-700 uppercase tracking-widest text-[#555555] border-b border-[#E8D8C8]">Display Name</th>
-                <th className="px-6 py-4 text-left font-barlow text-[11px] font-700 uppercase tracking-widest text-[#555555] border-b border-[#E8D8C8]">Description</th>
+                <th className="px-6 py-4 text-left font-barlow text-[11px] font-700 uppercase tracking-widest text-[#555555] border-b border-[#E8D8C8]">Icon Name</th>
                 <th className="px-6 py-4 text-center font-barlow text-[11px] font-700 uppercase tracking-widest text-[#555555] border-b border-[#E8D8C8]">Status</th>
                 <th className="px-6 py-4 text-right font-barlow text-[11px] font-700 uppercase tracking-widest text-[#555555] border-b border-[#E8D8C8]">Actions</th>
               </tr>
@@ -158,8 +158,8 @@ const CategoryManager: React.FC = () => {
                   </td>
                   <td className="px-6 py-4">
                     <input 
-                      type="text" value={newForm.description} onChange={(e) => setNewForm({...newForm, description: e.target.value})}
-                      placeholder="Optional description" className="w-full border-[#E8D8C8] rounded-lg text-[13px]"
+                      type="text" value={newForm.iconName} onChange={(e) => setNewForm({...newForm, iconName: e.target.value})}
+                      placeholder="Icon (e.g. Pizza)" className="w-full border-[#E8D8C8] rounded-lg text-[13px]"
                     />
                   </td>
                   <td className="px-6 py-4 text-center">
@@ -189,10 +189,10 @@ const CategoryManager: React.FC = () => {
                   <td className="px-6 py-4 font-inter text-[13px] text-[#555555]">
                     {editingId === cat.id ? (
                       <input 
-                        type="text" value={editForm.description || ''} onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                        type="text" value={editForm.iconName || ''} onChange={(e) => setEditForm({...editForm, iconName: e.target.value})}
                         className="w-full border-[#E8D8C8] rounded-lg text-[13px]"
                       />
-                    ) : cat.description || '—'}
+                    ) : cat.iconName || '—'}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <button 

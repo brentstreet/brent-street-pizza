@@ -197,13 +197,13 @@ export const getCategoriesAdmin = async (req: Request, res: Response): Promise<v
 
 export const createCategoryAdmin = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id, name, description, isActive } = req.body;
+    const { id, name, iconName, isActive } = req.body;
     if (!id || !name) {
       res.status(400).json({ error: 'ID and Name are required' });
       return;
     }
     const category = await prisma.category.create({
-      data: { id, name, description, isActive: isActive ?? true }
+      data: { id, name, iconName: iconName || 'Pizza', isActive: isActive ?? true }
     });
     res.status(201).json(category);
   } catch (error: any) {
