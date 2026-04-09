@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { API_URL } from '../../config/api';
-import { RefreshCw, MapPin, Phone, ChefHat, Bike, CheckCircle2, ShoppingBag } from 'lucide-react';
+import { RefreshCw, MapPin, Phone, ChefHat, Bike, CheckCircle2, ShoppingBag, Square, CheckSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function OrdersManager() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [bulkPaymentStatus, setBulkPaymentStatus] = useState('Paid');
   const navigate = useNavigate();
 
   const fetchOrders = async () => {
@@ -16,7 +18,12 @@ export default function OrdersManager() {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) {
-        if (res.status === 401 || res.status === 403) navigate('/admin/login');
+        if (res.status === 401 || res.status === 403) {
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUser');
+          navigate('/admin/login');
+          return;
+        }
         return;
       }
       const data = await res.json();
@@ -58,6 +65,52 @@ export default function OrdersManager() {
     }
   };
 
+  const handleBulkUpdatePayment = async () => {
+    if (selectedOrders.size === 0) return;
+    setUpdating('bulk');
+    try {
+      const token = localStorage.getItem('adminToken');
+      
+      const updatePromises = Array.from(selectedOrders).map(orderId => {
+        const order = orders.find(o => o.id === orderId);
+        if (!order) return Promise.resolve();
+
+        return fetch(`${API_URL}/api/admin/orders/${orderId}/status`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ status: order.status, paymentStatus: bulkPaymentStatus })
+        });
+      });
+
+      await Promise.all(updatePromises);
+      setSelectedOrders(new Set()); // clear selection
+      fetchOrders();
+    } catch (err) {
+      console.error('Bulk update failed', err);
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const toggleSelection = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const newSel = new Set(selectedOrders);
+    if (newSel.has(id)) newSel.delete(id);
+    else newSel.add(id);
+    setSelectedOrders(newSel);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOrders.size === orders.length && orders.length > 0) {
+      setSelectedOrders(new Set());
+    } else {
+      setSelectedOrders(new Set(orders.map(o => o.id)));
+    }
+  };
+
   if (loading && orders.length === 0) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -94,19 +147,66 @@ export default function OrdersManager() {
         </button>
       </div>
 
+      {/* Bulk Actions Panel */}
+      {orders.length > 0 && (
+        <div className="bg-white border border-[#E8D8C8] rounded-xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <button onClick={toggleSelectAll} className="text-[#1A1A1A] hover:text-[#C8201A] transition-colors p-1">
+              {selectedOrders.size === orders.length && orders.length > 0 ? (
+                <CheckSquare className="w-6 h-6 text-[#C8201A]" />
+              ) : (
+                <Square className="w-6 h-6 text-[#888888]" />
+              )}
+            </button>
+            <span className="font-barlow text-[14px] font-700 uppercase tracking-wider text-[#1A1A1A]">
+              Select All ({selectedOrders.size})
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <select
+              value={bulkPaymentStatus}
+              onChange={(e) => setBulkPaymentStatus(e.target.value)}
+              className="bg-[#FDFAF6] border border-[#E8D8C8] rounded-lg px-3 py-2 font-inter text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A]"
+            >
+              <option value="Paid">Mark as Paid</option>
+              <option value="Pending">Mark as Pending</option>
+              <option value="Refunded">Mark as Refunded</option>
+            </select>
+            <button
+              onClick={handleBulkUpdatePayment}
+              disabled={selectedOrders.size === 0 || updating === 'bulk'}
+              className="bg-[#C8201A] text-white hover:bg-[#A01612] font-barlow text-[12px] font-700 uppercase tracking-widest px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+            >
+              Apply to Selected
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-6">
         {orders.map((order) => (
-          <div key={order.id} className="bg-white border border-[#E8D8C8] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <div key={order.id} className={`bg-white border ${selectedOrders.has(order.id) ? 'border-[#C8201A] shadow-md ring-1 ring-[#C8201A]' : 'border-[#E8D8C8] shadow-sm'} rounded-2xl overflow-hidden transition-all`}>
             {/* Order Header */}
             <div className="bg-[#FDFAF6] border-b border-[#E8D8C8] p-5 flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
+                <button onClick={(e) => toggleSelection(order.id, e)} className="text-[#1A1A1A] hover:text-[#C8201A] transition-colors">
+                  {selectedOrders.has(order.id) ? (
+                    <CheckSquare className="w-6 h-6 text-[#C8201A]" />
+                  ) : (
+                    <Square className="w-6 h-6 text-[#AAAAAA]" />
+                  )}
+                </button>
                 <div className="bg-[#1A1A1A] text-white font-mono text-[16px] font-700 px-3 py-1.5 rounded-lg shadow-inner">
                   #{order.id.slice(0, 8).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="font-barlow text-[16px] font-700 text-[#1A1A1A]">{order.user.name}</h3>
-                  <div className="flex items-center gap-3 text-[#555555] font-inter text-[13px] mt-0.5">
-                    <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {order.user.phone || 'N/A'}</span>
+                  <h3 className="font-barlow text-[16px] font-700 text-[#1A1A1A]">
+                    {order.customerName || (order.user?.name?.toLowerCase() === 'guest' ? `#${order.id.slice(0, 8).toUpperCase()}` : order.user?.name)}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-3 text-[#555555] font-inter text-[13px] mt-0.5">
+                    <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {order.customerPhone || order.user?.phone || 'N/A'}</span>
+                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {order.deliveryAddress || 'Pickup'}</span>
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-barlow text-[10px] font-700 uppercase tracking-widest
                       ${order.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700' : 
                         order.status === 'Preparing' ? 'bg-[#D4952A]/10 text-[#D4952A]' : 

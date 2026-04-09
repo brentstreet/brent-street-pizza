@@ -20,6 +20,7 @@ import AdminLayout from './layout/AdminLayout';
 import AdminLogin from './pages/admin/AdminLogin';
 import DashboardOverview from './pages/admin/DashboardOverview';
 import OrdersManager from './pages/admin/OrdersManager';
+import InvoicesManager from './pages/admin/InvoicesManager';
 import ProductManager from './pages/admin/ProductManager';
 import ContentManager from './pages/admin/ContentManager';
 import CustomizationManager from './pages/admin/CustomizationManager';
@@ -98,6 +99,7 @@ export default function App() {
                 >
                   <Route path="overview" element={<DashboardOverview />} />
                   <Route path="orders" element={<OrdersManager />} />
+                  <Route path="invoices" element={<InvoicesManager />} />
                   <Route path="products" element={<ProductManager />} />
                   <Route path="content" element={<ContentManager />} />
                   <Route path="categories" element={<CategoryManager />} />

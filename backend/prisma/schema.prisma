@@ -76,10 +76,15 @@ model Order {
   userId        String      @db.Uuid
   totalAmount   Decimal     @db.Decimal(10, 2)
   status        String      @default("Placed")
-  paymentStatus String      @default("Pending")
-  createdAt     DateTime    @default(now())
+  paymentStatus   String      @default("Pending")
+  createdAt       DateTime    @default(now())
 
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Checkout-specific captured details
+  customerName    String?
+  customerPhone   String?
+  deliveryAddress String?
+
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   orderItems    OrderItem[]
   payments      Payment[]
 }

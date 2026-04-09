@@ -26,6 +26,8 @@ export default function DashboardOverview() {
         
         if (!res.ok) {
           if (res.status === 401 || res.status === 403) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
             navigate('/admin/login');
             return;
           }
@@ -125,8 +127,10 @@ export default function DashboardOverview() {
                       #{order.id.slice(0, 8).toUpperCase()}
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-barlow text-[14px] font-700 text-[#1A1A1A]">{order.user.name}</p>
-                      <p className="font-inter text-[12px] text-[#888888]">{order.user.email}</p>
+                      <p className="font-barlow text-[14px] font-700 text-[#1A1A1A]">
+                        {order.customerName || (order.user?.name?.toLowerCase() === 'guest' ? `#${order.id.slice(0, 8).toUpperCase()}` : order.user?.name)}
+                      </p>
+                      <p className="font-inter text-[12px] text-[#888888]">{order.user?.email}</p>
                     </td>
                     <td className="px-6 py-4 font-inter text-[13px] text-[#555555]">
                       {new Date(order.createdAt).toLocaleDateString()}

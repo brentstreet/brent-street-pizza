@@ -77,6 +77,8 @@ export default function Checkout() {
           totalAmount: total.toFixed(2),
           paymentMethod,
           deliveryAddress: orderType === 'delivery' ? `${address.street}, ${address.suburb} ${address.state} ${address.postcode}` : 'Pickup',
+          customerName: address.name,
+          customerPhone: address.phone,
           // Pass cart items directly so backend doesn't need to fetch from DB
           cartItems: cartItems.map(item => ({
             productId: item.menuItemId || item.id, // menuItemId is the real DB product ID

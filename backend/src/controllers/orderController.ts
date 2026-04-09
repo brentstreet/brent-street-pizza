@@ -7,7 +7,7 @@ import type Stripe from 'stripe';
 export const placeOrder = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user.id;
-    const { totalAmount, paymentMethod = 'ONLINE', deliveryAddress, cartItems: bodyCartItems } = req.body;
+    const { totalAmount, paymentMethod = 'ONLINE', deliveryAddress, cartItems: bodyCartItems, customerName, customerPhone } = req.body;
 
     if (!totalAmount || totalAmount <= 0) {
       res.status(400).json({ error: 'Valid totalAmount is required' });
@@ -50,6 +50,9 @@ export const placeOrder = async (req: AuthRequest, res: Response): Promise<void>
           totalAmount: totalAmount,
           status: 'Placed',
           paymentStatus: paymentMethod === 'COD' ? 'Pending (COD)' : 'Initiated',
+          customerName: customerName || null,
+          customerPhone: customerPhone || null,
+          deliveryAddress: deliveryAddress || null,
         }
       });
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { 
   LayoutDashboard, ShoppingBag, Pizza, Image as ImageIcon, 
-  LogOut, ShieldAlert, ChevronRight, Menu as MenuIcon, X, Sliders, Layout
+  LogOut, ShieldAlert, ChevronRight, Menu as MenuIcon, X, Sliders, Layout, FileText
 } from 'lucide-react';
 
 export default function AdminLayout() {
@@ -53,6 +53,7 @@ export default function AdminLayout() {
   const navItems = [
     { name: 'Overview', path: '/admin/overview', icon: LayoutDashboard },
     { name: 'Orders Manager', path: '/admin/orders', icon: ShoppingBag },
+    { name: 'Invoices', path: '/admin/invoices', icon: FileText },
     { name: 'Product Catalog', path: '/admin/products', icon: Pizza },
     { name: 'App Content', path: '/admin/content', icon: ImageIcon },
     { name: 'Categories', path: '/admin/categories', icon: Layout },
