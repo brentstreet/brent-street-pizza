@@ -4,6 +4,7 @@ import {
   Pizza, IceCream, Plus, Trash2, Save, RefreshCw, 
   ChevronDown, ChevronUp, PlusCircle
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Option {
   name: string;
@@ -24,6 +25,7 @@ interface IceCreamOptions {
 }
 
 export default function CustomizationManager() {
+  const navigate = useNavigate();
   const [pizzaExtras, setPizzaExtras] = useState<PizzaExtra[]>([]);
   const [iceCreamOptions, setIceCreamOptions] = useState<IceCreamOptions | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,6 +41,14 @@ export default function CustomizationManager() {
 
       // Fetch Pizza Extras
       const pizzaRes = await fetch(`${API_URL}/api/admin/pizza-extras`, { headers });
+      if (!pizzaRes.ok) {
+        if (pizzaRes.status === 401 || pizzaRes.status === 403) {
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUser');
+          navigate('/admin/login');
+          return;
+        }
+      }
       if (pizzaRes.ok) setPizzaExtras(await pizzaRes.json());
 
       // Fetch Ice Cream via Content API

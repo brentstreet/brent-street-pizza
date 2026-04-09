@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Plus, Edit2, Trash2, Check, X, 
-  Layout, Eye, EyeOff, Search 
-} from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, X, Layout, Eye, EyeOff, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../../config/api';
 
 interface Category {
@@ -21,13 +19,23 @@ const CategoryManager: React.FC = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [newForm, setNewForm] = useState({ id: '', name: '', iconName: 'Pizza', isActive: true });
 
-  const token = localStorage.getItem('token');
+  const navigate = useNavigate();
 
   const fetchCategories = async () => {
     try {
+      const token = localStorage.getItem('adminToken');
       const res = await fetch(`${API_URL}/api/admin/categories`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUser');
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error('Failed to fetch');
+      }
       const data = await res.json();
       setCategories(data);
     } catch (err) {
@@ -43,6 +51,7 @@ const CategoryManager: React.FC = () => {
 
   const handleUpdate = async (id: string, data: Partial<Category>) => {
     try {
+      const token = localStorage.getItem('adminToken');
       const res = await fetch(`${API_URL}/api/admin/categories/${id}`, {
         method: 'PUT',
         headers: {
@@ -62,6 +71,7 @@ const CategoryManager: React.FC = () => {
 
   const handleCreate = async () => {
     try {
+      const token = localStorage.getItem('adminToken');
       const res = await fetch(`${API_URL}/api/admin/categories`, {
         method: 'POST',
         headers: {
@@ -83,6 +93,7 @@ const CategoryManager: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (!window.confirm('Delete this category? Products in this category will become unreachable.')) return;
     try {
+      const token = localStorage.getItem('adminToken');
       const res = await fetch(`${API_URL}/api/admin/categories/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }

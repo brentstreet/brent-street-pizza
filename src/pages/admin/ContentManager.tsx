@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { API_URL } from '../../config/api';
+import { useNavigate } from 'react-router-dom';
 import { RefreshCw, Save, ImageIcon, Type } from 'lucide-react';
 
 export default function ContentManager() {
+  const navigate = useNavigate();
   const [contentItems, setContentItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +20,15 @@ export default function ContentManager() {
       const res = await fetch(`${API_URL}/api/admin/content`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUser');
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error('Failed to fetch');
+      }
       if (res.ok) {
         const data = await res.json();
         setContentItems(data);
