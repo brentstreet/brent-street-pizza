@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, Phone, ArrowRight, Plus, Check } from 'lucide-react';
+import { ShoppingCart, Phone, Plus, Check } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useMenu } from '../context/MenuContext';
 import { useCart } from '../context/CartContext';
@@ -13,7 +13,7 @@ import SpecialIceCreamCard from '../components/SpecialIceCreamCard';
 
 export default function Menu() {
   const { menuItems: products, categories, isLoading: menuLoading } = useMenu();
-  const { addToCart, cartTotalItems, cartTotalPrice, cartItems, incrementItem, decrementItem, setIsCartOpen } = useCart();
+  const { addToCart, cartTotalItems, setIsCartOpen } = useCart();
   const { sectionContent: icContent, loading: icLoading } = useSectionContent('icecream');
   const { sectionContent: menuContent, loading: menuContentLoading } = useSectionContent('menu');
   const { sectionContent: globalContent } = useSectionContent('global');

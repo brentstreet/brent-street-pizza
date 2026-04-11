@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { ShoppingBag } from 'lucide-react';
 
 const MobileCTABar: React.FC = () => {
   const { cartTotalItems, cartTotalPrice, setIsCartOpen } = useCart();
