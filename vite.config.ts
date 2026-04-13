@@ -6,7 +6,10 @@ import path from 'path'
 export default defineConfig({
   server: {
     proxy: {
-      '/api': 'http://localhost:5000',
+      '/api': {
+        target: 'https://api.brentstreetpizza.com.au',
+        changeOrigin: true,
+      },
     },
   },
   plugins: [react(), tailwindcss()],
