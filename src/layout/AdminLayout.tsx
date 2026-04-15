@@ -73,7 +73,7 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <aside className={`
         fixed lg:sticky top-0 left-0 h-screen z-50
-        w-[280px] bg-[#1A1A1A] text-white flex flex-col transition-transform duration-300
+        w-[280px] bg-[#1A1A1A] text-white flex flex-col transition-transform duration-300 print:hidden
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         {/* Logo/Header */}
@@ -152,9 +152,9 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 max-h-screen overflow-y-auto">
+      <main className="flex-1 flex flex-col min-w-0 max-h-screen overflow-y-auto print:max-h-none print:overflow-visible print:block">
         {/* Mobile Header */}
-        <div className="lg:hidden sticky top-0 z-30 bg-[#1A1A1A] text-white p-4 flex items-center justify-between shadow-md">
+        <div className="lg:hidden sticky top-0 z-30 bg-[#1A1A1A] text-white p-4 flex items-center justify-between shadow-md print:hidden">
           <h1 className="font-bebas text-[24px] tracking-wider text-[#D4952A] leading-none mt-1">
             Admin Panel
           </h1>

@@ -48,6 +48,9 @@ export const MenuProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     fetchCatalog();
+    // Poll every 60 seconds so price changes from admin panel are immediately visible
+    const interval = setInterval(() => fetchCatalog(), 60_000);
+    return () => clearInterval(interval);
   }, [fetchCatalog]);
 
   return (

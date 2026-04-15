@@ -67,6 +67,40 @@ export default function Checkout() {
     }
 
     try {
+      // ─── Step 1: Validate prices against current DB prices ───────────────
+      const freshRes = await fetch(`${API_URL}/api/catalog/products`);
+      if (freshRes.ok) {
+        const freshData = await freshRes.json();
+        const freshProducts: any[] = freshData.products || [];
+
+        const mismatchedItems: string[] = [];
+        for (const cartItem of cartItems) {
+          const dbProduct = freshProducts.find(
+            (p: any) => p.id === (cartItem.menuItemId || cartItem.id)
+          );
+          if (dbProduct) {
+            const dbPrice = Number(dbProduct.price);
+            const cartPrice = Number(cartItem.price);
+            if (Math.abs(dbPrice - cartPrice) > 0.001) {
+              mismatchedItems.push(
+                `• ${cartItem.name}: was $${cartPrice.toFixed(2)}, now $${dbPrice.toFixed(2)}`
+              );
+            }
+          }
+        }
+
+        if (mismatchedItems.length > 0) {
+          alert(
+            `Some prices have been updated by the restaurant since you added items to your cart:\n\n` +
+            mismatchedItems.join('\n') +
+            `\n\nPlease go back to update your cart with the latest prices before placing your order.`
+          );
+          setIsProcessing(false);
+          return;
+        }
+      }
+      // ─────────────────────────────────────────────────────────────────────
+
       const res = await fetch(`${API_URL}/api/orders`, {
         method: 'POST',
         headers: {
@@ -79,9 +113,8 @@ export default function Checkout() {
           deliveryAddress: orderType === 'delivery' ? `${address.street}, ${address.suburb} ${address.state} ${address.postcode}` : 'Pickup',
           customerName: address.name,
           customerPhone: address.phone,
-          // Pass cart items directly so backend doesn't need to fetch from DB
           cartItems: cartItems.map(item => ({
-            productId: item.menuItemId || item.id, // menuItemId is the real DB product ID
+            productId: item.menuItemId || item.id,
             quantity: item.quantity,
             price: Number(item.price),
             size: item.size || null,
@@ -100,8 +133,8 @@ export default function Checkout() {
       if (paymentMethod === 'COD') {
         setFinalOrderItems([...cartItems]);
         setFinalTotal(total);
-        setStep('success'); // Show success immediately
-        clearCart(); // Clear cart in background — no await
+        setStep('success');
+        clearCart();
         return;
       }
 
