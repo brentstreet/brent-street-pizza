@@ -9,6 +9,7 @@ export const placeOrder = async (req: AuthRequest, res: Response): Promise<void>
     const userId = req.user.id;
     const { totalAmount, paymentMethod = 'ONLINE', deliveryAddress, cartItems: bodyCartItems, customerName, customerPhone } = req.body;
 
+    // We will still check if frontend sent a total, but we will OVERRIDE it securely
     if (!totalAmount || totalAmount <= 0) {
       res.status(400).json({ error: 'Valid totalAmount is required' });
       return;
@@ -41,30 +42,51 @@ export const placeOrder = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
-    // --- NEW VALIDATION CODE START ---
+    // --- NEW VALIDATION & PRICE RECALCULATION START ---
     // Extract all product IDs from the cart
     const productIds = cartItems.map(item => item.productId || item.menuItemId);
 
-    // Fetch the real-time product status from the database
+    // Fetch the real-time product data (status AND price) from the database
     const currentProducts = await prisma.product.findMany({
       where: { id: { in: productIds } },
-      select: { id: true, name: true, isActive: true }
+      select: { id: true, name: true, isActive: true, price: true } 
     });
 
-    // Create a map for quick lookup
     const productMap = new Map(currentProducts.map(p => [p.id, p]));
     const inactiveItems: string[] = [];
+    let serverCalculatedTotal = 0;
 
-    // Check if any product is deleted or inactive
+    // Check status and recalculate the true price
     for (const item of cartItems) {
       const pId = item.productId || item.menuItemId;
       const product = productMap.get(pId);
       
       if (!product) {
         inactiveItems.push('An unknown item');
-      } else if (!product.isActive) {
+        continue;
+      } 
+      
+      if (!product.isActive) {
         inactiveItems.push(product.name);
+        continue;
       }
+
+      // Calculate the base price using the Database price
+      let itemUnitPrice = Number(product.price);
+      let extrasTotal = 0;
+
+      // Add prices for addedExtras if they exist
+      if (item.addedExtras && Array.isArray(item.addedExtras)) {
+        for (const extra of item.addedExtras) {
+          extrasTotal += Number(extra.price || 0);
+        }
+      }
+
+      const itemTotal = (itemUnitPrice + extrasTotal) * Number(item.quantity);
+
+      // Overwrite the frontend price with the verified server unit price
+      item.price = itemUnitPrice + extrasTotal; 
+      serverCalculatedTotal += itemTotal;
     }
 
     // If there are inactive items, block the checkout and return an error
@@ -74,15 +96,15 @@ export const placeOrder = async (req: AuthRequest, res: Response): Promise<void>
       });
       return;
     }
-    // --- NEW VALIDATION CODE END ---
+    // --- NEW VALIDATION & PRICE RECALCULATION END ---
 
     // Execute in a transaction for data consistency
     const result = await prisma.$transaction(async (tx) => {
-      // 2. Create Order
+      // 2. Create Order using the SERVER CALCULATED TOTAL
       const newOrder = await tx.order.create({
         data: {
           userId,
-          totalAmount: totalAmount,
+          totalAmount: serverCalculatedTotal, // Securely calculated on backend
           status: 'Placed',
           paymentStatus: paymentMethod === 'COD' ? 'Pending (COD)' : 'Initiated',
           customerName: customerName || null,
@@ -91,12 +113,12 @@ export const placeOrder = async (req: AuthRequest, res: Response): Promise<void>
         }
       });
 
-      // 3. Create Order Items from the cart items
+      // 3. Create Order Items using the securely calculated unit prices
       const orderItemsData = cartItems.map((item: any) => ({
         orderId: newOrder.id,
         productId: item.productId || item.menuItemId,
         quantity: item.quantity,
-        price: item.price,
+        price: item.price, // This is now the verified server price
         size: item.size || null,
         removedToppings: item.removedToppings || [],
         addedExtras: item.addedExtras || []
@@ -116,7 +138,8 @@ export const placeOrder = async (req: AuthRequest, res: Response): Promise<void>
     if (paymentMethod === 'ONLINE') {
       try {
         const paymentIntent = await stripe.paymentIntents.create({
-          amount: Math.round(Number(totalAmount) * 100),
+          // Use the secure server-calculated total for the actual charge
+          amount: Math.round(serverCalculatedTotal * 100),
           currency: 'aud',
           metadata: {
             orderId: order.id,
