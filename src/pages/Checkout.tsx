@@ -976,6 +976,7 @@ export default function Checkout() {
           </div>
 
           {/* Live Tracker (Visual Only) */}
+                    {/* Live Tracker (Visual Only) */}
           <div className="bg-white border border-[#E8D8C8] rounded-3xl p-8 mb-8 shadow-[0_8px_30px_rgba(0,0,0,0.03)] relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4">
               <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full font-barlow text-[10px] font-800 uppercase tracking-widest animate-pulse">
@@ -990,12 +991,20 @@ export default function Checkout() {
                 <div className="absolute top-0 left-0 w-full h-[33%] bg-[#C8201A] shadow-[0_0_8px_rgba(200,32,26,0.3)]" />
               </div>
 
-              {[
-                { icon: CheckCircle2, label: 'Order Confirmed', time: 'Just now', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
-                { icon: Clock, label: 'Food is being prepared', time: 'Expected in 5 mins', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
-                { icon: Bike, label: 'Rider is on the way', time: 'Stay tuned!', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
-                { icon: MapPin, label: 'Delivered', time: '', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
-              ].map((s, i) => (
+              {(orderType === 'delivery' 
+                ? [
+                    { icon: CheckCircle2, label: 'Order Confirmed', time: 'Just now', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
+                    { icon: Clock, label: 'Food is being prepared', time: 'Expected in 5 mins', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
+                    { icon: Bike, label: 'Rider is on the way', time: 'Stay tuned!', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
+                    { icon: MapPin, label: 'Delivered', time: '', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
+                  ]
+                : [
+                    { icon: CheckCircle2, label: 'Order Confirmed', time: 'Just now', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
+                    { icon: Clock, label: 'Food is being prepared', time: 'Expected in 15-20 mins', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
+                    { icon: Store, label: 'Ready for Pickup', time: 'Head to the store!', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
+                    { icon: Package, label: 'Order Picked Up', time: '', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
+                  ]
+              ).map((s, i) => (
                 <div key={i} className="flex gap-5 items-start">
                   <div className={`w-10 h-10 rounded-full ${s.bg} flex items-center justify-center z-10 shadow-sm transition-colors duration-500`}>
                     <s.icon className={`w-5 h-5 ${i < 2 ? 'text-white' : 'text-[#888888]'}`} />
