@@ -41,6 +41,41 @@ export const placeOrder = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
+    // --- NEW VALIDATION CODE START ---
+    // Extract all product IDs from the cart
+    const productIds = cartItems.map(item => item.productId || item.menuItemId);
+
+    // Fetch the real-time product status from the database
+    const currentProducts = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, name: true, isActive: true }
+    });
+
+    // Create a map for quick lookup
+    const productMap = new Map(currentProducts.map(p => [p.id, p]));
+    const inactiveItems: string[] = [];
+
+    // Check if any product is deleted or inactive
+    for (const item of cartItems) {
+      const pId = item.productId || item.menuItemId;
+      const product = productMap.get(pId);
+      
+      if (!product) {
+        inactiveItems.push('An unknown item');
+      } else if (!product.isActive) {
+        inactiveItems.push(product.name);
+      }
+    }
+
+    // If there are inactive items, block the checkout and return an error
+    if (inactiveItems.length > 0) {
+      res.status(400).json({ 
+        error: `Cannot proceed with checkout. The following items are currently unavailable: ${inactiveItems.join(', ')}` 
+      });
+      return;
+    }
+    // --- NEW VALIDATION CODE END ---
+
     // Execute in a transaction for data consistency
     const result = await prisma.$transaction(async (tx) => {
       // 2. Create Order
