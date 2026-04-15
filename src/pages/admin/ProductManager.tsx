@@ -309,7 +309,7 @@ export default function ProductManager() {
                     onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
                     className="w-4 h-4 text-emerald-600 rounded border-[#E8D8C8] focus:ring-emerald-600"
                   />
-                  <span className="font-barlow text-[13px] font-700 uppercase tracking-widest text-[#555] group-hover:text-[#1A1A1A]">Active on Frontend</span>
+                  <span className="font-barlow text-[13px] font-700 uppercase tracking-widest text-[#555] group-hover:text-[#1A1A1A]">Active</span>
                 </label>
               </div>
 
