@@ -813,16 +813,36 @@ export default function Checkout() {
         const freshProducts: any[] = freshData.products || [];
 
         const mismatchedItems: string[] = [];
+        
         for (const cartItem of cartItems) {
           const dbProduct = freshProducts.find(
             (p: any) => p.id === (cartItem.menuItemId || cartItem.id)
           );
+          
           if (dbProduct) {
-            const dbPrice = Number(dbProduct.price);
+            let expectedPrice = Number(dbProduct.price);
+
+            // 1. If cart item has a size, find that size's specific price in the DB
+            if (cartItem.size && dbProduct.sizes && Array.isArray(dbProduct.sizes)) {
+              const matchingSize = dbProduct.sizes.find((s: any) => s.name === cartItem.size);
+              if (matchingSize) {
+                expectedPrice = Number(matchingSize.price); // Override base price
+              }
+            }
+
+            // 2. Add the cost of any extras
+            if (cartItem.addedExtras && Array.isArray(cartItem.addedExtras)) {
+              for (const extra of cartItem.addedExtras) {
+                expectedPrice += Number(extra.price || 0);
+              }
+            }
+
             const cartPrice = Number(cartItem.price);
-            if (Math.abs(dbPrice - cartPrice) > 0.001) {
+            
+            // Compare the calculated expected price against the cart price
+            if (Math.abs(expectedPrice - cartPrice) > 0.001) {
               mismatchedItems.push(
-                `• ${cartItem.name}: was $${cartPrice.toFixed(2)}, now $${dbPrice.toFixed(2)}`
+                `• ${cartItem.name} ${cartItem.size ? `(${cartItem.size})` : ''}: was $${cartPrice.toFixed(2)}, now $${expectedPrice.toFixed(2)}`
               );
             }
           }
