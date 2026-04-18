@@ -19,6 +19,7 @@
 //     hasPizzaExtras: false,
 //     isFavorite: false,
 //     isActive: true,
+//     sizes: [] as { name: string; price: number }[], // Added sizes array
 //   });
 
 //   const fetchProducts = async () => {
@@ -59,6 +60,7 @@
 //         hasPizzaExtras: product.hasPizzaExtras || false,
 //         isFavorite: product.isFavorite || false,
 //         isActive: product.isActive !== undefined ? product.isActive : true,
+//         sizes: product.sizes ? [...product.sizes] : [], // Populate existing sizes
 //       });
 //     } else {
 //       setEditingProduct(null);
@@ -72,6 +74,7 @@
 //         hasPizzaExtras: false,
 //         isFavorite: false,
 //         isActive: true,
+//         sizes: [], // Empty sizes for new product
 //       });
 //     }
 //     setIsModalOpen(true);
@@ -122,6 +125,22 @@
 //     } catch (err) {
 //       console.error(err);
 //     }
+//   };
+
+//   // Handlers for Sizes
+//   const handleAddSize = () => {
+//     setFormData({ ...formData, sizes: [...formData.sizes, { name: '', price: 0 }] });
+//   };
+
+//   const handleSizeChange = (index: number, field: 'name' | 'price', value: string | number) => {
+//     const newSizes = [...formData.sizes];
+//     newSizes[index] = { ...newSizes[index], [field]: value };
+//     setFormData({ ...formData, sizes: newSizes });
+//   };
+
+//   const handleRemoveSize = (index: number) => {
+//     const newSizes = formData.sizes.filter((_, i) => i !== index);
+//     setFormData({ ...formData, sizes: newSizes });
 //   };
 
 //   if (loading) return <div className="p-12 text-center animate-spin"><Pizza className="w-8 h-8 text-[#C8201A] mx-auto" /></div>;
@@ -283,6 +302,61 @@
 //                 </div>
 //               </div>
 
+//               {/* Dynamic Sizes Section */}
+//               <div className="pt-4 pb-2 border-t border-b border-[#E8D8C8]">
+//                 <div className="flex items-center justify-between mb-3">
+//                   <label className="block font-barlow text-[11px] font-700 uppercase tracking-[0.1em] text-[#555555]">
+//                     Size Variations & Prices
+//                   </label>
+//                   <button
+//                     type="button"
+//                     onClick={handleAddSize}
+//                     className="text-[#C8201A] font-barlow text-[12px] font-700 uppercase tracking-wider hover:underline"
+//                   >
+//                     + Add Size
+//                   </button>
+//                 </div>
+                
+//                 {formData.sizes.length === 0 ? (
+//                   <p className="text-[12px] text-[#888888] italic mb-2">No sizes configured. Base price will be used.</p>
+//                 ) : (
+//                   <div className="space-y-3">
+//                     {formData.sizes.map((size, index) => (
+//                       <div key={index} className="flex items-center gap-3">
+//                         <input
+//                           type="text"
+//                           required
+//                           placeholder="Size Name (e.g. Large)"
+//                           value={size.name}
+//                           onChange={(e) => handleSizeChange(index, 'name', e.target.value)}
+//                           className="flex-1 border border-[#E8D8C8] rounded-xl px-3 py-2 font-inter text-[13px] text-[#1A1A1A] focus:border-[#C8201A] outline-none"
+//                         />
+//                         <div className="relative w-28">
+//                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#888888] text-[13px]">$</span>
+//                           <input
+//                             type="number"
+//                             required
+//                             step="0.01"
+//                             min="0"
+//                             placeholder="0.00"
+//                             value={size.price}
+//                             onChange={(e) => handleSizeChange(index, 'price', parseFloat(e.target.value) || 0)}
+//                             className="w-full border border-[#E8D8C8] rounded-xl pl-6 pr-3 py-2 font-inter text-[13px] text-[#1A1A1A] focus:border-[#C8201A] outline-none"
+//                           />
+//                         </div>
+//                         <button
+//                           type="button"
+//                           onClick={() => handleRemoveSize(index)}
+//                           className="p-2 text-[#888888] hover:text-[#C8201A] bg-[#FDFAF6] border border-[#E8D8C8] rounded-xl transition-colors"
+//                         >
+//                           <Trash2 className="w-4 h-4" />
+//                         </button>
+//                       </div>
+//                     ))}
+//                   </div>
+//                 )}
+//               </div>
+
 //               <div className="flex flex-wrap gap-6 pt-2">
 //                 <label className="flex items-center gap-2 cursor-pointer group">
 //                   <input 
@@ -341,6 +415,7 @@ import { Plus, Edit2, Trash2, Pizza, Image as ImageIcon } from 'lucide-react';
 
 export default function ProductManager() {
   const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]); // Added categories state
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -348,7 +423,7 @@ export default function ProductManager() {
   // Form State
   const [formData, setFormData] = useState({
     id: '',
-    categoryId: 'cat-classic-pizza',
+    categoryId: '', // Will be set dynamically
     name: '',
     description: '',
     price: 0,
@@ -356,33 +431,40 @@ export default function ProductManager() {
     hasPizzaExtras: false,
     isFavorite: false,
     isActive: true,
-    sizes: [] as { name: string; price: number }[], // Added sizes array
+    sizes: [] as { name: string; price: number }[],
   });
 
-  const fetchProducts = async () => {
+  // Fetch both products and categories simultaneously
+  const fetchData = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const res = await fetch(`${API_URL}/api/admin/products`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setProducts(data);
+      
+      const [productsRes, categoriesRes] = await Promise.all([
+        fetch(`${API_URL}/api/admin/products`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch(`${API_URL}/api/catalog/categories`)
+      ]);
+
+      if (productsRes.ok) {
+        const pData = await productsRes.json();
+        setProducts(pData);
+      }
+      
+      if (categoriesRes.ok) {
+        const cData = await categoriesRes.json();
+        setCategories(cData.categories || []);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchData();
   }, []);
-
-  const uniqueCategories = Array.from(new Set(products.map(p => p.category?.name || p.categoryId))).map(
-    name => products.find(p => (p.category?.name || p.categoryId) === name)?.category || { id: name, name: name }
-  );
 
   const handleOpenModal = (product: any = null) => {
     if (product) {
@@ -397,13 +479,14 @@ export default function ProductManager() {
         hasPizzaExtras: product.hasPizzaExtras || false,
         isFavorite: product.isFavorite || false,
         isActive: product.isActive !== undefined ? product.isActive : true,
-        sizes: product.sizes ? [...product.sizes] : [], // Populate existing sizes
+        sizes: product.sizes ? [...product.sizes] : [],
       });
     } else {
       setEditingProduct(null);
       setFormData({
         id: `item-${Date.now()}`,
-        categoryId: 'cat-classic-pizza',
+        // Default to the first fetched category, or fallback to 'cat-classic-pizza'
+        categoryId: categories.length > 0 ? categories[0].id : 'cat-classic-pizza',
         name: '',
         description: '',
         price: 0,
@@ -411,7 +494,7 @@ export default function ProductManager() {
         hasPizzaExtras: false,
         isFavorite: false,
         isActive: true,
-        sizes: [], // Empty sizes for new product
+        sizes: [],
       });
     }
     setIsModalOpen(true);
@@ -437,7 +520,8 @@ export default function ProductManager() {
 
       if (res.ok) {
         setIsModalOpen(false);
-        fetchProducts();
+        // Refresh products list after save
+        fetchData(); 
       } else {
         const err = await res.json();
         alert('Failed: ' + (err.error || 'Unknown error'));
@@ -458,7 +542,7 @@ export default function ProductManager() {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (res.ok) fetchProducts();
+      if (res.ok) fetchData();
     } catch (err) {
       console.error(err);
     }
@@ -593,7 +677,7 @@ export default function ProductManager() {
                     value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
                     className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:border-[#C8201A] outline-none"
                   >
-                    {uniqueCategories.map((c: any) => (
+                    {categories.map((c: any) => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
