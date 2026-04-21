@@ -634,7 +634,6 @@ export default function ProductManager() {
           <div key={product.id} className="bg-white border border-[#E8D8C8] rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:shadow-lg transition-all">
             <div className="relative h-48 bg-[#FDF8F2] flex items-center justify-center overflow-hidden">
               {product.image ? (
-                {/* Apply formatting here to display the uploaded image */}
                 <img src={getImageUrl(product.image)} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               ) : (
                 <ImageIcon className="w-12 h-12 text-[#E8D8C8]" />
