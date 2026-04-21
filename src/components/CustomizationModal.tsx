@@ -594,6 +594,7 @@ import { useMenu } from '../context/MenuContext';
 import { useSectionContent } from '../context/ContentContext';
 import IceCreamBuilder from './IceCreamBuilder';
 import { calculateItemPrice } from '../utils/pricing';
+import { API_URL } from '../config/api';
 
 
 interface Props {
