@@ -447,6 +447,13 @@ export default function ProductManager() {
     sizes: [] as { name: string; price: number }[],
   });
 
+  // Helper to correctly display local uploads vs external URLs
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return '';
+    if (imagePath.startsWith('http')) return imagePath; // Already a full URL
+    return `${API_URL}${imagePath}`; // Attach the backend API URL to local uploads
+  };
+
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('adminToken');
@@ -492,7 +499,8 @@ export default function ProductManager() {
         isActive: product.isActive !== undefined ? product.isActive : true,
         sizes: product.sizes ? [...product.sizes] : [],
       });
-      setImagePreview(product.image || '');
+      // Correctly format the preview URL for editing
+      setImagePreview(product.image ? getImageUrl(product.image) : '');
       setImageFile(null);
     } else {
       setEditingProduct(null);
@@ -626,7 +634,8 @@ export default function ProductManager() {
           <div key={product.id} className="bg-white border border-[#E8D8C8] rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:shadow-lg transition-all">
             <div className="relative h-48 bg-[#FDF8F2] flex items-center justify-center overflow-hidden">
               {product.image ? (
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                {/* Apply formatting here to display the uploaded image */}
+                <img src={getImageUrl(product.image)} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               ) : (
                 <ImageIcon className="w-12 h-12 text-[#E8D8C8]" />
               )}
