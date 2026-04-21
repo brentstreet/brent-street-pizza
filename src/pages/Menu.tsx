@@ -672,6 +672,22 @@ export default function Menu() {
             </div>
           </div>
         </div>
+
+        <div className="relative mt-24 bg-[#FFFCF7] rounded-3xl border border-[#E8D8C8] p-10 md:p-14 text-center overflow-hidden">
+          <div className="absolute inset-0 opacity-4 grayscale pointer-events-none" style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/dark-leather.png')` }} />
+          <div className="relative z-10">
+            <h3 className="font-bebas text-[38px] md:text-[52px] text-[#1A1A1A] tracking-wider mb-3">
+              Large Order or Special Request?
+            </h3>
+            <p className="font-inter text-[#555555] text-[14px] mb-8 max-w-lg mx-auto leading-relaxed">
+              Call us directly — we'll handle custom orders, dietary requirements, and catering personally.
+            </p>
+            <a href={`tel:${globalContent.phone || '0362724004'}`} className="inline-flex items-center gap-3 text-[#C8201A] hover:text-[#D4952A] transition-colors font-bebas text-[38px] md:text-[50px] tracking-wider group">
+              <Phone className="w-8 h-8 group-hover:scale-110 transition-transform" />
+              {globalContent.phone_display || '03 6272 4004'}
+            </a>
+          </div>
+        </div>
       </div>
 
       <CustomizationModal
