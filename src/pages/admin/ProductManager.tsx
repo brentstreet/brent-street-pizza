@@ -4,6 +4,7 @@
 
 // export default function ProductManager() {
 //   const [products, setProducts] = useState<any[]>([]);
+//   const [categories, setCategories] = useState<any[]>([]); // Added categories state
 //   const [loading, setLoading] = useState(true);
 //   const [isModalOpen, setIsModalOpen] = useState(false);
 //   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -11,7 +12,7 @@
 //   // Form State
 //   const [formData, setFormData] = useState({
 //     id: '',
-//     categoryId: 'cat-classic-pizza',
+//     categoryId: '', // Will be set dynamically
 //     name: '',
 //     description: '',
 //     price: 0,
@@ -19,33 +20,40 @@
 //     hasPizzaExtras: false,
 //     isFavorite: false,
 //     isActive: true,
-//     sizes: [] as { name: string; price: number }[], // Added sizes array
+//     sizes: [] as { name: string; price: number }[],
 //   });
 
-//   const fetchProducts = async () => {
+//   // Fetch both products and categories simultaneously
+//   const fetchData = async () => {
 //     try {
 //       const token = localStorage.getItem('adminToken');
-//       const res = await fetch(`${API_URL}/api/admin/products`, {
-//         headers: { Authorization: `Bearer ${token}` }
-//       });
-//       if (res.ok) {
-//         const data = await res.json();
-//         setProducts(data);
+      
+//       const [productsRes, categoriesRes] = await Promise.all([
+//         fetch(`${API_URL}/api/admin/products`, {
+//           headers: { Authorization: `Bearer ${token}` }
+//         }),
+//         fetch(`${API_URL}/api/catalog/categories`)
+//       ]);
+
+//       if (productsRes.ok) {
+//         const pData = await productsRes.json();
+//         setProducts(pData);
+//       }
+      
+//       if (categoriesRes.ok) {
+//         const cData = await categoriesRes.json();
+//         setCategories(cData.categories || []);
 //       }
 //     } catch (err) {
-//       console.error(err);
+//       console.error('Error fetching data:', err);
 //     } finally {
 //       setLoading(false);
 //     }
 //   };
 
 //   useEffect(() => {
-//     fetchProducts();
+//     fetchData();
 //   }, []);
-
-//   const uniqueCategories = Array.from(new Set(products.map(p => p.category?.name || p.categoryId))).map(
-//     name => products.find(p => (p.category?.name || p.categoryId) === name)?.category || { id: name, name: name }
-//   );
 
 //   const handleOpenModal = (product: any = null) => {
 //     if (product) {
@@ -60,13 +68,14 @@
 //         hasPizzaExtras: product.hasPizzaExtras || false,
 //         isFavorite: product.isFavorite || false,
 //         isActive: product.isActive !== undefined ? product.isActive : true,
-//         sizes: product.sizes ? [...product.sizes] : [], // Populate existing sizes
+//         sizes: product.sizes ? [...product.sizes] : [],
 //       });
 //     } else {
 //       setEditingProduct(null);
 //       setFormData({
 //         id: `item-${Date.now()}`,
-//         categoryId: 'cat-classic-pizza',
+//         // Default to the first fetched category, or fallback to 'cat-classic-pizza'
+//         categoryId: categories.length > 0 ? categories[0].id : 'cat-classic-pizza',
 //         name: '',
 //         description: '',
 //         price: 0,
@@ -74,7 +83,7 @@
 //         hasPizzaExtras: false,
 //         isFavorite: false,
 //         isActive: true,
-//         sizes: [], // Empty sizes for new product
+//         sizes: [],
 //       });
 //     }
 //     setIsModalOpen(true);
@@ -100,7 +109,8 @@
 
 //       if (res.ok) {
 //         setIsModalOpen(false);
-//         fetchProducts();
+//         // Refresh products list after save
+//         fetchData(); 
 //       } else {
 //         const err = await res.json();
 //         alert('Failed: ' + (err.error || 'Unknown error'));
@@ -121,7 +131,7 @@
 //         headers: { Authorization: `Bearer ${token}` }
 //       });
 
-//       if (res.ok) fetchProducts();
+//       if (res.ok) fetchData();
 //     } catch (err) {
 //       console.error(err);
 //     }
@@ -256,7 +266,7 @@
 //                     value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
 //                     className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:border-[#C8201A] outline-none"
 //                   >
-//                     {uniqueCategories.map((c: any) => (
+//                     {categories.map((c: any) => (
 //                       <option key={c.id} value={c.id}>{c.name}</option>
 //                     ))}
 //                   </select>
@@ -415,26 +425,28 @@ import { Plus, Edit2, Trash2, Pizza, Image as ImageIcon } from 'lucide-react';
 
 export default function ProductManager() {
   const [products, setProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]); // Added categories state
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
 
+  // New states for file upload
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+
   // Form State
   const [formData, setFormData] = useState({
     id: '',
-    categoryId: '', // Will be set dynamically
+    categoryId: '',
     name: '',
     description: '',
     price: 0,
-    image: '',
     hasPizzaExtras: false,
     isFavorite: false,
     isActive: true,
     sizes: [] as { name: string; price: number }[],
   });
 
-  // Fetch both products and categories simultaneously
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('adminToken');
@@ -475,27 +487,28 @@ export default function ProductManager() {
         name: product.name,
         description: product.description || '',
         price: Number(product.price),
-        image: product.image,
         hasPizzaExtras: product.hasPizzaExtras || false,
         isFavorite: product.isFavorite || false,
         isActive: product.isActive !== undefined ? product.isActive : true,
         sizes: product.sizes ? [...product.sizes] : [],
       });
+      setImagePreview(product.image || '');
+      setImageFile(null);
     } else {
       setEditingProduct(null);
       setFormData({
         id: `item-${Date.now()}`,
-        // Default to the first fetched category, or fallback to 'cat-classic-pizza'
         categoryId: categories.length > 0 ? categories[0].id : 'cat-classic-pizza',
         name: '',
         description: '',
         price: 0,
-        image: '',
         hasPizzaExtras: false,
         isFavorite: false,
         isActive: true,
         sizes: [],
       });
+      setImagePreview('');
+      setImageFile(null);
     }
     setIsModalOpen(true);
   };
@@ -509,18 +522,34 @@ export default function ProductManager() {
         ? `${API_URL}/api/admin/products/${editingProduct.id}`
         : `${API_URL}/api/admin/products`;
 
+      // Use FormData to support multipart/form-data file uploads
+      const submitData = new FormData();
+      submitData.append('id', formData.id);
+      submitData.append('categoryId', formData.categoryId);
+      submitData.append('name', formData.name);
+      submitData.append('description', formData.description);
+      submitData.append('price', formData.price.toString());
+      submitData.append('hasPizzaExtras', formData.hasPizzaExtras.toString());
+      submitData.append('isFavorite', formData.isFavorite.toString());
+      submitData.append('isActive', formData.isActive.toString());
+      submitData.append('sizes', JSON.stringify(formData.sizes)); // Arrays must be stringified
+
+      if (imageFile) {
+        submitData.append('image', imageFile);
+      }
+
       const res = await fetch(url, {
         method,
+        // Omit 'Content-Type' header. The browser will automatically set it 
+        // to 'multipart/form-data' with the correct boundary when passing FormData.
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: submitData
       });
 
       if (res.ok) {
         setIsModalOpen(false);
-        // Refresh products list after save
         fetchData(); 
       } else {
         const err = await res.json();
@@ -548,7 +577,6 @@ export default function ProductManager() {
     }
   };
 
-  // Handlers for Sizes
   const handleAddSize = () => {
     setFormData({ ...formData, sizes: [...formData.sizes, { name: '', price: 0 }] });
   };
@@ -562,6 +590,14 @@ export default function ProductManager() {
   const handleRemoveSize = (index: number) => {
     const newSizes = formData.sizes.filter((_, i) => i !== index);
     setFormData({ ...formData, sizes: newSizes });
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
   if (loading) return <div className="p-12 text-center animate-spin"><Pizza className="w-8 h-8 text-[#C8201A] mx-auto" /></div>;
@@ -703,7 +739,7 @@ export default function ProductManager() {
                 />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
                 <div>
                   <label className="block font-barlow text-[11px] font-700 uppercase tracking-[0.1em] text-[#555555] mb-2">Base Price ($)</label>
                   <input
@@ -713,13 +749,18 @@ export default function ProductManager() {
                   />
                 </div>
                 <div>
-                  <label className="block font-barlow text-[11px] font-700 uppercase tracking-[0.1em] text-[#555555] mb-2">Image URL</label>
+                  <label className="block font-barlow text-[11px] font-700 uppercase tracking-[0.1em] text-[#555555] mb-2">Product Image</label>
                   <input
-                    required type="url"
-                    value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })}
-                    className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:border-[#C8201A] outline-none"
-                    placeholder="https://..."
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="w-full border border-[#E8D8C8] rounded-xl px-4 py-2 font-inter text-[13px] text-[#1A1A1A] focus:border-[#C8201A] outline-none file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[12px] file:font-semibold file:bg-[#FDFAF6] file:text-[#C8201A] hover:file:bg-[#FDF8F2]"
                   />
+                  {imagePreview && (
+                    <div className="mt-3 relative w-16 h-16 rounded-xl overflow-hidden border border-[#E8D8C8] shadow-sm">
+                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                 </div>
               </div>
 
