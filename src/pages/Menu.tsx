@@ -1,6 +1,8 @@
+
 // import { useState, useEffect, useRef } from 'react';
 // import { ShoppingCart, Phone, Plus, Check } from 'lucide-react';
 // import { useLocation } from 'react-router-dom';
+// import { API_URL } from '../config/api';
 // import { useMenu } from '../context/MenuContext';
 // import { useCart } from '../context/CartContext';
 // import CustomizationModal from '../components/CustomizationModal';
@@ -9,15 +11,13 @@
 // import IceCreamBuilder from '../components/IceCreamBuilder';
 // import SpecialIceCreamCard from '../components/SpecialIceCreamCard';
 
-// // ─── Main Page Component ───────────────────────────────────────────────────────
-
 // export default function Menu() {
 //   const { menuItems: products, categories, isLoading: menuLoading } = useMenu();
 //   const { addToCart, cartTotalItems, setIsCartOpen } = useCart();
 //   const { sectionContent: icContent, loading: icLoading } = useSectionContent('icecream');
 //   const { sectionContent: menuContent, loading: menuContentLoading } = useSectionContent('menu');
 //   const { sectionContent: globalContent } = useSectionContent('global');
-  
+
 //   const [activeCategory, setActiveCategory] = useState<string>('cat-classic-pizza');
 //   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
 //   const [justAddedId, setJustAddedId] = useState<string | null>(null);
@@ -26,37 +26,38 @@
 //   const location = useLocation();
 //   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-//   // Sync category from URL
+//   const getImageUrl = (imagePath?: string) => {
+//     if (!imagePath) return '';
+//     if (imagePath.startsWith('http')) return imagePath;
+//     return `${API_URL}${imagePath}`;
+//   };
+
 //   useEffect(() => {
 //     const params = new URLSearchParams(location.search);
 //     const cat = params.get('cat');
 //     if (cat && categories.find(c => c.id === cat)) {
 //       setActiveCategory(cat);
-//       // Wait for layout then scroll
 //       setTimeout(() => {
-//         // 1. Scroll the navbar to the active button
 //         const navBtn = document.getElementById(`nav-${cat}`);
 //         if (navBtn) {
 //           navBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 //         }
 
-//         // 2. Scroll the window to the corresponding section
 //         if (cat === 'cat-ice-cream') {
 //           const el = document.getElementById('cat-ice-cream');
 //           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 //         } else {
 //           const grid = document.getElementById('menu-products-grid');
 //           if (grid) {
-//             const yOffset = -150; // Account for sticky header
+//             const yOffset = -150;
 //             const y = grid.getBoundingClientRect().top + window.pageYOffset + yOffset;
 //             window.scrollTo({ top: y, behavior: 'smooth' });
 //           }
 //         }
-//       }, 300); // Increased timeout to ensure components are rendered
+//       }, 300);
 //     }
 //   }, [location.search, categories]);
 
-//   // Observer for animation reveals
 //   useEffect(() => {
 //     const observer = new IntersectionObserver(
 //       (entries) => {
@@ -93,10 +94,8 @@
 //   const handleQuickAdd = (item: MenuItem, e: React.MouseEvent) => {
 //     e.stopPropagation();
 //     if (item.sizes && item.sizes.length > 0) {
-//       // Has sizes — open the customization modal
 //       setSelectedItem(item);
 //     } else {
-//       // No sizes (ice cream, desserts, etc.) — add directly
 //       handleAddToCart(item);
 //     }
 //   };
@@ -106,15 +105,13 @@
 //     setPreselectedSize(initialSize);
 //   };
 
-//   const filteredProducts = products.filter(p => 
-//     activeCategory === 'all' || p.categoryId === activeCategory
+//   const filteredProducts = products.filter(
+//     p => activeCategory === 'all' || p.categoryId === activeCategory
 //   );
 
 //   return (
 //     <div className="bg-[#FDF8F2] min-h-screen pt-32 pb-24">
 //       <div className="container-custom">
-        
-//         {/* Header Section */}
 //         <div className="relative mb-12 text-center md:text-left">
 //           <span className="font-barlow text-[12px] font-700 uppercase tracking-[0.4em] text-[#D4952A] block mb-4">
 //             {menuContent.subtitle || '— Locally Owned & Handcrafted —'}
@@ -127,9 +124,8 @@
 //           </p>
 //         </div>
 
-//         {/* Category Navigation */}
 //         <div className="sticky top-[80px] z-30 bg-[#FDF8F2]/95 backdrop-blur-md py-4 -mx-4 px-4 border-b border-[#E8D8C8] mb-12">
-//           <div 
+//           <div
 //             ref={scrollContainerRef}
 //             className="flex gap-2 overflow-x-auto pb-2 no-scrollbar"
 //           >
@@ -139,13 +135,11 @@
 //                 id={`nav-${cat.id}`}
 //                 onClick={() => {
 //                   setActiveCategory(cat.id);
-//                   // 1. Center the button in navigation scrolling
 //                   const navBtn = document.getElementById(`nav-${cat.id}`);
 //                   if (navBtn) {
 //                     navBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 //                   }
-                  
-//                   // 2. Scroll the window to content
+
 //                   if (cat.id === 'cat-ice-cream') {
 //                     const el = document.getElementById('cat-ice-cream');
 //                     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -159,8 +153,8 @@
 //                   }
 //                 }}
 //                 className={`flex-shrink-0 px-6 py-2.5 rounded-full font-barlow font-700 text-[13px] uppercase tracking-wider transition-all
-//                   ${activeCategory === cat.id 
-//                     ? 'bg-[#1A1A1A] text-white shadow-lg' 
+//                   ${activeCategory === cat.id
+//                     ? 'bg-[#1A1A1A] text-white shadow-lg'
 //                     : 'bg-white border border-[#E8D8C8] text-[#555555] hover:border-[#C8201A]'}`}
 //               >
 //                 {cat.name}
@@ -169,35 +163,31 @@
 //           </div>
 //         </div>
 
-//         {/* Product Grid */}
 //         <div id="menu-products-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
 //           {filteredProducts.map((item) => {
 //             const isJustAdded = justAddedId === item.id;
 //             return (
-//               <div 
+//               <div
 //                 key={item.id}
 //                 id={item.id}
 //                 onClick={() => openModal(item)}
 //                 className="group bg-white rounded-2xl border border-[#E8D8C8] overflow-hidden flex flex-col h-full 
 //                   hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] transition-all duration-500 cursor-pointer"
 //               >
-//                 {/* ── Card Image ── */}
 //                 <div className="relative h-56 overflow-hidden">
-//                   <img 
-//                     src={item.image} 
+//                   <img
+//                     src={getImageUrl(item.image)}
 //                     alt={item.name}
 //                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
 //                   />
 //                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  
-//                   {/* Badge */}
+
 //                   {item.isFavorite && (
 //                     <div className="absolute top-3 left-3 bg-[#D4952A] text-white font-barlow font-800 text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full shadow-lg">
 //                       Popular
 //                     </div>
 //                   )}
 
-//                   {/* Tags */}
 //                   <div className="absolute bottom-3 right-3 flex gap-1.5">
 //                     {item.tags?.isSpicy && (
 //                       <span className="bg-[#C8201A]/85 backdrop-blur-sm text-[#FFFCF7] font-barlow text-[9px] font-700 uppercase tracking-wider px-2 py-0.5 rounded-full">🌶 Hot</span>
@@ -208,7 +198,6 @@
 //                   </div>
 //                 </div>
 
-//                 {/* ── Card body ── */}
 //                 <div className="p-4 flex flex-col flex-grow gap-2.5">
 //                   <div className="flex items-start justify-between gap-2">
 //                     <h3 className="font-bebas text-[26px] tracking-wide text-[#1A1A1A] leading-none flex-1">
@@ -223,7 +212,6 @@
 //                     {item.description}
 //                   </p>
 
-//                   {/* Size pills */}
 //                   {item.sizes && item.sizes.length > 0 && (
 //                     <div className="flex gap-1.5 mt-0.5">
 //                       {item.sizes.map(size => (
@@ -241,7 +229,6 @@
 //                     </div>
 //                   )}
 
-//                   {/* Add button */}
 //                   <button
 //                     onClick={(e) => handleQuickAdd(item, e)}
 //                     className={`mt-2 flex items-center justify-center gap-2 font-barlow font-800 text-[14px] uppercase tracking-widest
@@ -263,7 +250,6 @@
 //           })}
 //         </div>
 
-//         {/* Ice Cream Section Section */}
 //         <div id="cat-ice-cream" className="mt-28 reveal pt-12 border-t border-[#E8D8C8]">
 //           <div className="text-center mb-16">
 //             <span className="font-barlow text-[12px] font-700 uppercase tracking-[0.4em] text-[#D4952A] block mb-4">— Artisan Treats —</span>
@@ -277,7 +263,7 @@
 
 //           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 //             <div className="lg:col-span-1">
-//               <IceCreamBuilder 
+//               <IceCreamBuilder
 //                 scoops={icContent.scoops}
 //                 flavours={icContent.flavours}
 //                 toppings={icContent.toppings}
@@ -294,34 +280,32 @@
 //                 }}
 //               />
 //             </div>
-            
+
 //             <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
 //               {(icContent.specials || []).map((item: any) => (
-//                 <SpecialIceCreamCard 
-//                   key={item.id} 
-//                   item={item} 
+//                 <SpecialIceCreamCard
+//                   key={item.id}
+//                   item={item}
 //                   onAddToCart={(it) => {
-//                     // Try match by name first (most reliable), then by partial ID
 //                     const p = products.find(prod => prod.name === it.name)
 //                       || products.find(prod => prod.id.includes(it.id))
 //                       || {
-//                           ...it,
-//                           id: `ice-cream-${it.id}`,
-//                           categoryId: 'cat-ice-cream',
-//                           price: Number(String(it.price).replace(/[^0-9.]/g, '')) || it.price,
-//                         };
+//                         ...it,
+//                         id: `ice-cream-${it.id}`,
+//                         categoryId: 'cat-ice-cream',
+//                         price: Number(String(it.price).replace(/[^0-9.]/g, '')) || it.price,
+//                       };
 //                     handleAddToCart(p as MenuItem, {
 //                       price: Number(String(p.price).replace(/[^0-9.]/g, '')) || Number(p.price),
 //                       quantity: 1
 //                     });
-//                   }} 
+//                   }}
 //                 />
 //               ))}
 //             </div>
 //           </div>
 //         </div>
 
-//         {/* ── Contact CTA ─────────────────────────────────────────────── */}
 //         <div className="relative mt-24 bg-[#FFFCF7] rounded-3xl border border-[#E8D8C8] p-10 md:p-14 text-center overflow-hidden">
 //           <div className="absolute inset-0 opacity-4 grayscale pointer-events-none" style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/dark-leather.png')` }} />
 //           <div className="relative z-10">
@@ -350,7 +334,6 @@
 //         onAddToCart={handleAddToCart}
 //       />
 
-//       {/* ── Floating cart trigger (Desktop/Tablet) ── */}
 //       <button
 //         onClick={() => setIsCartOpen(true)}
 //         className="fixed bottom-10 right-8 w-14 h-14 bg-[#1A1A1A] rounded-full shadow-2xl flex items-center justify-center z-40
@@ -399,11 +382,18 @@ export default function Menu() {
     return `${API_URL}${imagePath}`;
   };
 
+  // ─── CRITICAL FIX: Scrolling Effect ─────────────────────────────
   useEffect(() => {
+    // 1. Wait until ALL content is fully loaded and the spinner is gone
+    if (menuLoading || icLoading || menuContentLoading) return;
+
     const params = new URLSearchParams(location.search);
     const cat = params.get('cat');
+    
     if (cat && categories.find(c => c.id === cat)) {
       setActiveCategory(cat);
+      
+      // 2. We only need a tiny 50ms delay now because the DOM is guaranteed to be ready
       setTimeout(() => {
         const navBtn = document.getElementById(`nav-${cat}`);
         if (navBtn) {
@@ -417,13 +407,14 @@ export default function Menu() {
           const grid = document.getElementById('menu-products-grid');
           if (grid) {
             const yOffset = -150;
-            const y = grid.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            const y = grid.getBoundingClientRect().top + window.scrollY + yOffset;
             window.scrollTo({ top: y, behavior: 'smooth' });
           }
         }
-      }, 300);
+      }, 50);
     }
-  }, [location.search, categories]);
+  }, [location.search, categories, menuLoading, icLoading, menuContentLoading]);
+  // ──────────────────────────────────────────────────────────────
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -514,7 +505,7 @@ export default function Menu() {
                     const grid = document.getElementById('menu-products-grid');
                     if (grid) {
                       const yOffset = -150;
-                      const y = grid.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                      const y = grid.getBoundingClientRect().top + window.scrollY + yOffset;
                       window.scrollTo({ top: y, behavior: 'smooth' });
                     }
                   }
