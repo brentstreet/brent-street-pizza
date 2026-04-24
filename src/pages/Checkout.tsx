@@ -781,12 +781,12 @@ import { useCart } from '../context/CartContext';
 import {
   MapPin, CreditCard, Banknote, ChevronRight, ShieldCheck,
   ArrowLeft, Bike, Store, Trash2, CheckCircle2, Clock, Package,
-  FileText, MessageSquare, Download
-} from 'lucide-react';
+  FileText, MessageSquare
+} from 'lucide-react'; // <-- REMOVED 'Download' IMPORT
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import StripePaymentForm from '../components/StripePaymentForm';
-import toast, { Toaster } from 'react-hot-toast'; 
+import toast, { Toaster } from 'react-hot-toast';
 
 const STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 if (!STRIPE_KEY) {
@@ -975,7 +975,7 @@ export default function Checkout() {
       `*ITEMS:*\n${itemsList}\n` +
       `--------------------------\n` +
       `*Subtotal:* $${subtotal.toFixed(2)}\n` +
-      `*Platform Fee:* $${platformFee.toFixed(2)}\n` +
+      `*Platform Fee:* $${platformFee.toFixed(2)}\n` + // <-- UPDATED FROM TAX TO PLATFORM FEE
       `*Delivery Fee:* $${deliveryFee.toFixed(2)}\n` +
       `*TOTAL:* $${total.toFixed(2)}\n` +
       `--------------------------\n` +
