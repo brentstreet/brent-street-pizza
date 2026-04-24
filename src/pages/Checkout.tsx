@@ -822,8 +822,8 @@ export default function Checkout() {
     }
   }, [cartItems, navigate, step]);
 
-  const deliveryFee = orderType === 'delivery' ? 4.99 : 0;
-  const platformFee = orderType === 'delivery' ? 5.50 : 0.50;
+  const deliveryFee = orderType === 'delivery' ? 5.00 : 0;
+  const platformFee = orderType === 'delivery' ? 0.50 : 0.50;
   const subtotal = cartTotalPrice;
   const total = subtotal + platformFee + deliveryFee;
 
