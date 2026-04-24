@@ -782,7 +782,7 @@ import {
   MapPin, CreditCard, Banknote, ChevronRight, ShieldCheck,
   ArrowLeft, Bike, Store, Trash2, CheckCircle2, Clock, Package,
   FileText, MessageSquare
-} from 'lucide-react'; // <-- REMOVED 'Download' IMPORT
+} from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import StripePaymentForm from '../components/StripePaymentForm';
@@ -798,14 +798,12 @@ type Step = 'address' | 'payment' | 'success';
 
 export default function Checkout() {
   const navigate = useNavigate();
-  // Using global orderType from CartContext
   const { cartItems, cartTotalPrice, clearCart, token, orderType, setOrderType } = useCart();
   const [step, setStep] = useState<Step>('address');
   const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'COD'>('ONLINE');
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderId, setOrderId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
-  const [finalOrderItems, setFinalOrderItems] = useState<any[]>([]);
   const [finalTotal, setFinalTotal] = useState(0);
   const [address, setAddress] = useState({
     name: '',
@@ -825,7 +823,6 @@ export default function Checkout() {
   }, [cartItems, navigate, step]);
 
   const deliveryFee = orderType === 'delivery' ? 4.99 : 0;
-  // Platform fee logic based on order type
   const platformFee = orderType === 'delivery' ? 5.50 : 0.50;
   const subtotal = cartTotalPrice;
   const total = subtotal + platformFee + deliveryFee;
@@ -861,15 +858,13 @@ export default function Checkout() {
           if (dbProduct) {
             let expectedPrice = Number(dbProduct.price);
 
-            // 1. If cart item has a size, find that size's specific price in the DB
             if (cartItem.size && dbProduct.sizes && Array.isArray(dbProduct.sizes)) {
               const matchingSize = dbProduct.sizes.find((s: any) => s.name === cartItem.size);
               if (matchingSize) {
-                expectedPrice = Number(matchingSize.price); // Override base price
+                expectedPrice = Number(matchingSize.price);
               }
             }
 
-            // 2. Add the cost of any extras
             if (cartItem.addedExtras && Array.isArray(cartItem.addedExtras)) {
               for (const extra of cartItem.addedExtras) {
                 expectedPrice += Number(extra.price || 0);
@@ -878,7 +873,6 @@ export default function Checkout() {
 
             const cartPrice = Number(cartItem.price);
             
-            // Compare the calculated expected price against the cart price
             if (Math.abs(expectedPrice - cartPrice) > 0.001) {
               mismatchedItems.push(
                 `• ${cartItem.name} ${cartItem.size ? `(${cartItem.size})` : ''}: was $${cartPrice.toFixed(2)}, now $${expectedPrice.toFixed(2)}`
@@ -934,7 +928,6 @@ export default function Checkout() {
       setOrderId(data.order.id);
 
       if (paymentMethod === 'COD') {
-        setFinalOrderItems([...cartItems]);
         setFinalTotal(total);
         setStep('success');
         clearCart();
@@ -975,7 +968,7 @@ export default function Checkout() {
       `*ITEMS:*\n${itemsList}\n` +
       `--------------------------\n` +
       `*Subtotal:* $${subtotal.toFixed(2)}\n` +
-      `*Platform Fee:* $${platformFee.toFixed(2)}\n` + // <-- UPDATED FROM TAX TO PLATFORM FEE
+      `*Platform Fee:* $${platformFee.toFixed(2)}\n` +
       `*Delivery Fee:* $${deliveryFee.toFixed(2)}\n` +
       `*TOTAL:* $${total.toFixed(2)}\n` +
       `--------------------------\n` +
@@ -986,7 +979,7 @@ export default function Checkout() {
   };
 
   const handleWhatsAppNotify = () => {
-    const ownerNumber = '61362724004'; // Australian Business Number from footer
+    const ownerNumber = '61362724004';
     window.open(`https://wa.me/${ownerNumber}?text=${generateWhatsAppMessage()}`, '_blank');
   };
 
@@ -1299,7 +1292,6 @@ export default function Checkout() {
                         clientSecret={clientSecret} 
                         total={total}
                         onSuccess={async () => {
-                          setFinalOrderItems([...cartItems]);
                           setFinalTotal(total);
                           await clearCart();
                           setStep('success');
