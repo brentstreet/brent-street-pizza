@@ -774,7 +774,6 @@
 //     </div>
 //   );
 // }
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config/api';
@@ -787,7 +786,7 @@ import {
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import StripePaymentForm from '../components/StripePaymentForm';
-import toast, { Toaster } from 'react-hot-toast'; // <-- NEW IMPORT
+import toast, { Toaster } from 'react-hot-toast'; 
 
 const STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 if (!STRIPE_KEY) {
@@ -799,9 +798,9 @@ type Step = 'address' | 'payment' | 'success';
 
 export default function Checkout() {
   const navigate = useNavigate();
+  // Using global orderType from CartContext
   const { cartItems, cartTotalPrice, clearCart, token, orderType, setOrderType } = useCart();
   const [step, setStep] = useState<Step>('address');
-  // const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
   const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'COD'>('ONLINE');
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderId, setOrderId] = useState('');
@@ -826,9 +825,10 @@ export default function Checkout() {
   }, [cartItems, navigate, step]);
 
   const deliveryFee = orderType === 'delivery' ? 4.99 : 0;
-const platformFee = orderType === 'delivery' ? 5.50 : 0.50;
-const subtotal = cartTotalPrice;
-const total = subtotal + platformFee + deliveryFee;
+  // Platform fee logic based on order type
+  const platformFee = orderType === 'delivery' ? 5.50 : 0.50;
+  const subtotal = cartTotalPrice;
+  const total = subtotal + platformFee + deliveryFee;
 
   const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -839,7 +839,7 @@ const total = subtotal + platformFee + deliveryFee;
   const handlePlaceOrder = async () => {
     setIsProcessing(true);
     if (!token) {
-      toast.error('Authentication error. Please refresh the page and try again.', { duration: 4000 }); // <-- CHANGED
+      toast.error('Authentication error. Please refresh the page and try again.', { duration: 4000 });
       setIsProcessing(false);
       return;
     }
@@ -888,7 +888,7 @@ const total = subtotal + platformFee + deliveryFee;
         }
 
         if (mismatchedItems.length > 0) {
-          toast.error( // <-- CHANGED
+          toast.error(
             <div className="flex flex-col gap-2">
               <strong>Prices Updated!</strong>
               <p className="text-sm">Please go back and update your cart. The following prices changed:</p>
@@ -949,7 +949,7 @@ const total = subtotal + platformFee + deliveryFee;
 
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || 'Something went wrong. Please try again.', { duration: 5000 }); // <-- CHANGED
+      toast.error(err.message || 'Something went wrong. Please try again.', { duration: 5000 });
       setIsProcessing(false);
     }
   };
@@ -975,7 +975,7 @@ const total = subtotal + platformFee + deliveryFee;
       `*ITEMS:*\n${itemsList}\n` +
       `--------------------------\n` +
       `*Subtotal:* $${subtotal.toFixed(2)}\n` +
-      `*Tax (10%):* $${tax.toFixed(2)}\n` +
+      `*Platform Fee:* $${platformFee.toFixed(2)}\n` +
       `*Delivery Fee:* $${deliveryFee.toFixed(2)}\n` +
       `*TOTAL:* $${total.toFixed(2)}\n` +
       `--------------------------\n` +
@@ -990,256 +990,88 @@ const total = subtotal + platformFee + deliveryFee;
     window.open(`https://wa.me/${ownerNumber}?text=${generateWhatsAppMessage()}`, '_blank');
   };
 
-  // ── SUCCESS PAGE ─────────────────────────────────────────────────────────
   if (step === 'success') {
     return (
-      <div className="min-h-screen bg-[#FDF8F2] flex flex-col items-center justify-start pt-12 px-4 pb-20">
-        <Toaster position="top-center" /> {/* <-- ADDED TOASTER COMPONENT */}
-        <div className="max-w-2xl w-full">
-          {/* Success Hero */}
-          <div className="text-center mb-10">
-            <div className="relative inline-block mb-6">
-              <div className="w-28 h-28 bg-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(16,185,129,0.4)] animate-bounce-subtle">
-                <CheckCircle2 className="w-14 h-14 text-white" />
-              </div>
-              <div className="absolute -top-2 -right-2 bg-[#D4952A] text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                <Package className="w-5 h-5" />
-              </div>
-            </div>
-            <h1 className="font-bebas text-[64px] md:text-[84px] text-[#1A1A1A] tracking-wider leading-none mb-2">
-              Order Confirmed!
-            </h1>
-            <p className="font-inter text-[#555555] text-[15px] max-w-sm mx-auto">
-              Hang tight! We're preparing your delicious meal and {orderType === 'delivery' ? 'a rider will be assigned shortly' : 'it will be ready for pickup soon'}.
-            </p>
+      <div className="min-h-screen bg-[#FDF8F2] pt-32 pb-20 px-4 md:px-8">
+        <Toaster position="top-center" />
+        <div className="max-w-[600px] mx-auto bg-white rounded-3xl p-8 md:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-[#E8D8C8] text-center animate-in zoom-in-95 duration-500">
+          <div className="w-24 h-24 bg-[#C8201A]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-12 h-12 text-[#C8201A]" />
           </div>
+          <h1 className="font-bebas text-[48px] text-[#1A1A1A] leading-none mb-2 tracking-wide">
+            Order Confirmed!
+          </h1>
+          <p className="font-inter text-[16px] text-[#555555] mb-8">
+            Thank you for your order. We've received it and will start preparing it right away.
+          </p>
 
-          {/* Live Tracker (Visual Only) */}
-                    {/* Live Tracker (Visual Only) */}
-          <div className="bg-white border border-[#E8D8C8] rounded-3xl p-8 mb-8 shadow-[0_8px_30px_rgba(0,0,0,0.03)] relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4">
-              <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full font-barlow text-[10px] font-800 uppercase tracking-widest animate-pulse">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                Live Tracking
-              </span>
-            </div>
-            
-            <div className="space-y-8 relative">
-              {/* Progress Line */}
-              <div className="absolute left-[19px] top-[10px] bottom-[10px] w-0.5 bg-[#F0E8DC]">
-                <div className="absolute top-0 left-0 w-full h-[33%] bg-[#C8201A] shadow-[0_0_8px_rgba(200,32,26,0.3)]" />
-              </div>
-
-              {(orderType === 'delivery' 
-                ? [
-                    { icon: CheckCircle2, label: 'Order Confirmed', time: 'Just now', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
-                    { icon: Clock, label: 'Food is being prepared', time: 'Expected in 5 mins', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
-                    { icon: Bike, label: 'Rider is on the way', time: 'Stay tuned!', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
-                    { icon: MapPin, label: 'Delivered', time: '', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
-                  ]
-                : [
-                    { icon: CheckCircle2, label: 'Order Confirmed', time: 'Just now', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
-                    { icon: Clock, label: 'Food is being prepared', time: 'Expected in 15-20 mins', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
-                    { icon: Store, label: 'Ready for Pickup', time: 'Head to the store!', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
-                    { icon: Package, label: 'Order Picked Up', time: '', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
-                  ]
-              ).map((s, i) => (
-                <div key={i} className="flex gap-5 items-start">
-                  <div className={`w-10 h-10 rounded-full ${s.bg} flex items-center justify-center z-10 shadow-sm transition-colors duration-500`}>
-                    <s.icon className={`w-5 h-5 ${i < 2 ? 'text-white' : 'text-[#888888]'}`} />
-                  </div>
+          <div className="bg-[#FDFAF6] border border-[#E8D8C8] rounded-2xl p-6 text-left mb-8">
+            <p className="font-barlow text-[11px] font-700 uppercase tracking-widest text-[#555555] mb-4">Order Details</p>
+            <div className="space-y-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <Package className="w-5 h-5 text-[#C8201A]" />
                   <div>
-                    <h4 className={`font-bebas text-[20px] tracking-wide leading-none mb-1 ${i < 2 ? 'text-[#1A1A1A]' : 'text-[#BBBBBB]'}`}>
-                      {s.label}
-                    </h4>
-                    <p className="font-inter text-[12px] text-[#888888]">{s.time}</p>
+                    <p className="font-barlow font-700 text-[13px] uppercase tracking-wide text-[#1A1A1A]">Order Number</p>
+                    <p className="font-inter text-[14px] text-[#555555]">#{orderId.slice(0, 8).toUpperCase()}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Order Info & Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            <div className="bg-[#1A1A1A] text-white rounded-3xl p-6 shadow-xl">
-              <p className="font-barlow text-[11px] font-700 uppercase tracking-[0.2em] text-[#D4952A] mb-4">Order Summary</p>
-              <div className="space-y-3 mb-6 opacity-90 text-[13px] font-inter">
-                <div className="flex justify-between">
-                  <span>Order ID</span>
-                  <span className="font-mono text-[#D4952A]">#{orderId.slice(0, 8).toUpperCase()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Payment</span>
-                  <span>{paymentMethod === 'ONLINE' ? 'Paid Online' : 'Cash on Delivery'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Items</span>
-                  <span>{finalOrderItems.length} Products</span>
+                <div className="text-right">
+                  <p className="font-barlow font-700 text-[13px] uppercase tracking-wide text-[#1A1A1A]">Total Paid</p>
+                  <p className="font-bebas text-[20px] text-[#C8201A] leading-none">${finalTotal.toFixed(2)}</p>
                 </div>
               </div>
-              <div className="pt-4 border-t border-white/10 flex justify-between items-end">
-                <span className="font-barlow text-[13px] font-700 uppercase tracking-widest">Total Amount</span>
-                <span className="font-bebas text-[32px] text-[#D4952A] leading-none">${finalTotal.toFixed(2)}</span>
-              </div>
-            </div>
-
-            <div className="bg-white border border-[#E8D8C8] rounded-3xl p-6 flex flex-col justify-between">
-              <div>
-                <p className="font-barlow text-[11px] font-700 uppercase tracking-[0.2em] text-[#C8201A] mb-4">Delivery To</p>
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-[#C8201A] mt-0.5" />
-                  <div>
-                    <p className="font-bebas text-[22px] text-[#1A1A1A] leading-none mb-1">{address.name}</p>
-                    <p className="font-inter text-[13px] text-[#555555] line-clamp-2">
-                       {orderType === 'delivery' ? `${address.street}, ${address.suburb}` : 'Brent Street Pizza (Pickup)'}
-                    </p>
-                  </div>
+              <div className="h-px bg-[#E8D8C8]" />
+              <div className="flex items-center gap-3">
+                <Clock className="w-5 h-5 text-[#D4952A]" />
+                <div>
+                  <p className="font-barlow font-700 text-[13px] uppercase tracking-wide text-[#1A1A1A]">Estimated Time</p>
+                  <p className="font-inter text-[14px] text-[#555555]">25 - 35 minutes</p>
                 </div>
-              </div>
-              
-              <div className="mt-6 pt-6 border-t border-[#F0E8DC] space-y-3">
-                <button 
-                  onClick={handleWhatsAppNotify}
-                  className="w-full flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#128C7E] text-white font-barlow text-[13px] font-800 uppercase tracking-widest py-3.5 rounded-2xl transition-all shadow-[0_8px_20px_rgba(37,211,102,0.25)]"
-                >
-                  <MessageSquare className="w-4 h-4 fill-current" /> Notify Owner via WhatsApp
-                </button>
-                <button 
-                   onClick={() => window.print()}
-                   className="w-full flex items-center justify-center gap-2 text-[#555555] hover:text-[#1A1A1A] font-barlow text-[12px] font-700 uppercase tracking-widest transition-colors"
-                >
-                  <Download className="w-4 h-4" /> Download/Print Receipt
-                </button>
               </div>
             </div>
           </div>
 
-          {/* Detailed Receipt Section */}
-          <div className="bg-white border border-[#E8D8C8] rounded-3xl overflow-hidden mb-10 shadow-sm print:shadow-none print:border-none">
-            <div className="bg-[#F9F9F9] border-b border-[#E8D8C8] p-6 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-[#C8201A]" />
-                <h3 className="font-bebas text-[24px] tracking-wide text-[#1A1A1A]">Official Receipt</h3>
-              </div>
-              <span className="font-barlow text-[11px] font-700 text-[#888888] uppercase tracking-[0.1em]">
-                {new Date().toLocaleDateString()} · {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
-            </div>
-            
-            <div className="p-8">
-              {/* Receipt Items */}
-              <div className="divide-y divide-[#F0E8DC] mb-8">
-                {finalOrderItems.map((item: any, idx: number) => (
-                  <div key={idx} className="py-4 flex justify-between items-start gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="bg-[#1A1A1A] text-white w-5 h-5 rounded-full flex items-center justify-center font-barlow text-[10px] font-700">
-                          {item.quantity}
-                        </span>
-                        <h4 className="font-barlow text-[15px] font-700 text-[#1A1A1A] uppercase tracking-wide">
-                          {item.name}
-                        </h4>
-                      </div>
-                      
-                      {item.size && (
-                        <p className="font-inter text-[12px] text-[#666] ml-7">Size: {item.size}</p>
-                      )}
-                      
-                      {item.removedToppings && item.removedToppings.length > 0 && (
-                        <p className="font-inter text-[11px] text-[#C8201A] ml-7 italic">
-                          No {item.removedToppings.join(', ')}
-                        </p>
-                      )}
-                      
-                      {item.addedExtras && item.addedExtras.length > 0 && (
-                        <p className="font-inter text-[11px] text-[#D4952A] ml-7 font-medium">
-                          + {item.addedExtras.map((e: any) => e.name).join(', ')}
-                        </p>
-                      )}
-                    </div>
-                    <span className="font-barlow text-[15px] font-700 text-[#1A1A1A]">
-                      ${(Number(item.price) * item.quantity).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Receipt Footer */}
-              <div className="space-y-3 pt-6 border-t-2 border-dashed border-[#F0E8DC]">
-                <div className="flex justify-between font-inter text-[14px] text-[#555]">
-                  <span>Subtotal</span>
-                  <span>${(finalTotal / 1.15).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between font-inter text-[13px] text-[#555555]">
-  <span>Platform Fee</span>
-  <span>${platformFee.toFixed(2)}</span>
-</div>
-                {orderType === 'delivery' && (
-                  <div className="flex justify-between font-inter text-[14px] text-[#555]">
-                    <span>Delivery Fee</span>
-                    <span>$4.99</span>
-                  </div>
-                )}
-                <div className="flex justify-between pt-4">
-                  <span className="font-bebas text-[28px] text-[#1A1A1A] tracking-wider">Total amount</span>
-                  <div className="text-right">
-                    <span className="font-bebas text-[36px] text-[#C8201A] leading-none">${finalTotal.toFixed(2)}</span>
-                    <p className="font-barlow text-[10px] font-700 text-[#25D366] uppercase tracking-widest mt-1">
-                      {paymentMethod === 'ONLINE' ? 'Payment Successful' : 'Payable on Delivery'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Branding bit */}
-              <div className="mt-10 pt-6 border-t border-[#F0E8DC] text-center">
-                <p className="font-bebas text-[20px] tracking-widest text-[#CCCCCC] leading-none mb-1 opacity-50">BRENT STREET PIZZA</p>
-                <p className="font-inter text-[10px] text-[#AAAAAA] uppercase tracking-widest">Thank you for ordering with us!</p>
-              </div>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+              onClick={() => navigate('/menu')}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#1A1A1A] hover:bg-black text-white font-barlow font-700 text-[14px] uppercase tracking-wider px-8 py-4 rounded-xl transition-all"
+            >
+              <FileText className="w-4 h-4" />
+              Back to Menu
+            </button>
+            <button
+              onClick={handleWhatsAppNotify}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5C] text-white font-barlow font-700 text-[14px] uppercase tracking-wider px-8 py-4 rounded-xl transition-all shadow-[0_8px_24px_rgba(37,211,102,0.3)]"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Get Updates via WhatsApp
+            </button>
           </div>
-
-          <button
-            onClick={() => navigate('/menu')}
-            className="w-full group bg-white border-2 border-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white text-[#1A1A1A] font-barlow font-800 text-[15px] uppercase tracking-[0.2em] px-8 py-5 rounded-3xl transition-all duration-300 shadow-[0_10px_40px_rgba(0,0,0,0.05)] flex items-center justify-center gap-3"
-          >
-            Go Back to Menu <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FDF8F2] pb-32">
-      <Toaster position="top-center" /> {/* <-- ADDED TOASTER COMPONENT */}
-      
-      {/* Header */}
-      <div className="sticky top-0 z-30 bg-[#FDF8F2]/98 backdrop-blur-xl border-b border-[#E8D8C8] px-4 py-4">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <button
-            onClick={() => step === 'payment' ? setStep('address') : navigate('/menu')}
-            className="w-9 h-9 rounded-full border border-[#E8D8C8] flex items-center justify-center hover:bg-[#1A1A1A] hover:text-white transition-all"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <h1 className="font-bebas text-[28px] tracking-wider text-[#1A1A1A] leading-none">
-            {step === 'address' ? 'Delivery Details' : 'Payment'}
-          </h1>
-          {/* Step indicator */}
-          <div className="ml-auto flex items-center gap-2">
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-barlow font-700 ${step === 'address' || step === 'payment' ? 'bg-[#C8201A] text-white' : 'bg-[#E8D8C8] text-[#555555]'}`}>1</div>
-            <div className="w-6 h-px bg-[#E8D8C8]" />
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-barlow font-700 ${step === 'payment' ? 'bg-[#C8201A] text-white' : 'bg-[#E8D8C8] text-[#555555]'}`}>2</div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#FDF8F2] pt-24 pb-20 px-4 md:px-8">
+      <Toaster position="top-center" />
+      <div className="max-w-[1200px] mx-auto mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <button
+          onClick={() => step === 'payment' ? setStep('address') : navigate('/menu')}
+          className="flex items-center gap-2 text-[#555555] hover:text-[#C8201A] font-barlow font-700 text-[13px] uppercase tracking-wider transition-colors w-fit"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {step === 'payment' ? 'Back to Details' : 'Back to Menu'}
+        </button>
+        <h1 className="font-bebas text-[36px] md:text-[48px] text-[#1A1A1A] tracking-wider leading-none">
+          Secure Checkout
+        </h1>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
-
-        {/* ── LEFT PANEL ── */}
-        <div className="space-y-5">
-
+      <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 xl:gap-12 items-start">
+        {/* ── LEFT PANEL: Form / Payment ── */}
+        <div className="space-y-6">
           {/* STEP 1: Address */}
           {step === 'address' && (
             <>
@@ -1356,19 +1188,19 @@ const total = subtotal + platformFee + deliveryFee;
                 )}
 
                 {orderType === 'delivery' && (
-  <div>
-    <label className="block font-barlow text-[10px] font-700 uppercase tracking-wider text-[#555555] mb-1.5">
-      Delivery Notes (optional)
-    </label>
-    <textarea
-      value={address.notes}
-      onChange={e => setAddress(a => ({ ...a, notes: e.target.value }))}
-      placeholder="Leave at door, ring doorbell, etc."
-      rows={2}
-      className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A] transition-colors bg-[#FDFAF6] resize-none"
-    />
-  </div>
-)}
+                  <div>
+                    <label className="block font-barlow text-[10px] font-700 uppercase tracking-wider text-[#555555] mb-1.5">
+                      Delivery Notes (optional)
+                    </label>
+                    <textarea
+                      value={address.notes}
+                      onChange={e => setAddress(a => ({ ...a, notes: e.target.value }))}
+                      placeholder="Leave at door, ring doorbell, etc."
+                      rows={2}
+                      className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A] transition-colors bg-[#FDFAF6] resize-none"
+                    />
+                  </div>
+                )}
 
                 <button
                   type="submit"
@@ -1535,9 +1367,9 @@ const total = subtotal + platformFee + deliveryFee;
                 <span>${subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-inter text-[13px] text-[#555555]">
-  <span>Platform Fee</span>
-  <span>${platformFee.toFixed(2)}</span>
-</div>
+                <span>Platform Fee</span>
+                <span>${platformFee.toFixed(2)}</span>
+              </div>
               {orderType === 'delivery' && (
                 <div className="flex justify-between font-inter text-[13px] text-[#555555]">
                   <span>Delivery Fee</span>
