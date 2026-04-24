@@ -1,12 +1,17 @@
 // import { useEffect, useState } from 'react';
 // import { API_URL } from '../../config/api';
-// import { RefreshCw, FileText, Printer, CheckSquare, Square } from 'lucide-react';
+// import { RefreshCw, FileText, Printer, CheckSquare, Square, Filter, Calendar } from 'lucide-react';
 // import { useNavigate } from 'react-router-dom';
 
 // export default function InvoicesManager() {
 //   const [orders, setOrders] = useState<any[]>([]);
 //   const [loading, setLoading] = useState(true);
 //   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
+  
+//   // Filters
+//   const [filterStatus, setFilterStatus] = useState<string>('ALL');
+//   const [filterDate, setFilterDate] = useState<string>('');
+
 //   const navigate = useNavigate();
 
 //   const fetchOrders = async () => {
@@ -49,11 +54,30 @@
 //     setSelectedInvoices(newSelection);
 //   };
 
+//   // Extract unique payment statuses for the filter dropdown
+//   const uniqueStatuses = ['ALL', ...Array.from(new Set(orders.map(o => o.paymentStatus || 'Pending')))];
+
+//   // Apply filters
+//   const filteredOrders = orders.filter(o => {
+//     const matchStatus = filterStatus === 'ALL' || (o.paymentStatus || 'Pending') === filterStatus;
+    
+//     let matchDate = true;
+//     if (filterDate) {
+//       const orderDate = new Date(o.createdAt);
+//       // Format order date to local YYYY-MM-DD to match the date input exactly
+//       const localDate = new Date(orderDate.getTime() - (orderDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+//       matchDate = localDate === filterDate;
+//     }
+    
+//     return matchStatus && matchDate;
+//   });
+
 //   const toggleSelectAll = () => {
-//     if (selectedInvoices.size === orders.length && orders.length > 0) {
+//     // Only select/deselect the CURRENTLY FILTERED orders
+//     if (selectedInvoices.size === filteredOrders.length && filteredOrders.length > 0) {
 //       setSelectedInvoices(new Set());
 //     } else {
-//       setSelectedInvoices(new Set(orders.map(o => o.id)));
+//       setSelectedInvoices(new Set(filteredOrders.map(o => o.id)));
 //     }
 //   };
 
@@ -106,25 +130,56 @@
 //         </div>
 
 //         <div className="bg-white border border-[#E8D8C8] rounded-2xl overflow-hidden shadow-sm">
-//           {/* Header Row */}
-//           <div className="bg-[#FDFAF6] border-b border-[#E8D8C8] p-4 flex items-center justify-between">
+//           {/* Header Row with Filters */}
+//           <div className="bg-[#FDFAF6] border-b border-[#E8D8C8] p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
 //             <div className="flex items-center gap-4">
 //               <button onClick={toggleSelectAll} className="text-[#1A1A1A] hover:text-[#C8201A] transition-colors p-1">
-//                 {selectedInvoices.size === orders.length && orders.length > 0 ? (
+//                 {selectedInvoices.size === filteredOrders.length && filteredOrders.length > 0 ? (
 //                   <CheckSquare className="w-6 h-6 text-[#C8201A]" />
 //                 ) : (
 //                   <Square className="w-6 h-6 text-[#888888]" />
 //                 )}
 //               </button>
 //               <span className="font-barlow text-[14px] font-700 uppercase tracking-wider text-[#1A1A1A]">
-//                 Select All
+//                 Select All Filtered
 //               </span>
+//             </div>
+
+//             {/* Filters */}
+//             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+//               <div className="flex items-center gap-2 bg-white border border-[#E8D8C8] rounded-lg px-3 py-1.5 flex-1 md:flex-none">
+//                 <Filter className="w-4 h-4 text-[#888]" />
+//                 <select 
+//                   value={filterStatus} 
+//                   onChange={e => setFilterStatus(e.target.value)}
+//                   className="bg-transparent border-none outline-none font-inter text-[13px] text-[#1A1A1A] w-full cursor-pointer"
+//                 >
+//                   {uniqueStatuses.map(s => (
+//                     <option key={s} value={s}>{s === 'ALL' ? 'All Statuses' : s}</option>
+//                   ))}
+//                 </select>
+//               </div>
+
+//               <div className="flex items-center gap-2 bg-white border border-[#E8D8C8] rounded-lg px-3 py-1.5 flex-1 md:flex-none">
+//                 <Calendar className="w-4 h-4 text-[#888]" />
+//                 <input 
+//                   type="date" 
+//                   value={filterDate} 
+//                   onChange={e => setFilterDate(e.target.value)}
+//                   className="bg-transparent border-none outline-none font-inter text-[13px] text-[#1A1A1A] w-full cursor-pointer"
+//                 />
+//                 {filterDate && (
+//                   <button onClick={() => setFilterDate('')} className="text-[#C8201A] hover:text-red-800 text-[12px] font-barlow font-700 uppercase ml-2">
+//                     Clear
+//                   </button>
+//                 )}
+//               </div>
 //             </div>
 //           </div>
 
 //           {/* Orders List */}
 //           <div className="divide-y divide-[#E8D8C8] max-h-[60vh] overflow-y-auto">
-//             {orders.map((order) => (
+//             {filteredOrders.map((order) => (
 //               <div 
 //                 key={order.id} 
 //                 className={`p-4 flex items-center justify-between hover:bg-[#FDFAF6] transition-colors cursor-pointer ${selectedInvoices.has(order.id) ? 'bg-[#FAECE8]' : ''}`}
@@ -163,10 +218,11 @@
 //               </div>
 //             ))}
             
-//             {orders.length === 0 && !loading && (
+//             {filteredOrders.length === 0 && !loading && (
 //               <div className="p-12 text-center text-[#888888]">
 //                 <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-//                 <h3 className="font-bebas text-[24px] text-[#1A1A1A] tracking-wider mb-2">No orders available</h3>
+//                 <h3 className="font-bebas text-[24px] text-[#1A1A1A] tracking-wider mb-2">No matching orders</h3>
+//                 <p className="font-inter text-[14px]">Try adjusting your filters to see more results.</p>
 //               </div>
 //             )}
 //           </div>
@@ -176,14 +232,18 @@
 //       {/* Printable Area - Hidden on screen, shown when printing */}
 //       <div className="hidden print:block font-sans text-black w-full max-w-full">
 //         {printOrders.map((order, idx) => {
-//           const customerCode = order.id.slice(0, 5).toUpperCase(); // Short code for the user
+//           const customerCode = order.id.slice(0, 5).toUpperCase();
+//           const isDelivery = order.deliveryAddress && order.deliveryAddress.trim().toLowerCase() !== 'pickup';
+          
+//           // Calculate true food subtotal
+//           const foodSubtotal = order.orderItems.reduce((sum: number, item: any) => sum + (Number(item.price) * item.quantity), 0);
 
 //           return (
 //             <div key={order.id} className={`w-[320px] mx-auto bg-white p-4 ${idx > 0 ? 'mt-12 [page-break-before:always]' : ''}`}>
 //               {/* Receipt Header */}
 //               <div className="flex justify-between items-center mb-2 border-b-2 border-black pb-2">
 //                 <h1 className="text-[20px] font-extrabold tracking-tight">Brent Street Pizza</h1>
-//                 <span className="text-[18px] font-normal tracking-wide">DELIVERY</span>
+//                 <span className="text-[18px] font-normal tracking-wide">{isDelivery ? 'DELIVERY' : 'PICKUP'}</span>
 //               </div>
 
 //               {/* Customer ID Banner */}
@@ -196,6 +256,9 @@
 
 //               <div className="mb-4 text-[15px] font-bold leading-tight border-b-2 border-black pb-4">
 //                 <p>PHONE: {order.customerPhone || order.user?.phone || 'N/A'}</p>
+//                 {isDelivery && (
+//                   <p className="mt-1">ADDR: {order.deliveryAddress}</p>
+//                 )}
 //               </div>
 
 //               {/* Items List */}
@@ -204,7 +267,7 @@
 //                   return (
 //                     <div key={i} className="flex flex-col">
 //                       <div className="flex justify-between items-start">
-//                         <span className="mr-2">{item.quantity} x {item.product.name} {item.size ? `(${item.size})` : ''}</span>
+//                         <span className="mr-2 flex-1">{item.quantity} x {item.product?.name || 'Unknown Item'} {item.size ? `(${item.size})` : ''}</span>
 //                         <span>${Number(item.price * item.quantity).toFixed(2)}</span>
 //                       </div>
                       
@@ -242,21 +305,31 @@
 //               {/* Totals Section */}
 //               <div className="mt-4 border-b-2 border-black pb-4 space-y-1 text-[15px] font-semibold">
 //                 <div className="flex justify-between">
-//                   <span>Subtotal</span>
-//                   <span>${Number(order.totalAmount).toFixed(2)}</span>
+//                   <span>Subtotal (Food)</span>
+//                   <span>${foodSubtotal.toFixed(2)}</span>
 //                 </div>
-//                 {/* Ignoring special offers since we don't track them granularly here, but structure allows it */}
-//                 <div className="flex justify-between font-bold text-[18px] pt-1">
-//                   <span>Amount paid</span>
+                
+//                 <div className="flex justify-between text-[13px] font-normal mt-1">
+//                   <span>Platform Fee</span>
+//                   <span>$0.50</span>
+//                 </div>
+
+//                 {isDelivery && (
+//                   <div className="flex justify-between text-[13px] font-normal mt-0.5">
+//                     <span>Delivery Fee</span>
+//                     <span>$5.00</span>
+//                   </div>
+//                 )}
+                
+//                 <div className="flex justify-between font-bold text-[18px] pt-2 mt-2 border-t border-black border-dashed">
+//                   <span>Amount Paid</span>
 //                   <span>${Number(order.totalAmount).toFixed(2)}</span>
 //                 </div>
 //               </div>
 
-
-
 //               {/* Footer */}
 //               <div className="mt-4 text-center text-[12px] font-medium italic px-4 pb-8">
-//                 Thank you for ordering from Brent Street Pizza (Admin)
+//                 Thank you for ordering from Brent Street Pizza
 //               </div>
 //             </div>
 //           );
@@ -267,7 +340,7 @@
 // }
 import { useEffect, useState } from 'react';
 import { API_URL } from '../../config/api';
-import { RefreshCw, FileText, Printer, CheckSquare, Square, Filter, Calendar } from 'lucide-react';
+import { RefreshCw, FileText, Printer, CheckSquare, Square, Filter, Calendar, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function InvoicesManager() {
@@ -275,9 +348,10 @@ export default function InvoicesManager() {
   const [loading, setLoading] = useState(true);
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
   
-  // Filters
+  // Filters & Search
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [filterDate, setFilterDate] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const navigate = useNavigate();
 
@@ -324,10 +398,12 @@ export default function InvoicesManager() {
   // Extract unique payment statuses for the filter dropdown
   const uniqueStatuses = ['ALL', ...Array.from(new Set(orders.map(o => o.paymentStatus || 'Pending')))];
 
-  // Apply filters
+  // Apply filters and search
   const filteredOrders = orders.filter(o => {
+    // 1. Status Match
     const matchStatus = filterStatus === 'ALL' || (o.paymentStatus || 'Pending') === filterStatus;
     
+    // 2. Date Match
     let matchDate = true;
     if (filterDate) {
       const orderDate = new Date(o.createdAt);
@@ -335,8 +411,19 @@ export default function InvoicesManager() {
       const localDate = new Date(orderDate.getTime() - (orderDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
       matchDate = localDate === filterDate;
     }
+
+    // 3. Search Match (Order ID, Name, Phone)
+    let matchSearch = true;
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase().trim();
+      const orderId = o.id.toLowerCase();
+      const customerName = (o.customerName || o.user?.name || '').toLowerCase();
+      const customerPhone = (o.customerPhone || o.user?.phone || '').toLowerCase();
+
+      matchSearch = orderId.includes(query) || customerName.includes(query) || customerPhone.includes(query);
+    }
     
-    return matchStatus && matchDate;
+    return matchStatus && matchDate && matchSearch;
   });
 
   const toggleSelectAll = () => {
@@ -397,7 +484,7 @@ export default function InvoicesManager() {
         </div>
 
         <div className="bg-white border border-[#E8D8C8] rounded-2xl overflow-hidden shadow-sm">
-          {/* Header Row with Filters */}
+          {/* Header Row with Filters and Search */}
           <div className="bg-[#FDFAF6] border-b border-[#E8D8C8] p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <button onClick={toggleSelectAll} className="text-[#1A1A1A] hover:text-[#C8201A] transition-colors p-1">
@@ -412,8 +499,27 @@ export default function InvoicesManager() {
               </span>
             </div>
 
-            {/* Filters */}
+            {/* Filters & Search Bar */}
             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              
+              {/* Search Bar */}
+              <div className="flex items-center gap-2 bg-white border border-[#E8D8C8] rounded-lg px-3 py-1.5 flex-1 md:flex-none md:min-w-[240px]">
+                <Search className="w-4 h-4 text-[#888]" />
+                <input 
+                  type="text" 
+                  placeholder="Search ID, Name, Phone..." 
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="bg-transparent border-none outline-none font-inter text-[13px] text-[#1A1A1A] w-full"
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="text-[#888] hover:text-[#C8201A]">
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Status Filter */}
               <div className="flex items-center gap-2 bg-white border border-[#E8D8C8] rounded-lg px-3 py-1.5 flex-1 md:flex-none">
                 <Filter className="w-4 h-4 text-[#888]" />
                 <select 
@@ -427,6 +533,7 @@ export default function InvoicesManager() {
                 </select>
               </div>
 
+              {/* Date Filter */}
               <div className="flex items-center gap-2 bg-white border border-[#E8D8C8] rounded-lg px-3 py-1.5 flex-1 md:flex-none">
                 <Calendar className="w-4 h-4 text-[#888]" />
                 <input 
@@ -489,7 +596,7 @@ export default function InvoicesManager() {
               <div className="p-12 text-center text-[#888888]">
                 <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <h3 className="font-bebas text-[24px] text-[#1A1A1A] tracking-wider mb-2">No matching orders</h3>
-                <p className="font-inter text-[14px]">Try adjusting your filters to see more results.</p>
+                <p className="font-inter text-[14px]">Try adjusting your filters or search query to see more results.</p>
               </div>
             )}
           </div>
