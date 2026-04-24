@@ -3,6 +3,7 @@ import Navbar from './layout/Navbar';
 import Footer from './layout/Footer';
 import MobileCTABar from './layout/MobileCTABar';
 import GlobalCartWidget from './components/GlobalCartWidget';
+import ScrollToTop from "./components/ScrollToTop";
 
 import { CartProvider } from './context/CartContext';
 import { MenuProvider } from './context/MenuContext';
@@ -82,6 +83,7 @@ export default function App() {
       <ContentProvider>
         <MenuProvider>
           <CartProvider>
+            <ScrollToTop />
             <Routes>
               {/* 1. Admin Area */}
               <Route path="/admin">
