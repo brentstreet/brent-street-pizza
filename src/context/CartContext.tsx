@@ -329,7 +329,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: item.name,
       price: unitPrice,
       quantity: customizations?.quantity || 1,
-      image: item.image,
+      // Fix: Prepend API_URL to image if it's a relative path
+      image: item.image ? (item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`) : undefined,
       size: effectiveSize,
       removedToppings: customizations?.removedToppings || [],
       addedExtras: customizations?.addedExtras || [],
