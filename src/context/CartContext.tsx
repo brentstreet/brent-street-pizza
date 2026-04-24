@@ -250,6 +250,13 @@ const createGuestUser = async (): Promise<string | null> => {
   }
 };
 
+// Helper function to ensure images always have the correct full URL
+const formatImageUrl = (imagePath?: string): string => {
+  if (!imagePath) return '';
+  if (imagePath.startsWith('http')) return imagePath;
+  return `${API_URL}${imagePath}`;
+};
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [token, setToken] = useState<string | null>(null);
@@ -285,7 +292,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Token is valid — use it
           const data = await res.json();
           setToken(stored);
-          if (data.cartItems?.length) setCartItems(data.cartItems);
+          if (data.cartItems?.length) {
+            // Ensure DB items have full image URLs on load
+            const formattedItems = data.cartItems.map((ci: any) => ({
+              ...ci,
+              image: formatImageUrl(ci.image)
+            }));
+            setCartItems(formattedItems);
+          }
           return;
         } else {
           // Token invalid/expired — clear it
@@ -329,8 +343,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: item.name,
       price: unitPrice,
       quantity: customizations?.quantity || 1,
-      // Fix: Prepend API_URL to image if it's a relative path
-      image: item.image ? (item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`) : undefined,
+      // Fix: Empty string fallback for TypeScript compatibility
+      image: formatImageUrl(item.image),
       size: effectiveSize,
       removedToppings: customizations?.removedToppings || [],
       addedExtras: customizations?.addedExtras || [],
@@ -362,7 +376,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (res.ok) {
           const cartRes = await fetch(`${API_URL}/api/cart`, { headers: authHeaders() });
           const data = await cartRes.json();
-          if (data.cartItems) setCartItems(data.cartItems);
+          if (data.cartItems) {
+            // Ensure synced items also get formatted image URLs
+            const formattedItems = data.cartItems.map((ci: any) => ({
+              ...ci,
+              image: formatImageUrl(ci.image)
+            }));
+            setCartItems(formattedItems);
+          }
         }
       } catch (err) {
         console.error('Cart sync failed (item still in local state):', err);
