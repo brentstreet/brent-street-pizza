@@ -844,7 +844,7 @@ export default function Checkout() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-barlow font-700 text-[13px] uppercase tracking-wide text-[#1A1A1A]">Total Paid</p>
+                  <p className="font-barlow font-700 text-[13px] uppercase tracking-wide text-[#1A1A1A]">Total Amount</p>
                   <p className="font-bebas text-[20px] text-[#C8201A] leading-none">${finalTotal.toFixed(2)}</p>
                 </div>
               </div>
