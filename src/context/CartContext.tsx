@@ -38,11 +38,33 @@
 //   }
 // };
 
+// // Helper function to ensure images always have the correct full URL
+// const formatImageUrl = (imagePath?: string): string => {
+//   if (!imagePath) return '';
+//   if (imagePath.startsWith('http')) return imagePath;
+//   return `${API_URL}${imagePath}`;
+// };
+
 // export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 //   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 //   const [token, setToken] = useState<string | null>(null);
 //   const [isCartOpen, setIsCartOpen] = useState(false);
-//   const [orderType, setOrderType] = useState<'pickup' | 'delivery'>('pickup');
+  
+//   // Initialize orderType from localStorage to persist across page reloads
+//   const [orderType, setOrderType] = useState<'pickup' | 'delivery'>(() => {
+//     if (typeof window !== 'undefined') {
+//       const saved = localStorage.getItem('pizza_order_type');
+//       if (saved === 'delivery' || saved === 'pickup') {
+//         return saved as 'pickup' | 'delivery';
+//       }
+//     }
+//     return 'pickup'; // default
+//   });
+
+//   // Save orderType to localStorage whenever it changes
+//   useEffect(() => {
+//     localStorage.setItem('pizza_order_type', orderType);
+//   }, [orderType]);
 
 //   // 1. On mount: validate existing token, or create guest
 //   useEffect(() => {
@@ -58,7 +80,14 @@
 //           // Token is valid — use it
 //           const data = await res.json();
 //           setToken(stored);
-//           if (data.cartItems?.length) setCartItems(data.cartItems);
+//           if (data.cartItems?.length) {
+//             // Ensure DB items have full image URLs on load
+//             const formattedItems = data.cartItems.map((ci: any) => ({
+//               ...ci,
+//               image: formatImageUrl(ci.image)
+//             }));
+//             setCartItems(formattedItems);
+//           }
 //           return;
 //         } else {
 //           // Token invalid/expired — clear it
@@ -102,13 +131,14 @@
 //       name: item.name,
 //       price: unitPrice,
 //       quantity: customizations?.quantity || 1,
-//       image: item.image,
+//       // Fix: Empty string fallback for TypeScript compatibility
+//       image: formatImageUrl(item.image),
 //       size: effectiveSize,
 //       removedToppings: customizations?.removedToppings || [],
 //       addedExtras: customizations?.addedExtras || [],
 //     };
 
-//     // ✅ Always update local state immediately
+//     // Always update local state immediately
 //     setCartItems(prev => [...prev, localItem]);
 
 //     // Background DB sync — best effort
@@ -134,7 +164,14 @@
 //         if (res.ok) {
 //           const cartRes = await fetch(`${API_URL}/api/cart`, { headers: authHeaders() });
 //           const data = await cartRes.json();
-//           if (data.cartItems) setCartItems(data.cartItems);
+//           if (data.cartItems) {
+//             // Ensure synced items also get formatted image URLs
+//             const formattedItems = data.cartItems.map((ci: any) => ({
+//               ...ci,
+//               image: formatImageUrl(ci.image)
+//             }));
+//             setCartItems(formattedItems);
+//           }
 //         }
 //       } catch (err) {
 //         console.error('Cart sync failed (item still in local state):', err);
@@ -251,7 +288,13 @@ const createGuestUser = async (): Promise<string | null> => {
 };
 
 // Helper function to ensure images always have the correct full URL
-const formatImageUrl = (imagePath?: string): string => {
+// NEW: Catch 'deals' or 'combo' to inject the static combo image
+const formatImageUrl = (imagePath: string | undefined, categoryId?: string, itemId?: string): string => {
+  // If it's a deal, always return the static combo image
+  if (categoryId === 'deals' || itemId?.startsWith('deal_')) {
+    return 'https://pbs.twimg.com/media/DxIwlXCW0AA1uM3.jpg';
+  }
+  
   if (!imagePath) return '';
   if (imagePath.startsWith('http')) return imagePath;
   return `${API_URL}${imagePath}`;
@@ -296,7 +339,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Ensure DB items have full image URLs on load
             const formattedItems = data.cartItems.map((ci: any) => ({
               ...ci,
-              image: formatImageUrl(ci.image)
+              // Backend doesn't store categoryId in cartItems usually, so check ID
+              image: formatImageUrl(ci.image, undefined, ci.menuItemId)
             }));
             setCartItems(formattedItems);
           }
@@ -344,7 +388,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       price: unitPrice,
       quantity: customizations?.quantity || 1,
       // Fix: Empty string fallback for TypeScript compatibility
-      image: formatImageUrl(item.image),
+      // Pass the item.categoryId and item.id so we can flag Deals
+      image: formatImageUrl(item.image, item.categoryId, item.id),
       size: effectiveSize,
       removedToppings: customizations?.removedToppings || [],
       addedExtras: customizations?.addedExtras || [],
@@ -380,7 +425,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Ensure synced items also get formatted image URLs
             const formattedItems = data.cartItems.map((ci: any) => ({
               ...ci,
-              image: formatImageUrl(ci.image)
+              image: formatImageUrl(ci.image, undefined, ci.menuItemId)
             }));
             setCartItems(formattedItems);
           }
