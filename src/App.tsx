@@ -25,6 +25,7 @@ import DashboardOverview from './pages/admin/DashboardOverview';
 import OrdersManager from './pages/admin/OrdersManager';
 import InvoicesManager from './pages/admin/InvoicesManager';
 import ProductManager from './pages/admin/ProductManager';
+import DealManager from './pages/admin/DealManager';
 import ContentManager from './pages/admin/ContentManager';
 import CustomizationManager from './pages/admin/CustomizationManager';
 import CategoryManager from './components/admin/CategoryManager';
@@ -106,6 +107,7 @@ export default function App() {
                   <Route path="orders" element={<OrdersManager />} />
                   <Route path="invoices" element={<InvoicesManager />} />
                   <Route path="products" element={<ProductManager />} />
+                  <Route path="deals" element={<DealManager />} />
                   <Route path="content" element={<ContentManager />} />
                   <Route path="categories" element={<CategoryManager />} />
                   <Route path="customizations" element={<CustomizationManager />} />
