@@ -10,6 +10,7 @@
 // import { loadStripe } from '@stripe/stripe-js';
 // import { Elements } from '@stripe/react-stripe-js';
 // import StripePaymentForm from '../components/StripePaymentForm';
+// import toast, { Toaster } from 'react-hot-toast'; // <-- NEW IMPORT
 
 // const STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 // if (!STRIPE_KEY) {
@@ -61,7 +62,7 @@
 //   const handlePlaceOrder = async () => {
 //     setIsProcessing(true);
 //     if (!token) {
-//       alert('Authentication error. Please refresh the page and try again.');
+//       toast.error('Authentication error. Please refresh the page and try again.', { duration: 4000 }); // <-- CHANGED
 //       setIsProcessing(false);
 //       return;
 //     }
@@ -74,26 +75,51 @@
 //         const freshProducts: any[] = freshData.products || [];
 
 //         const mismatchedItems: string[] = [];
+        
 //         for (const cartItem of cartItems) {
 //           const dbProduct = freshProducts.find(
 //             (p: any) => p.id === (cartItem.menuItemId || cartItem.id)
 //           );
+          
 //           if (dbProduct) {
-//             const dbPrice = Number(dbProduct.price);
+//             let expectedPrice = Number(dbProduct.price);
+
+//             // 1. If cart item has a size, find that size's specific price in the DB
+//             if (cartItem.size && dbProduct.sizes && Array.isArray(dbProduct.sizes)) {
+//               const matchingSize = dbProduct.sizes.find((s: any) => s.name === cartItem.size);
+//               if (matchingSize) {
+//                 expectedPrice = Number(matchingSize.price); // Override base price
+//               }
+//             }
+
+//             // 2. Add the cost of any extras
+//             if (cartItem.addedExtras && Array.isArray(cartItem.addedExtras)) {
+//               for (const extra of cartItem.addedExtras) {
+//                 expectedPrice += Number(extra.price || 0);
+//               }
+//             }
+
 //             const cartPrice = Number(cartItem.price);
-//             if (Math.abs(dbPrice - cartPrice) > 0.001) {
+            
+//             // Compare the calculated expected price against the cart price
+//             if (Math.abs(expectedPrice - cartPrice) > 0.001) {
 //               mismatchedItems.push(
-//                 `• ${cartItem.name}: was $${cartPrice.toFixed(2)}, now $${dbPrice.toFixed(2)}`
+//                 `• ${cartItem.name} ${cartItem.size ? `(${cartItem.size})` : ''}: was $${cartPrice.toFixed(2)}, now $${expectedPrice.toFixed(2)}`
 //               );
 //             }
 //           }
 //         }
 
 //         if (mismatchedItems.length > 0) {
-//           alert(
-//             `Some prices have been updated by the restaurant since you added items to your cart:\n\n` +
-//             mismatchedItems.join('\n') +
-//             `\n\nPlease go back to update your cart with the latest prices before placing your order.`
+//           toast.error( // <-- CHANGED
+//             <div className="flex flex-col gap-2">
+//               <strong>Prices Updated!</strong>
+//               <p className="text-sm">Please go back and update your cart. The following prices changed:</p>
+//               <ul className="text-xs space-y-1">
+//                 {mismatchedItems.map((msg, i) => <li key={i}>{msg}</li>)}
+//               </ul>
+//             </div>, 
+//             { duration: 6000 }
 //           );
 //           setIsProcessing(false);
 //           return;
@@ -146,7 +172,7 @@
 
 //     } catch (err: any) {
 //       console.error(err);
-//       alert(err.message || 'Something went wrong. Please try again.');
+//       toast.error(err.message || 'Something went wrong. Please try again.', { duration: 5000 }); // <-- CHANGED
 //       setIsProcessing(false);
 //     }
 //   };
@@ -191,6 +217,7 @@
 //   if (step === 'success') {
 //     return (
 //       <div className="min-h-screen bg-[#FDF8F2] flex flex-col items-center justify-start pt-12 px-4 pb-20">
+//         <Toaster position="top-center" /> {/* <-- ADDED TOASTER COMPONENT */}
 //         <div className="max-w-2xl w-full">
 //           {/* Success Hero */}
 //           <div className="text-center mb-10">
@@ -211,6 +238,7 @@
 //           </div>
 
 //           {/* Live Tracker (Visual Only) */}
+//                     {/* Live Tracker (Visual Only) */}
 //           <div className="bg-white border border-[#E8D8C8] rounded-3xl p-8 mb-8 shadow-[0_8px_30px_rgba(0,0,0,0.03)] relative overflow-hidden">
 //             <div className="absolute top-0 right-0 p-4">
 //               <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full font-barlow text-[10px] font-800 uppercase tracking-widest animate-pulse">
@@ -225,12 +253,20 @@
 //                 <div className="absolute top-0 left-0 w-full h-[33%] bg-[#C8201A] shadow-[0_0_8px_rgba(200,32,26,0.3)]" />
 //               </div>
 
-//               {[
-//                 { icon: CheckCircle2, label: 'Order Confirmed', time: 'Just now', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
-//                 { icon: Clock, label: 'Food is being prepared', time: 'Expected in 5 mins', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
-//                 { icon: Bike, label: 'Rider is on the way', time: 'Stay tuned!', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
-//                 { icon: MapPin, label: 'Delivered', time: '', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
-//               ].map((s, i) => (
+//               {(orderType === 'delivery' 
+//                 ? [
+//                     { icon: CheckCircle2, label: 'Order Confirmed', time: 'Just now', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
+//                     { icon: Clock, label: 'Food is being prepared', time: 'Expected in 5 mins', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
+//                     { icon: Bike, label: 'Rider is on the way', time: 'Stay tuned!', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
+//                     { icon: MapPin, label: 'Delivered', time: '', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
+//                   ]
+//                 : [
+//                     { icon: CheckCircle2, label: 'Order Confirmed', time: 'Just now', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
+//                     { icon: Clock, label: 'Food is being prepared', time: 'Expected in 15-20 mins', color: 'text-[#C8201A]', bg: 'bg-[#C8201A]' },
+//                     { icon: Store, label: 'Ready for Pickup', time: 'Head to the store!', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
+//                     { icon: Package, label: 'Order Picked Up', time: '', color: 'text-[#BBBBBB]', bg: 'bg-[#F0E8DC]' },
+//                   ]
+//               ).map((s, i) => (
 //                 <div key={i} className="flex gap-5 items-start">
 //                   <div className={`w-10 h-10 rounded-full ${s.bg} flex items-center justify-center z-10 shadow-sm transition-colors duration-500`}>
 //                     <s.icon className={`w-5 h-5 ${i < 2 ? 'text-white' : 'text-[#888888]'}`} />
@@ -399,6 +435,8 @@
 
 //   return (
 //     <div className="min-h-screen bg-[#FDF8F2] pb-32">
+//       <Toaster position="top-center" /> {/* <-- ADDED TOASTER COMPONENT */}
+      
 //       {/* Header */}
 //       <div className="sticky top-0 z-30 bg-[#FDF8F2]/98 backdrop-blur-xl border-b border-[#E8D8C8] px-4 py-4">
 //         <div className="max-w-4xl mx-auto flex items-center gap-4">
@@ -736,6 +774,7 @@
 //     </div>
 //   );
 // }
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config/api';
@@ -760,9 +799,9 @@ type Step = 'address' | 'payment' | 'success';
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { cartItems, cartTotalPrice, clearCart, token } = useCart();
+  const { cartItems, cartTotalPrice, clearCart, token, orderType, setOrderType } = useCart();
   const [step, setStep] = useState<Step>('address');
-  const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
+  // const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
   const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'COD'>('ONLINE');
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderId, setOrderId] = useState('');
@@ -787,9 +826,9 @@ export default function Checkout() {
   }, [cartItems, navigate, step]);
 
   const deliveryFee = orderType === 'delivery' ? 4.99 : 0;
-  const subtotal = cartTotalPrice;
-  const tax = subtotal * 0.1;
-  const total = subtotal + tax + deliveryFee;
+const platformFee = orderType === 'delivery' ? 5.50 : 0.50;
+const subtotal = cartTotalPrice;
+const total = subtotal + platformFee + deliveryFee;
 
   const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1131,10 +1170,10 @@ export default function Checkout() {
                   <span>Subtotal</span>
                   <span>${(finalTotal / 1.15).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between font-inter text-[14px] text-[#555]">
-                  <span>GST (10%)</span>
-                  <span>${(finalTotal * 0.1).toFixed(2)}</span>
-                </div>
+                <div className="flex justify-between font-inter text-[13px] text-[#555555]">
+  <span>Platform Fee</span>
+  <span>${platformFee.toFixed(2)}</span>
+</div>
                 {orderType === 'delivery' && (
                   <div className="flex justify-between font-inter text-[14px] text-[#555]">
                     <span>Delivery Fee</span>
@@ -1316,16 +1355,20 @@ export default function Checkout() {
                   </>
                 )}
 
-                <div>
-                  <label className="block font-barlow text-[10px] font-700 uppercase tracking-wider text-[#555555] mb-1.5">Delivery Notes (optional)</label>
-                  <textarea
-                    value={address.notes}
-                    onChange={e => setAddress(a => ({ ...a, notes: e.target.value }))}
-                    placeholder="Leave at door, ring doorbell, etc."
-                    rows={2}
-                    className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A] transition-colors bg-[#FDFAF6] resize-none"
-                  />
-                </div>
+                {orderType === 'delivery' && (
+  <div>
+    <label className="block font-barlow text-[10px] font-700 uppercase tracking-wider text-[#555555] mb-1.5">
+      Delivery Notes (optional)
+    </label>
+    <textarea
+      value={address.notes}
+      onChange={e => setAddress(a => ({ ...a, notes: e.target.value }))}
+      placeholder="Leave at door, ring doorbell, etc."
+      rows={2}
+      className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A] transition-colors bg-[#FDFAF6] resize-none"
+    />
+  </div>
+)}
 
                 <button
                   type="submit"
@@ -1492,9 +1535,9 @@ export default function Checkout() {
                 <span>${subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-inter text-[13px] text-[#555555]">
-                <span>GST (10%)</span>
-                <span>${tax.toFixed(2)}</span>
-              </div>
+  <span>Platform Fee</span>
+  <span>${platformFee.toFixed(2)}</span>
+</div>
               {orderType === 'delivery' && (
                 <div className="flex justify-between font-inter text-[13px] text-[#555555]">
                   <span>Delivery Fee</span>
