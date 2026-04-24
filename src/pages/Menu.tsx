@@ -631,7 +631,11 @@ export default function Menu() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-1">
+            {/* WRAPPED IceCreamBuilder to catch and prevent bubbled form submissions */}
+            <div 
+              className="lg:col-span-1"
+              onSubmit={(e) => e.preventDefault()} // Intercept rogue form submissions here!
+            >
               <IceCreamBuilder
                 scoops={icContent.scoops}
                 flavours={icContent.flavours}
