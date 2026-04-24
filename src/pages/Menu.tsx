@@ -376,24 +376,34 @@ export default function Menu() {
   const location = useLocation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // Track whether we've already performed the initial URL-based scroll
+  // so it only fires once per navigation, not on every state change
+  const hasScrolledRef = useRef(false);
+
   const getImageUrl = (imagePath?: string) => {
     if (!imagePath) return '';
     if (imagePath.startsWith('http')) return imagePath;
     return `${API_URL}${imagePath}`;
   };
 
-  // ─── CRITICAL FIX: Scrolling Effect ─────────────────────────────
+  // Reset the scroll guard whenever the URL search params change (new navigation)
   useEffect(() => {
-    // 1. Wait until ALL content is fully loaded and the spinner is gone
+    hasScrolledRef.current = false;
+  }, [location.search]);
+
+  // ─── Auto-scroll to category from URL param ───────────────────
+  // Only fires once all data is loaded AND we haven't scrolled yet for this URL
+  useEffect(() => {
     if (menuLoading || icLoading || menuContentLoading) return;
+    if (hasScrolledRef.current) return;
 
     const params = new URLSearchParams(location.search);
     const cat = params.get('cat');
-    
+
     if (cat && categories.find(c => c.id === cat)) {
+      hasScrolledRef.current = true; // Mark done immediately to prevent double-fire
       setActiveCategory(cat);
-      
-      // 2. We only need a tiny 50ms delay now because the DOM is guaranteed to be ready
+
       setTimeout(() => {
         const navBtn = document.getElementById(`nav-${cat}`);
         if (navBtn) {
@@ -416,13 +426,13 @@ export default function Menu() {
   }, [location.search, categories, menuLoading, icLoading, menuContentLoading]);
   // ──────────────────────────────────────────────────────────────
 
+  // ─── Intersection Observer for .reveal animations ─────────────
   useEffect(() => {
+    if (menuLoading || icLoading || menuContentLoading) return;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-          }
+          if (entry.isIntersecting) entry.target.classList.add('visible');
         });
       },
       { threshold: 0.1 }
@@ -431,6 +441,7 @@ export default function Menu() {
     reveals.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, [menuLoading, icLoading, menuContentLoading]);
+  // ──────────────────────────────────────────────────────────────
 
   if (menuLoading || icLoading || menuContentLoading) {
     return (
@@ -470,23 +481,24 @@ export default function Menu() {
   return (
     <div className="bg-[#FDF8F2] min-h-screen pt-32 pb-24">
       <div className="container-custom">
+
+        {/* ── Header ── */}
         <div className="relative mb-12 text-center md:text-left">
           <span className="font-barlow text-[12px] font-700 uppercase tracking-[0.4em] text-[#D4952A] block mb-4">
             {menuContent.subtitle || '— Locally Owned & Handcrafted —'}
           </span>
           <h1 className="font-bebas text-[72px] md:text-[110px] text-[#1A1A1A] tracking-tight leading-[0.85] mb-6">
-            {menuContent.title_1 || 'The'} <span className="text-[#C8201A] block md:inline">{menuContent.title_2 || 'Menu'}</span>
+            {menuContent.title_1 || 'The'}{' '}
+            <span className="text-[#C8201A] block md:inline">{menuContent.title_2 || 'Menu'}</span>
           </h1>
           <p className="font-inter text-[#555555] text-[16px] max-w-xl leading-relaxed mb-8">
             {menuContent.description || 'From our signature hand-stretched pizzas to artisan ice cream, every item is made with passion using the finest local ingredients.'}
           </p>
         </div>
 
+        {/* ── Sticky Category Nav ── */}
         <div className="sticky top-[80px] z-30 bg-[#FDF8F2]/95 backdrop-blur-md py-4 -mx-4 px-4 border-b border-[#E8D8C8] mb-12">
-          <div
-            ref={scrollContainerRef}
-            className="flex gap-2 overflow-x-auto pb-2 no-scrollbar"
-          >
+          <div ref={scrollContainerRef} className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
             {categories.map(cat => (
               <button
                 key={cat.id}
@@ -494,9 +506,7 @@ export default function Menu() {
                 onClick={() => {
                   setActiveCategory(cat.id);
                   const navBtn = document.getElementById(`nav-${cat.id}`);
-                  if (navBtn) {
-                    navBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                  }
+                  if (navBtn) navBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 
                   if (cat.id === 'cat-ice-cream') {
                     const el = document.getElementById('cat-ice-cream');
@@ -504,8 +514,7 @@ export default function Menu() {
                   } else {
                     const grid = document.getElementById('menu-products-grid');
                     if (grid) {
-                      const yOffset = -150;
-                      const y = grid.getBoundingClientRect().top + window.scrollY + yOffset;
+                      const y = grid.getBoundingClientRect().top + window.scrollY - 150;
                       window.scrollTo({ top: y, behavior: 'smooth' });
                     }
                   }
@@ -521,6 +530,7 @@ export default function Menu() {
           </div>
         </div>
 
+        {/* ── Products Grid ── */}
         <div id="menu-products-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
           {filteredProducts.map((item) => {
             const isJustAdded = justAddedId === item.id;
@@ -529,13 +539,14 @@ export default function Menu() {
                 key={item.id}
                 id={item.id}
                 onClick={() => openModal(item)}
-                className="group bg-white rounded-2xl border border-[#E8D8C8] overflow-hidden flex flex-col h-full 
+                className="group bg-white rounded-2xl border border-[#E8D8C8] overflow-hidden flex flex-col h-full
                   hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] transition-all duration-500 cursor-pointer"
               >
-                <div className="relative h-56 overflow-hidden">
+                <div className="relative h-56 overflow-hidden bg-[#F5EFE7]">
                   <img
                     src={getImageUrl(item.image)}
                     alt={item.name}
+                    loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -596,11 +607,10 @@ export default function Menu() {
                         : 'bg-[#1A1A1A] text-white hover:bg-[#C8201A] hover:shadow-[0_8px_20px_rgba(200,32,26,0.4)] hover:-translate-y-0.5'
                       }`}
                   >
-                    {isJustAdded ? (
-                      <><Check className="w-4 h-4" /> Added</>
-                    ) : (
-                      <><Plus className="w-4 h-4" /> Quick Add</>
-                    )}
+                    {isJustAdded
+                      ? <><Check className="w-4 h-4" /> Added</>
+                      : <><Plus className="w-4 h-4" /> Quick Add</>
+                    }
                   </button>
                 </div>
               </div>
@@ -608,6 +618,7 @@ export default function Menu() {
           })}
         </div>
 
+        {/* ── Ice Cream Section ── */}
         <div id="cat-ice-cream" className="mt-28 reveal pt-12 border-t border-[#E8D8C8]">
           <div className="text-center mb-16">
             <span className="font-barlow text-[12px] font-700 uppercase tracking-[0.4em] text-[#D4952A] block mb-4">— Artisan Treats —</span>
@@ -648,11 +659,11 @@ export default function Menu() {
                     const p = products.find(prod => prod.name === it.name)
                       || products.find(prod => prod.id.includes(it.id))
                       || {
-                        ...it,
-                        id: `ice-cream-${it.id}`,
-                        categoryId: 'cat-ice-cream',
-                        price: Number(String(it.price).replace(/[^0-9.]/g, '')) || it.price,
-                      };
+                          ...it,
+                          id: `ice-cream-${it.id}`,
+                          categoryId: 'cat-ice-cream',
+                          price: Number(String(it.price).replace(/[^0-9.]/g, '')) || it.price,
+                        };
                     handleAddToCart(p as MenuItem, {
                       price: Number(String(p.price).replace(/[^0-9.]/g, '')) || Number(p.price),
                       quantity: 1
@@ -664,8 +675,10 @@ export default function Menu() {
           </div>
         </div>
 
+        {/* ── CTA Banner ── */}
         <div className="relative mt-24 bg-[#FFFCF7] rounded-3xl border border-[#E8D8C8] p-10 md:p-14 text-center overflow-hidden">
-          <div className="absolute inset-0 opacity-4 grayscale pointer-events-none" style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/dark-leather.png')` }} />
+          <div className="absolute inset-0 opacity-4 grayscale pointer-events-none"
+            style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/dark-leather.png')` }} />
           <div className="relative z-10">
             <h3 className="font-bebas text-[38px] md:text-[52px] text-[#1A1A1A] tracking-wider mb-3">
               Large Order or Special Request?
@@ -673,7 +686,10 @@ export default function Menu() {
             <p className="font-inter text-[#555555] text-[14px] mb-8 max-w-lg mx-auto leading-relaxed">
               Call us directly — we'll handle custom orders, dietary requirements, and catering personally.
             </p>
-            <a href={`tel:${globalContent.phone || '0362724004'}`} className="inline-flex items-center gap-3 text-[#C8201A] hover:text-[#D4952A] transition-colors font-bebas text-[38px] md:text-[50px] tracking-wider group">
+            <a
+              href={`tel:${globalContent.phone || '0362724004'}`}
+              className="inline-flex items-center gap-3 text-[#C8201A] hover:text-[#D4952A] transition-colors font-bebas text-[38px] md:text-[50px] tracking-wider group"
+            >
               <Phone className="w-8 h-8 group-hover:scale-110 transition-transform" />
               {globalContent.phone_display || '03 6272 4004'}
             </a>
@@ -681,6 +697,7 @@ export default function Menu() {
         </div>
       </div>
 
+      {/* ── Modals & Floating Button ── */}
       <CustomizationModal
         item={selectedItem}
         isOpen={!!selectedItem}
