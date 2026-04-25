@@ -640,9 +640,8 @@ export default function Checkout() {
   const [clientSecret, setClientSecret] = useState('');
   const [finalTotal, setFinalTotal] = useState(0);
   
-  // FIX: Save cart data before clearing so it flows to WhatsApp properly
-  const [savedCartItems, setSavedCartItems] = useState<any[]>([]);
-  const [savedTotals, setSavedTotals] = useState({ subtotal: 0, platformFee: 0, deliveryFee: 0, total: 0 });
+  // FIX: Store the pre-baked WhatsApp URL right before clearing the cart
+  const [whatsappUrl, setWhatsappUrl] = useState('');
 
   const [address, setAddress] = useState({
     name: '',
@@ -665,6 +664,37 @@ export default function Checkout() {
   const platformFee = orderType === 'delivery' ? 0.50 : 0.50;
   const subtotal = cartTotalPrice;
   const total = subtotal + platformFee + deliveryFee;
+
+  const buildWhatsAppUrl = (generatedOrderId: string) => {
+    const itemsList = cartItems.map((item: any) => {
+      let details = `*${item.quantity}x ${item.name}*`;
+      if (item.size) details += ` (${item.size})`;
+      if (item.removedToppings?.length) details += `\n   - No: ${item.removedToppings.join(', ')}`;
+      if (item.addedExtras?.length) details += `\n   - Extras: ${item.addedExtras.map((e: any) => e.name).join(', ')}`;
+      details += ` - $${(Number(item.price) * item.quantity).toFixed(2)}`;
+      return details;
+    }).join('\n');
+
+    const message = `*🍕 NEW ORDER RECEIVED!*\n` +
+      `--------------------------\n` +
+      `*Order ID:* #${generatedOrderId.slice(0, 8).toUpperCase()}\n` +
+      `*Customer:* ${address.name}\n` +
+      `*Phone:* ${address.phone}\n` +
+      `*Type:* ${orderType.toUpperCase()}\n` +
+      `*Address:* ${orderType === 'delivery' ? `${address.street}, ${address.suburb}` : 'Pickup'}\n` +
+      `--------------------------\n` +
+      `*ITEMS:*\n${itemsList}\n` +
+      `--------------------------\n` +
+      `*Subtotal:* $${subtotal.toFixed(2)}\n` +
+      `*Platform Fee:* $${platformFee.toFixed(2)}\n` +
+      `*Delivery Fee:* $${deliveryFee.toFixed(2)}\n` +
+      `*TOTAL:* $${total.toFixed(2)}\n` +
+      `--------------------------\n` +
+      `*Payment:* ${paymentMethod === 'ONLINE' ? '✅ PAID ONLINE' : '💵 CASH ON DELIVERY'}\n` +
+      `*Notes:* ${address.notes || 'None'}`;
+
+    return `https://wa.me/61362724004?text=${encodeURIComponent(message)}`;
+  };
 
   const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -769,12 +799,14 @@ export default function Checkout() {
 
       if (!res.ok) throw new Error(data.error || 'Failed to place order');
 
-      setOrderId(data.order.id);
+      const newOrderId = data.order.id;
+      setOrderId(newOrderId);
+      
+      // FIX: Pre-generate WhatsApp message while cartItems and subtotals are 100% accurate
+      setWhatsappUrl(buildWhatsAppUrl(newOrderId));
 
       if (paymentMethod === 'COD') {
         setFinalTotal(total);
-        setSavedCartItems([...cartItems]);
-        setSavedTotals({ subtotal, platformFee, deliveryFee, total });
         setStep('success');
         clearCart();
         return;
@@ -793,41 +825,10 @@ export default function Checkout() {
     }
   };
 
-  const generateWhatsAppMessage = () => {
-    // FIX: Map over savedCartItems and use single line breaks \n
-    const itemsList = savedCartItems.map((item: any) => {
-      let details = `*${item.quantity}x ${item.name}*`;
-      if (item.size) details += ` (${item.size})`;
-      if (item.removedToppings?.length) details += `\n   - No: ${item.removedToppings.join(', ')}`;
-      if (item.addedExtras?.length) details += `\n   - Extras: ${item.addedExtras.map((e: any) => e.name).join(', ')}`;
-      details += ` - $${(Number(item.price) * item.quantity).toFixed(2)}`;
-      return details;
-    }).join('\n');
-
-    const message = `*🍕 NEW ORDER RECEIVED!* \n` +
-      `--------------------------\n` +
-      `*Order ID:* #${orderId.slice(0, 8).toUpperCase()}\n` +
-      `*Customer:* ${address.name}\n` +
-      `*Phone:* ${address.phone}\n` +
-      `*Type:* ${orderType.toUpperCase()}\n` +
-      `*Address:* ${orderType === 'delivery' ? `${address.street}, ${address.suburb}` : 'Pickup'}\n` +
-      `--------------------------\n` +
-      `*ITEMS:*\n${itemsList}\n` +
-      `--------------------------\n` +
-      `*Subtotal:* $${savedTotals.subtotal.toFixed(2)}\n` +
-      `*Platform Fee:* $${savedTotals.platformFee.toFixed(2)}\n` +
-      `*Delivery Fee:* $${savedTotals.deliveryFee.toFixed(2)}\n` +
-      `*TOTAL:* $${savedTotals.total.toFixed(2)}\n` +
-      `--------------------------\n` +
-      `*Payment:* ${paymentMethod === 'ONLINE' ? '✅ PAID ONLINE' : '💵 CASH ON DELIVERY'}\n` +
-      `*Notes:* ${address.notes || 'None'}`;
-
-    return encodeURIComponent(message);
-  };
-
   const handleWhatsAppNotify = () => {
-    const ownerNumber = '61362724004';
-    window.open(`https://wa.me/${ownerNumber}?text=${generateWhatsAppMessage()}`, '_blank');
+    if (whatsappUrl) {
+      window.open(whatsappUrl, '_blank');
+    }
   };
 
   if (step === 'success') {
@@ -1140,8 +1141,6 @@ export default function Checkout() {
                         total={total}
                         onSuccess={async () => {
                           setFinalTotal(total);
-                          setSavedCartItems([...cartItems]);
-                          setSavedTotals({ subtotal, platformFee, deliveryFee, total });
                           await clearCart();
                           setStep('success');
                         }}
