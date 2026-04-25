@@ -640,7 +640,7 @@ export default function Checkout() {
   const [clientSecret, setClientSecret] = useState('');
   const [finalTotal, setFinalTotal] = useState(0);
   
-  // FIX: Store the pre-baked WhatsApp URL right before clearing the cart
+  // Store the pre-baked WhatsApp URL right before clearing the cart
   const [whatsappUrl, setWhatsappUrl] = useState('');
 
   const [address, setAddress] = useState({
@@ -666,32 +666,12 @@ export default function Checkout() {
   const total = subtotal + platformFee + deliveryFee;
 
   const buildWhatsAppUrl = (generatedOrderId: string) => {
-    const itemsList = cartItems.map((item: any) => {
-      let details = `*${item.quantity}x ${item.name}*`;
-      if (item.size) details += ` (${item.size})`;
-      if (item.removedToppings?.length) details += `\n   - No: ${item.removedToppings.join(', ')}`;
-      if (item.addedExtras?.length) details += `\n   - Extras: ${item.addedExtras.map((e: any) => e.name).join(', ')}`;
-      details += ` - $${(Number(item.price) * item.quantity).toFixed(2)}`;
-      return details;
-    }).join('\n');
-
     const message = `*🍕 NEW ORDER RECEIVED!*\n` +
       `--------------------------\n` +
       `*Order ID:* #${generatedOrderId.slice(0, 8).toUpperCase()}\n` +
       `*Customer:* ${address.name}\n` +
-      `*Phone:* ${address.phone}\n` +
       `*Type:* ${orderType.toUpperCase()}\n` +
-      `*Address:* ${orderType === 'delivery' ? `${address.street}, ${address.suburb}` : 'Pickup'}\n` +
-      `--------------------------\n` +
-      `*ITEMS:*\n${itemsList}\n` +
-      `--------------------------\n` +
-      `*Subtotal:* $${subtotal.toFixed(2)}\n` +
-      `*Platform Fee:* $${platformFee.toFixed(2)}\n` +
-      `*Delivery Fee:* $${deliveryFee.toFixed(2)}\n` +
-      `*TOTAL:* $${total.toFixed(2)}\n` +
-      `--------------------------\n` +
-      `*Payment:* ${paymentMethod === 'ONLINE' ? '✅ PAID ONLINE' : '💵 CASH ON DELIVERY'}\n` +
-      `*Notes:* ${address.notes || 'None'}`;
+      `*Address:* ${orderType === 'delivery' ? `${address.street}, ${address.suburb}` : 'Pickup'}`;
 
     return `https://wa.me/61362724004?text=${encodeURIComponent(message)}`;
   };
@@ -725,7 +705,6 @@ export default function Checkout() {
           );
           
           if (dbProduct) {
-            // FIX: Skip price validation for Custom Ice Cream since the price is dynamically built
             if (dbProduct.name === 'Custom Ice Cream' || dbProduct.id === 'ice-cream-custom') {
               continue;
             }
@@ -802,7 +781,7 @@ export default function Checkout() {
       const newOrderId = data.order.id;
       setOrderId(newOrderId);
       
-      // FIX: Pre-generate WhatsApp message while cartItems and subtotals are 100% accurate
+      // Pre-generate WhatsApp message (simplified version)
       setWhatsappUrl(buildWhatsAppUrl(newOrderId));
 
       if (paymentMethod === 'COD') {
