@@ -4,26 +4,35 @@
 
 // export default function ProductManager() {
 //   const [products, setProducts] = useState<any[]>([]);
-//   const [categories, setCategories] = useState<any[]>([]); // Added categories state
+//   const [categories, setCategories] = useState<any[]>([]);
 //   const [loading, setLoading] = useState(true);
 //   const [isModalOpen, setIsModalOpen] = useState(false);
 //   const [editingProduct, setEditingProduct] = useState<any>(null);
 
+//   // New states for file upload
+//   const [imageFile, setImageFile] = useState<File | null>(null);
+//   const [imagePreview, setImagePreview] = useState<string>('');
+
 //   // Form State
 //   const [formData, setFormData] = useState({
 //     id: '',
-//     categoryId: '', // Will be set dynamically
+//     categoryId: '',
 //     name: '',
 //     description: '',
 //     price: 0,
-//     image: '',
 //     hasPizzaExtras: false,
 //     isFavorite: false,
 //     isActive: true,
 //     sizes: [] as { name: string; price: number }[],
 //   });
 
-//   // Fetch both products and categories simultaneously
+//   // Helper to correctly display local uploads vs external URLs
+//   const getImageUrl = (imagePath: string) => {
+//     if (!imagePath) return '';
+//     if (imagePath.startsWith('http')) return imagePath; // Already a full URL
+//     return `${API_URL}${imagePath}`; // Attach the backend API URL to local uploads
+//   };
+
 //   const fetchData = async () => {
 //     try {
 //       const token = localStorage.getItem('adminToken');
@@ -64,27 +73,29 @@
 //         name: product.name,
 //         description: product.description || '',
 //         price: Number(product.price),
-//         image: product.image,
 //         hasPizzaExtras: product.hasPizzaExtras || false,
 //         isFavorite: product.isFavorite || false,
 //         isActive: product.isActive !== undefined ? product.isActive : true,
 //         sizes: product.sizes ? [...product.sizes] : [],
 //       });
+//       // Correctly format the preview URL for editing
+//       setImagePreview(product.image ? getImageUrl(product.image) : '');
+//       setImageFile(null);
 //     } else {
 //       setEditingProduct(null);
 //       setFormData({
 //         id: `item-${Date.now()}`,
-//         // Default to the first fetched category, or fallback to 'cat-classic-pizza'
 //         categoryId: categories.length > 0 ? categories[0].id : 'cat-classic-pizza',
 //         name: '',
 //         description: '',
 //         price: 0,
-//         image: '',
 //         hasPizzaExtras: false,
 //         isFavorite: false,
 //         isActive: true,
 //         sizes: [],
 //       });
+//       setImagePreview('');
+//       setImageFile(null);
 //     }
 //     setIsModalOpen(true);
 //   };
@@ -98,18 +109,34 @@
 //         ? `${API_URL}/api/admin/products/${editingProduct.id}`
 //         : `${API_URL}/api/admin/products`;
 
+//       // Use FormData to support multipart/form-data file uploads
+//       const submitData = new FormData();
+//       submitData.append('id', formData.id);
+//       submitData.append('categoryId', formData.categoryId);
+//       submitData.append('name', formData.name);
+//       submitData.append('description', formData.description);
+//       submitData.append('price', formData.price.toString());
+//       submitData.append('hasPizzaExtras', formData.hasPizzaExtras.toString());
+//       submitData.append('isFavorite', formData.isFavorite.toString());
+//       submitData.append('isActive', formData.isActive.toString());
+//       submitData.append('sizes', JSON.stringify(formData.sizes)); // Arrays must be stringified
+
+//       if (imageFile) {
+//         submitData.append('image', imageFile);
+//       }
+
 //       const res = await fetch(url, {
 //         method,
+//         // Omit 'Content-Type' header. The browser will automatically set it 
+//         // to 'multipart/form-data' with the correct boundary when passing FormData.
 //         headers: {
-//           'Content-Type': 'application/json',
 //           Authorization: `Bearer ${token}`
 //         },
-//         body: JSON.stringify(formData)
+//         body: submitData
 //       });
 
 //       if (res.ok) {
 //         setIsModalOpen(false);
-//         // Refresh products list after save
 //         fetchData(); 
 //       } else {
 //         const err = await res.json();
@@ -137,7 +164,6 @@
 //     }
 //   };
 
-//   // Handlers for Sizes
 //   const handleAddSize = () => {
 //     setFormData({ ...formData, sizes: [...formData.sizes, { name: '', price: 0 }] });
 //   };
@@ -151,6 +177,14 @@
 //   const handleRemoveSize = (index: number) => {
 //     const newSizes = formData.sizes.filter((_, i) => i !== index);
 //     setFormData({ ...formData, sizes: newSizes });
+//   };
+
+//   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const file = e.target.files?.[0];
+//     if (file) {
+//       setImageFile(file);
+//       setImagePreview(URL.createObjectURL(file));
+//     }
 //   };
 
 //   if (loading) return <div className="p-12 text-center animate-spin"><Pizza className="w-8 h-8 text-[#C8201A] mx-auto" /></div>;
@@ -179,7 +213,7 @@
 //           <div key={product.id} className="bg-white border border-[#E8D8C8] rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:shadow-lg transition-all">
 //             <div className="relative h-48 bg-[#FDF8F2] flex items-center justify-center overflow-hidden">
 //               {product.image ? (
-//                 <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+//                 <img src={getImageUrl(product.image)} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
 //               ) : (
 //                 <ImageIcon className="w-12 h-12 text-[#E8D8C8]" />
 //               )}
@@ -292,7 +326,7 @@
 //                 />
 //               </div>
               
-//               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
 //                 <div>
 //                   <label className="block font-barlow text-[11px] font-700 uppercase tracking-[0.1em] text-[#555555] mb-2">Base Price ($)</label>
 //                   <input
@@ -302,13 +336,18 @@
 //                   />
 //                 </div>
 //                 <div>
-//                   <label className="block font-barlow text-[11px] font-700 uppercase tracking-[0.1em] text-[#555555] mb-2">Image URL</label>
+//                   <label className="block font-barlow text-[11px] font-700 uppercase tracking-[0.1em] text-[#555555] mb-2">Product Image</label>
 //                   <input
-//                     required type="url"
-//                     value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })}
-//                     className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:border-[#C8201A] outline-none"
-//                     placeholder="https://..."
+//                     type="file"
+//                     accept="image/*"
+//                     onChange={handleImageChange}
+//                     className="w-full border border-[#E8D8C8] rounded-xl px-4 py-2 font-inter text-[13px] text-[#1A1A1A] focus:border-[#C8201A] outline-none file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[12px] file:font-semibold file:bg-[#FDFAF6] file:text-[#C8201A] hover:file:bg-[#FDF8F2]"
 //                   />
+//                   {imagePreview && (
+//                     <div className="mt-3 relative w-16 h-16 rounded-xl overflow-hidden border border-[#E8D8C8] shadow-sm">
+//                       <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+//                     </div>
+//                   )}
 //                 </div>
 //               </div>
 
@@ -441,6 +480,7 @@ export default function ProductManager() {
     name: '',
     description: '',
     price: 0,
+    toppings: '', // NEW: Store toppings as a comma-separated string in the form
     hasPizzaExtras: false,
     isFavorite: false,
     isActive: true,
@@ -494,6 +534,10 @@ export default function ProductManager() {
         name: product.name,
         description: product.description || '',
         price: Number(product.price),
+        // NEW: Convert array ["Cheese", "Ham"] to string "Cheese, Ham" for editing
+        toppings: product.toppings && Array.isArray(product.toppings) 
+          ? product.toppings.join(', ') 
+          : '',
         hasPizzaExtras: product.hasPizzaExtras || false,
         isFavorite: product.isFavorite || false,
         isActive: product.isActive !== undefined ? product.isActive : true,
@@ -510,6 +554,7 @@ export default function ProductManager() {
         name: '',
         description: '',
         price: 0,
+        toppings: '', // NEW: Empty string for new products
         hasPizzaExtras: false,
         isFavorite: false,
         isActive: true,
@@ -530,6 +575,12 @@ export default function ProductManager() {
         ? `${API_URL}/api/admin/products/${editingProduct.id}`
         : `${API_URL}/api/admin/products`;
 
+      // NEW: Convert comma-separated string back to array, remove empty strings and trim whitespace
+      const formattedToppings = formData.toppings
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t !== '');
+
       // Use FormData to support multipart/form-data file uploads
       const submitData = new FormData();
       submitData.append('id', formData.id);
@@ -541,6 +592,7 @@ export default function ProductManager() {
       submitData.append('isFavorite', formData.isFavorite.toString());
       submitData.append('isActive', formData.isActive.toString());
       submitData.append('sizes', JSON.stringify(formData.sizes)); // Arrays must be stringified
+      submitData.append('toppings', JSON.stringify(formattedToppings)); // NEW: Append stringified array
 
       if (imageFile) {
         submitData.append('image', imageFile);
@@ -745,6 +797,19 @@ export default function ProductManager() {
                   className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:border-[#C8201A] outline-none min-h-[100px]"
                   placeholder="Ingredients, taste, specifics..."
                 />
+              </div>
+
+              {/* NEW: TOPPINGS INPUT */}
+              <div>
+                <label className="block font-barlow text-[11px] font-700 uppercase tracking-[0.1em] text-[#555555] mb-2">Toppings (Comma Separated)</label>
+                <input
+                  type="text"
+                  value={formData.toppings} 
+                  onChange={e => setFormData({ ...formData, toppings: e.target.value })}
+                  className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:border-[#C8201A] outline-none"
+                  placeholder="Tomato Sauce, Cheese, Pineapple, Ham"
+                />
+                <p className="text-[10px] text-[#AAAAAA] mt-1">Separate each topping with a comma.</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
