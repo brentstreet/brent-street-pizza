@@ -80,6 +80,11 @@
 //           );
           
 //           if (dbProduct) {
+//             // FIX: Skip price validation for Custom Ice Cream since the price is dynamically built
+//             if (dbProduct.name === 'Custom Ice Cream' || dbProduct.id === 'ice-cream-custom') {
+//               continue;
+//             }
+
 //             let expectedPrice = Number(dbProduct.price);
 
 //             if (cartItem.size && dbProduct.sizes && Array.isArray(dbProduct.sizes)) {
@@ -234,7 +239,7 @@
 //                   </div>
 //                 </div>
 //                 <div className="text-right">
-//                   <p className="font-barlow font-700 text-[13px] uppercase tracking-wide text-[#1A1A1A]">Total Paid</p>
+//                   <p className="font-barlow font-700 text-[13px] uppercase tracking-wide text-[#1A1A1A]">Total Amount</p>
 //                   <p className="font-bebas text-[20px] text-[#C8201A] leading-none">${finalTotal.toFixed(2)}</p>
 //                 </div>
 //               </div>
@@ -634,6 +639,11 @@ export default function Checkout() {
   const [orderId, setOrderId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
   const [finalTotal, setFinalTotal] = useState(0);
+  
+  // FIX: Save cart data before clearing so it flows to WhatsApp properly
+  const [savedCartItems, setSavedCartItems] = useState<any[]>([]);
+  const [savedTotals, setSavedTotals] = useState({ subtotal: 0, platformFee: 0, deliveryFee: 0, total: 0 });
+
   const [address, setAddress] = useState({
     name: '',
     phone: '',
@@ -763,6 +773,8 @@ export default function Checkout() {
 
       if (paymentMethod === 'COD') {
         setFinalTotal(total);
+        setSavedCartItems([...cartItems]);
+        setSavedTotals({ subtotal, platformFee, deliveryFee, total });
         setStep('success');
         clearCart();
         return;
@@ -782,7 +794,8 @@ export default function Checkout() {
   };
 
   const generateWhatsAppMessage = () => {
-    const itemsList = cartItems.map((item: any) => {
+    // FIX: Map over savedCartItems and use single line breaks \n
+    const itemsList = savedCartItems.map((item: any) => {
       let details = `*${item.quantity}x ${item.name}*`;
       if (item.size) details += ` (${item.size})`;
       if (item.removedToppings?.length) details += `\n   - No: ${item.removedToppings.join(', ')}`;
@@ -801,10 +814,10 @@ export default function Checkout() {
       `--------------------------\n` +
       `*ITEMS:*\n${itemsList}\n` +
       `--------------------------\n` +
-      `*Subtotal:* $${subtotal.toFixed(2)}\n` +
-      `*Platform Fee:* $${platformFee.toFixed(2)}\n` +
-      `*Delivery Fee:* $${deliveryFee.toFixed(2)}\n` +
-      `*TOTAL:* $${total.toFixed(2)}\n` +
+      `*Subtotal:* $${savedTotals.subtotal.toFixed(2)}\n` +
+      `*Platform Fee:* $${savedTotals.platformFee.toFixed(2)}\n` +
+      `*Delivery Fee:* $${savedTotals.deliveryFee.toFixed(2)}\n` +
+      `*TOTAL:* $${savedTotals.total.toFixed(2)}\n` +
       `--------------------------\n` +
       `*Payment:* ${paymentMethod === 'ONLINE' ? '✅ PAID ONLINE' : '💵 CASH ON DELIVERY'}\n` +
       `*Notes:* ${address.notes || 'None'}`;
@@ -1127,6 +1140,8 @@ export default function Checkout() {
                         total={total}
                         onSuccess={async () => {
                           setFinalTotal(total);
+                          setSavedCartItems([...cartItems]);
+                          setSavedTotals({ subtotal, platformFee, deliveryFee, total });
                           await clearCart();
                           setStep('success');
                         }}
