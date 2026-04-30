@@ -664,12 +664,15 @@ export default function Checkout() {
 
   // Check if any item in the cart is an Ice Cream item
   const hasIceCream = useMemo(() => {
-    return cartItems.some((item: any) => 
-      item.categoryId === 'cat-ice-cream' || 
-      item.id?.includes('ice-cream') || 
-      item.name?.toLowerCase().includes('ice cream') || 
-      item.name?.toLowerCase().includes('gelato')
-    );
+    return cartItems.some((item: any) => {
+      const isIceCreamCat = item.categoryId === 'cat-ice-cream';
+      const nameMatch = item.name?.toLowerCase().includes('ice cream') || 
+                        item.name?.toLowerCase().includes('gelato') || 
+                        item.name?.toLowerCase().includes('sundae');
+      const idMatch = item.id?.includes('ice-cream') || item.menuItemId?.includes('ice-cream');
+      
+      return isIceCreamCat || nameMatch || idMatch;
+    });
   }, [cartItems]);
 
   const buildWhatsAppUrl = (generatedOrderId: string) => {
