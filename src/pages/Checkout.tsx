@@ -29,6 +29,10 @@
 //   const [orderId, setOrderId] = useState('');
 //   const [clientSecret, setClientSecret] = useState('');
 //   const [finalTotal, setFinalTotal] = useState(0);
+  
+//   // Store the pre-baked WhatsApp URL right before clearing the cart
+//   const [whatsappUrl, setWhatsappUrl] = useState('');
+
 //   const [address, setAddress] = useState({
 //     name: '',
 //     phone: '',
@@ -50,6 +54,17 @@
 //   const platformFee = orderType === 'delivery' ? 0.50 : 0.50;
 //   const subtotal = cartTotalPrice;
 //   const total = subtotal + platformFee + deliveryFee;
+
+//   const buildWhatsAppUrl = (generatedOrderId: string) => {
+//     const message = `*🍕 NEW ORDER RECEIVED!*\n` +
+//       `--------------------------\n` +
+//       `*Order ID:* #${generatedOrderId.slice(0, 8).toUpperCase()}\n` +
+//       `*Customer:* ${address.name}\n` +
+//       `*Type:* ${orderType.toUpperCase()}\n` +
+//       `*Address:* ${orderType === 'delivery' ? `${address.street}, ${address.suburb}` : 'Pickup'}`;
+
+//     return `https://wa.me/61362724004?text=${encodeURIComponent(message)}`;
+//   };
 
 //   const handleAddressSubmit = (e: React.FormEvent) => {
 //     e.preventDefault();
@@ -80,7 +95,6 @@
 //           );
           
 //           if (dbProduct) {
-//             // FIX: Skip price validation for Custom Ice Cream since the price is dynamically built
 //             if (dbProduct.name === 'Custom Ice Cream' || dbProduct.id === 'ice-cream-custom') {
 //               continue;
 //             }
@@ -154,7 +168,11 @@
 
 //       if (!res.ok) throw new Error(data.error || 'Failed to place order');
 
-//       setOrderId(data.order.id);
+//       const newOrderId = data.order.id;
+//       setOrderId(newOrderId);
+      
+//       // Pre-generate WhatsApp message (simplified version)
+//       setWhatsappUrl(buildWhatsAppUrl(newOrderId));
 
 //       if (paymentMethod === 'COD') {
 //         setFinalTotal(total);
@@ -176,40 +194,10 @@
 //     }
 //   };
 
-//   const generateWhatsAppMessage = () => {
-//     const itemsList = cartItems.map((item: any) => {
-//       let details = `*${item.quantity}x ${item.name}*`;
-//       if (item.size) details += ` (${item.size})`;
-//       if (item.removedToppings?.length) details += `\n   - No: ${item.removedToppings.join(', ')}`;
-//       if (item.addedExtras?.length) details += `\n   - Extras: ${item.addedExtras.map((e: any) => e.name).join(', ')}`;
-//       details += ` - $${(Number(item.price) * item.quantity).toFixed(2)}`;
-//       return details;
-//     }).join('\n');
-
-//     const message = `*🍕 NEW ORDER RECEIVED!* \n` +
-//       `--------------------------\n` +
-//       `*Order ID:* #${orderId.slice(0, 8).toUpperCase()}\n` +
-//       `*Customer:* ${address.name}\n` +
-//       `*Phone:* ${address.phone}\n` +
-//       `*Type:* ${orderType.toUpperCase()}\n` +
-//       `*Address:* ${orderType === 'delivery' ? `${address.street}, ${address.suburb}` : 'Pickup'}\n` +
-//       `--------------------------\n` +
-//       `*ITEMS:*\n${itemsList}\n` +
-//       `--------------------------\n` +
-//       `*Subtotal:* $${subtotal.toFixed(2)}\n` +
-//       `*Platform Fee:* $${platformFee.toFixed(2)}\n` +
-//       `*Delivery Fee:* $${deliveryFee.toFixed(2)}\n` +
-//       `*TOTAL:* $${total.toFixed(2)}\n` +
-//       `--------------------------\n` +
-//       `*Payment:* ${paymentMethod === 'ONLINE' ? '✅ PAID ONLINE' : '💵 CASH ON DELIVERY'}\n` +
-//       `*Notes:* ${address.notes || 'None'}`;
-
-//     return encodeURIComponent(message);
-//   };
-
 //   const handleWhatsAppNotify = () => {
-//     const ownerNumber = '61362724004';
-//     window.open(`https://wa.me/${ownerNumber}?text=${generateWhatsAppMessage()}`, '_blank');
+//     if (whatsappUrl) {
+//       window.open(whatsappUrl, '_blank');
+//     }
 //   };
 
 //   if (step === 'success') {
@@ -630,6 +618,15 @@ const stripePromise = STRIPE_KEY ? loadStripe(STRIPE_KEY) : null;
 
 type Step = 'address' | 'payment' | 'success';
 
+const TAS_LOCATIONS = [
+  { suburb: 'Glenorchy', postcode: '7010' },
+  { suburb: 'Moonah', postcode: '7009' },
+  { suburb: 'West Moonah', postcode: '7009' },
+  { suburb: 'Rosetta', postcode: '7010' },
+  { suburb: 'Montrose', postcode: '7010' },
+  { suburb: 'Derwent Park', postcode: '7009' }
+];
+
 export default function Checkout() {
   const navigate = useNavigate();
   const { cartItems, cartTotalPrice, clearCart, token, orderType, setOrderType } = useCart();
@@ -648,7 +645,7 @@ export default function Checkout() {
     phone: '',
     street: '',
     suburb: '',
-    state: '',
+    state: 'TAS',
     postcode: '',
     notes: '',
   });
@@ -666,14 +663,44 @@ export default function Checkout() {
   const total = subtotal + platformFee + deliveryFee;
 
   const buildWhatsAppUrl = (generatedOrderId: string) => {
-    const message = `*🍕 NEW ORDER RECEIVED!*\n` +
-      `--------------------------\n` +
-      `*Order ID:* #${generatedOrderId.slice(0, 8).toUpperCase()}\n` +
-      `*Customer:* ${address.name}\n` +
-      `*Type:* ${orderType.toUpperCase()}\n` +
+    const message = `*🍕 NEW ORDER RECEIVED!*\\n` +
+      `--------------------------\\n` +
+      `*Order ID:* #${generatedOrderId.slice(0, 8).toUpperCase()}\\n` +
+      `*Customer:* ${address.name}\\n` +
+      `*Type:* ${orderType.toUpperCase()}\\n` +
       `*Address:* ${orderType === 'delivery' ? `${address.street}, ${address.suburb}` : 'Pickup'}`;
 
     return `https://wa.me/61362724004?text=${encodeURIComponent(message)}`;
+  };
+
+  const handleSuburbChange = (suburb: string) => {
+    const match = TAS_LOCATIONS.find(loc => loc.suburb === suburb);
+    setAddress(prev => ({
+      ...prev,
+      suburb,
+      postcode: match ? match.postcode : prev.postcode
+    }));
+  };
+
+  const handlePostcodeChange = (postcode: string) => {
+    setAddress(prev => {
+      const nextState = { ...prev, postcode };
+      
+      // Check if current suburb already matches this postcode
+      const currentSuburbValid = TAS_LOCATIONS.some(
+        loc => loc.suburb === prev.suburb && loc.postcode === postcode
+      );
+      
+      // If not valid or empty, auto-select the first matching suburb
+      if (!currentSuburbValid) {
+        const match = TAS_LOCATIONS.find(loc => loc.postcode === postcode);
+        if (match) {
+          nextState.suburb = match.suburb;
+        }
+      }
+      
+      return nextState;
+    });
   };
 
   const handleAddressSubmit = (e: React.FormEvent) => {
@@ -967,14 +994,17 @@ export default function Checkout() {
                     <div className="grid grid-cols-3 gap-3">
                       <div className="col-span-1">
                         <label className="block font-barlow text-[10px] font-700 uppercase tracking-wider text-[#555555] mb-1.5">Suburb*</label>
-                        <input
+                        <select
                           required
-                          type="text"
                           value={address.suburb}
-                          onChange={e => setAddress(a => ({ ...a, suburb: e.target.value }))}
-                          placeholder="Melbourne"
+                          onChange={e => handleSuburbChange(e.target.value)}
                           className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A] transition-colors bg-[#FDFAF6]"
-                        />
+                        >
+                          <option value="" disabled>Select Suburb</option>
+                          {TAS_LOCATIONS.map(loc => (
+                            <option key={loc.suburb} value={loc.suburb}>{loc.suburb}</option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <label className="block font-barlow text-[10px] font-700 uppercase tracking-wider text-[#555555] mb-1.5">State</label>
@@ -983,11 +1013,6 @@ export default function Checkout() {
                           onChange={e => setAddress(a => ({ ...a, state: e.target.value }))}
                           className="w-full border border-[#E8D8C8] rounded-xl px-3 py-3 font-inter text-[14px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A] transition-colors bg-[#FDFAF6]"
                         >
-                          <option value="VIC">VIC</option>
-                          <option value="NSW">NSW</option>
-                          <option value="QLD">QLD</option>
-                          <option value="WA">WA</option>
-                          <option value="SA">SA</option>
                           <option value="TAS">TAS</option>
                         </select>
                       </div>
@@ -998,8 +1023,8 @@ export default function Checkout() {
                           type="text"
                           maxLength={4}
                           value={address.postcode}
-                          onChange={e => setAddress(a => ({ ...a, postcode: e.target.value }))}
-                          placeholder="3000"
+                          onChange={e => handlePostcodeChange(e.target.value)}
+                          placeholder="7000"
                           className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A] transition-colors bg-[#FDFAF6]"
                         />
                       </div>
