@@ -949,7 +949,7 @@ export default function Checkout() {
                       <div className="text-left">
                         <p className="font-barlow text-[13px] font-700 uppercase tracking-wide text-[#1A1A1A] capitalize">{type}</p>
                         <p className="font-inter text-[11px] text-[#555555]">
-                          {type === 'delivery' ? '25–35 min · $4.99' : '15–20 min · Free'}
+                          {type === 'delivery' ? '25–35 min · $5' : '15–20 min · Free'}
                         </p>
                       </div>
                     </button>
