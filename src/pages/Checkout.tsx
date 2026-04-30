@@ -596,7 +596,7 @@
 //     </div>
 //   );
 // }
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config/api';
 import { useCart } from '../context/CartContext';
@@ -662,6 +662,16 @@ export default function Checkout() {
   const subtotal = cartTotalPrice;
   const total = subtotal + platformFee + deliveryFee;
 
+  // Check if any item in the cart is an Ice Cream item
+  const hasIceCream = useMemo(() => {
+    return cartItems.some((item: any) => 
+      item.categoryId === 'cat-ice-cream' || 
+      item.id?.includes('ice-cream') || 
+      item.name?.toLowerCase().includes('ice cream') || 
+      item.name?.toLowerCase().includes('gelato')
+    );
+  }, [cartItems]);
+
   const buildWhatsAppUrl = (generatedOrderId: string) => {
     const message = `*🍕 NEW ORDER RECEIVED!*\\n` +
       `--------------------------\\n` +
@@ -706,10 +716,15 @@ export default function Checkout() {
   const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check minimum order restriction for delivery
-    if (orderType === 'delivery' && total < 25) {
-      toast.error(`Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`, { duration: 4000 });
-      return;
+    if (orderType === 'delivery') {
+      if (hasIceCream) {
+        toast.error('Ice Cream items are only available for pickup. Please switch to Pickup or remove them from your cart.', { duration: 5000 });
+        return;
+      }
+      if (total < 25) {
+        toast.error(`Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`, { duration: 4000 });
+        return;
+      }
     }
 
     setStep('payment');
@@ -717,10 +732,16 @@ export default function Checkout() {
   };
 
   const handlePlaceOrder = async () => {
-    // Secondary safety check for minimum order amount
-    if (orderType === 'delivery' && total < 25) {
-      toast.error(`Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`, { duration: 4000 });
-      return;
+    // Secondary safety checks
+    if (orderType === 'delivery') {
+      if (hasIceCream) {
+        toast.error('Ice Cream items are only available for pickup.', { duration: 5000 });
+        return;
+      }
+      if (total < 25) {
+        toast.error(`Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`, { duration: 4000 });
+        return;
+      }
     }
 
     setIsProcessing(true);
@@ -913,6 +934,9 @@ export default function Checkout() {
     );
   }
 
+  // Determine if the submit button should be disabled
+  const isDeliveryDisabled = orderType === 'delivery' && (hasIceCream || total < 25);
+
   return (
     <div className="min-h-screen bg-[#FDF8F2] pt-24 pb-20 px-4 md:px-8">
       <Toaster position="top-center" />
@@ -949,7 +973,7 @@ export default function Checkout() {
                       <div className="text-left">
                         <p className="font-barlow text-[13px] font-700 uppercase tracking-wide text-[#1A1A1A] capitalize">{type}</p>
                         <p className="font-inter text-[11px] text-[#555555]">
-                          {type === 'delivery' ? '25–35 min · $5' : '15–20 min · Free'}
+                          {type === 'delivery' ? '25–35 min · $4.99' : '15–20 min · Free'}
                         </p>
                       </div>
                     </button>
@@ -1060,8 +1084,15 @@ export default function Checkout() {
                   </div>
                 )}
 
-                {/* Delivery Minimum Warning UI */}
-                {orderType === 'delivery' && total < 25 && (
+                {/* Warnings Section */}
+                {orderType === 'delivery' && hasIceCream && (
+                  <div className="p-4 bg-[#EB001B]/10 border border-[#EB001B]/20 rounded-xl text-[#EB001B] text-[13px] font-inter">
+                    <p className="font-semibold mb-1">Pickup Only Items</p>
+                    <p>Ice Cream is strictly available for <strong>pickup only</strong>. Please switch to Pickup or remove Ice Cream from your cart to proceed.</p>
+                  </div>
+                )}
+
+                {orderType === 'delivery' && !hasIceCream && total < 25 && (
                   <div className="p-4 bg-[#EB001B]/10 border border-[#EB001B]/20 rounded-xl text-[#EB001B] text-[13px] font-inter">
                     <p className="font-semibold mb-1">Minimum Order Requirement</p>
                     <p>Delivery requires a minimum order total of $25.00. Please add ${(25 - total).toFixed(2)} more to your cart.</p>
@@ -1069,15 +1100,19 @@ export default function Checkout() {
                 )}
 
                 <button
-                  type={orderType === 'delivery' && total < 25 ? "button" : "submit"}
-                  disabled={orderType === 'delivery' && total < 25}
+                  type={isDeliveryDisabled ? "button" : "submit"}
+                  disabled={isDeliveryDisabled}
                   className={`w-full flex items-center justify-between font-barlow font-700 text-[14px] uppercase tracking-wider px-6 py-4 rounded-xl transition-all ${
-                    orderType === 'delivery' && total < 25
+                    isDeliveryDisabled
                       ? 'bg-[#E8D8C8] text-[#555555] cursor-not-allowed'
                       : 'bg-[#C8201A] hover:bg-[#9E1510] text-white shadow-[0_8px_24px_rgba(200,32,26,0.35)] hover:shadow-[0_12px_32px_rgba(200,32,26,0.5)]'
                   }`}
                 >
-                  <span>{orderType === 'delivery' && total < 25 ? 'Minimum $25 Required' : 'Continue to Payment'}</span>
+                  <span>
+                    {hasIceCream && orderType === 'delivery' 
+                      ? 'Pickup Required for Ice Cream' 
+                      : (orderType === 'delivery' && total < 25 ? 'Minimum $25 Required' : 'Continue to Payment')}
+                  </span>
                   <ChevronRight className="w-5 h-5" />
                 </button>
               </form>
