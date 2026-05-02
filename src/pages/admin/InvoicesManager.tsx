@@ -1,6 +1,6 @@
 // import { useEffect, useState } from 'react';
 // import { API_URL } from '../../config/api';
-// import { RefreshCw, FileText, Printer, CheckSquare, Square, Filter, Calendar } from 'lucide-react';
+// import { RefreshCw, FileText, Printer, CheckSquare, Square, Filter, Calendar, Search, X } from 'lucide-react';
 // import { useNavigate } from 'react-router-dom';
 
 // export default function InvoicesManager() {
@@ -8,9 +8,10 @@
 //   const [loading, setLoading] = useState(true);
 //   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
   
-//   // Filters
+//   // Filters & Search
 //   const [filterStatus, setFilterStatus] = useState<string>('ALL');
 //   const [filterDate, setFilterDate] = useState<string>('');
+//   const [searchQuery, setSearchQuery] = useState<string>('');
 
 //   const navigate = useNavigate();
 
@@ -57,10 +58,12 @@
 //   // Extract unique payment statuses for the filter dropdown
 //   const uniqueStatuses = ['ALL', ...Array.from(new Set(orders.map(o => o.paymentStatus || 'Pending')))];
 
-//   // Apply filters
+//   // Apply filters and search
 //   const filteredOrders = orders.filter(o => {
+//     // 1. Status Match
 //     const matchStatus = filterStatus === 'ALL' || (o.paymentStatus || 'Pending') === filterStatus;
     
+//     // 2. Date Match
 //     let matchDate = true;
 //     if (filterDate) {
 //       const orderDate = new Date(o.createdAt);
@@ -68,8 +71,19 @@
 //       const localDate = new Date(orderDate.getTime() - (orderDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
 //       matchDate = localDate === filterDate;
 //     }
+
+//     // 3. Search Match (Order ID, Name, Phone)
+//     let matchSearch = true;
+//     if (searchQuery.trim() !== '') {
+//       const query = searchQuery.toLowerCase().trim();
+//       const orderId = o.id.toLowerCase();
+//       const customerName = (o.customerName || o.user?.name || '').toLowerCase();
+//       const customerPhone = (o.customerPhone || o.user?.phone || '').toLowerCase();
+
+//       matchSearch = orderId.includes(query) || customerName.includes(query) || customerPhone.includes(query);
+//     }
     
-//     return matchStatus && matchDate;
+//     return matchStatus && matchDate && matchSearch;
 //   });
 
 //   const toggleSelectAll = () => {
@@ -130,7 +144,7 @@
 //         </div>
 
 //         <div className="bg-white border border-[#E8D8C8] rounded-2xl overflow-hidden shadow-sm">
-//           {/* Header Row with Filters */}
+//           {/* Header Row with Filters and Search */}
 //           <div className="bg-[#FDFAF6] border-b border-[#E8D8C8] p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
 //             <div className="flex items-center gap-4">
 //               <button onClick={toggleSelectAll} className="text-[#1A1A1A] hover:text-[#C8201A] transition-colors p-1">
@@ -145,8 +159,27 @@
 //               </span>
 //             </div>
 
-//             {/* Filters */}
+//             {/* Filters & Search Bar */}
 //             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              
+//               {/* Search Bar */}
+//               <div className="flex items-center gap-2 bg-white border border-[#E8D8C8] rounded-lg px-3 py-1.5 flex-1 md:flex-none md:min-w-[240px]">
+//                 <Search className="w-4 h-4 text-[#888]" />
+//                 <input 
+//                   type="text" 
+//                   placeholder="Search ID, Name, Phone..." 
+//                   value={searchQuery}
+//                   onChange={e => setSearchQuery(e.target.value)}
+//                   className="bg-transparent border-none outline-none font-inter text-[13px] text-[#1A1A1A] w-full"
+//                 />
+//                 {searchQuery && (
+//                   <button onClick={() => setSearchQuery('')} className="text-[#888] hover:text-[#C8201A]">
+//                     <X className="w-4 h-4" />
+//                   </button>
+//                 )}
+//               </div>
+
+//               {/* Status Filter */}
 //               <div className="flex items-center gap-2 bg-white border border-[#E8D8C8] rounded-lg px-3 py-1.5 flex-1 md:flex-none">
 //                 <Filter className="w-4 h-4 text-[#888]" />
 //                 <select 
@@ -160,6 +193,7 @@
 //                 </select>
 //               </div>
 
+//               {/* Date Filter */}
 //               <div className="flex items-center gap-2 bg-white border border-[#E8D8C8] rounded-lg px-3 py-1.5 flex-1 md:flex-none">
 //                 <Calendar className="w-4 h-4 text-[#888]" />
 //                 <input 
@@ -222,7 +256,7 @@
 //               <div className="p-12 text-center text-[#888888]">
 //                 <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
 //                 <h3 className="font-bebas text-[24px] text-[#1A1A1A] tracking-wider mb-2">No matching orders</h3>
-//                 <p className="font-inter text-[14px]">Try adjusting your filters to see more results.</p>
+//                 <p className="font-inter text-[14px]">Try adjusting your filters or search query to see more results.</p>
 //               </div>
 //             )}
 //           </div>
@@ -340,12 +374,13 @@
 // }
 import { useEffect, useState } from 'react';
 import { API_URL } from '../../config/api';
-import { RefreshCw, FileText, Printer, CheckSquare, Square, Filter, Calendar, Search, X } from 'lucide-react';
+import { RefreshCw, FileText, Printer, CheckSquare, Square, Filter, Calendar, Search, X, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function InvoicesManager() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState<string | null>(null);
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
   
   // Filters & Search
@@ -385,7 +420,67 @@ export default function InvoicesManager() {
     return () => clearInterval(interval);
   }, [navigate]);
 
-  const toggleSelection = (orderId: string) => {
+  // --- NEW: Delete Single Invoice (Order) ---
+  const handleDeleteInvoice = async (orderId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm(`Are you sure you want to permanently delete invoice/order #${orderId.slice(0, 8).toUpperCase()}? This cannot be undone.`)) return;
+
+    setUpdating(orderId);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`${API_URL}/api/admin/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.ok) {
+        setSelectedInvoices(prev => {
+          const newSel = new Set(prev);
+          newSel.delete(orderId);
+          return newSel;
+        });
+        fetchOrders();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete invoice');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred while deleting the invoice.');
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  // --- NEW: Delete Multiple Invoices (Bulk) ---
+  const handleBulkDeleteInvoices = async () => {
+    if (selectedInvoices.size === 0) return;
+    if (!window.confirm(`WARNING: Are you sure you want to permanently delete ${selectedInvoices.size} selected invoice(s)? This action cannot be undone.`)) return;
+
+    setUpdating('bulk');
+    try {
+      const token = localStorage.getItem('adminToken');
+      
+      const deletePromises = Array.from(selectedInvoices).map(orderId =>
+        fetch(`${API_URL}/api/admin/orders/${orderId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      );
+
+      await Promise.all(deletePromises);
+      setSelectedInvoices(new Set()); // clear selection
+      fetchOrders();
+    } catch (err) {
+      console.error('Bulk delete failed', err);
+      alert('An error occurred during bulk deletion.');
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const toggleSelection = (orderId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     const newSelection = new Set(selectedInvoices);
     if (newSelection.has(orderId)) {
       newSelection.delete(orderId);
@@ -483,6 +578,22 @@ export default function InvoicesManager() {
           </div>
         </div>
 
+        {/* --- NEW: Bulk Delete Button Panel --- */}
+        {selectedInvoices.size > 0 && (
+          <div className="bg-white border border-[#E8D8C8] rounded-xl p-4 mb-4 flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-2">
+            <span className="font-barlow text-[14px] font-700 uppercase tracking-wider text-[#1A1A1A]">
+              {selectedInvoices.size} Invoice(s) Selected
+            </span>
+            <button
+              onClick={handleBulkDeleteInvoices}
+              disabled={updating === 'bulk'}
+              className="flex items-center gap-2 bg-white border border-[#C8201A] text-[#C8201A] hover:bg-[#C8201A]/10 font-barlow text-[12px] font-700 uppercase tracking-widest px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" /> Delete Selected
+            </button>
+          </div>
+        )}
+
         <div className="bg-white border border-[#E8D8C8] rounded-2xl overflow-hidden shadow-sm">
           {/* Header Row with Filters and Search */}
           <div className="bg-[#FDFAF6] border-b border-[#E8D8C8] p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -551,13 +662,13 @@ export default function InvoicesManager() {
             </div>
           </div>
 
-          {/* Orders List */}
+          {/* Orders/Invoices List */}
           <div className="divide-y divide-[#E8D8C8] max-h-[60vh] overflow-y-auto">
             {filteredOrders.map((order) => (
               <div 
                 key={order.id} 
                 className={`p-4 flex items-center justify-between hover:bg-[#FDFAF6] transition-colors cursor-pointer ${selectedInvoices.has(order.id) ? 'bg-[#FAECE8]' : ''}`}
-                onClick={() => toggleSelection(order.id)}
+                onClick={(e) => toggleSelection(order.id, e)}
               >
                 <div className="flex items-center gap-5">
                   <div className="p-1">
@@ -581,13 +692,27 @@ export default function InvoicesManager() {
                     </div>
                   </div>
                 </div>
-                <div className="text-right flex flex-col items-end gap-1">
-                  <span className={`inline-block px-2 py-0.5 rounded-full font-barlow text-[10px] font-700 uppercase tracking-widest bg-[#E8D8C8] text-[#555555]`}>
-                    {order.paymentStatus || 'Pending'}
-                  </span>
-                  <div className="font-bebas text-[22px] text-[#C8201A] leading-none">
-                    ${Number(order.totalAmount).toFixed(2)}
+                
+                <div className="flex items-center gap-6">
+                  <div className="text-right flex flex-col items-end gap-1">
+                    <span className={`inline-block px-2 py-0.5 rounded-full font-barlow text-[10px] font-700 uppercase tracking-widest bg-[#E8D8C8] text-[#555555]`}>
+                      {order.paymentStatus || 'Pending'}
+                    </span>
+                    <div className="font-bebas text-[22px] text-[#C8201A] leading-none">
+                      ${Number(order.totalAmount).toFixed(2)}
+                    </div>
                   </div>
+                  
+                  {/* Single Delete Button */}
+                  <div className="w-px h-8 bg-[#E8D8C8] mx-2 hidden sm:block"></div>
+                  <button 
+                    onClick={(e) => handleDeleteInvoice(order.id, e)}
+                    disabled={updating === order.id}
+                    title="Delete Invoice"
+                    className="p-2 text-[#888888] hover:bg-red-50 hover:text-[#C8201A] rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -641,7 +766,7 @@ export default function InvoicesManager() {
                   return (
                     <div key={i} className="flex flex-col">
                       <div className="flex justify-between items-start">
-                        <span className="mr-2 flex-1">{item.quantity} x {item.product?.name || 'Unknown Item'} {item.size ? `(${item.size})` : ''}</span>
+                        <span className="mr-2 flex-1">{item.quantity} x {item.product?.name || item.deal?.title || 'Unknown Item'} {item.size ? `(${item.size})` : ''}</span>
                         <span>${Number(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                       
