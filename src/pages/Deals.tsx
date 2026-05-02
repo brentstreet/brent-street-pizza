@@ -181,7 +181,7 @@ const Deals: React.FC = () => {
     
     // Initialize empty selections for 'choice' components
     const initialSelections: Record<string, any[]> = {};
-    components.forEach(comp => {
+    components.forEach((comp: any) => {
       if (comp.type === 'choice') {
         // Create an array of nulls based on the required quantity
         initialSelections[comp.id] = Array(comp.quantity).fill(null);
