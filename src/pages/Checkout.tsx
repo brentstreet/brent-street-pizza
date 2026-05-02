@@ -1,4 +1,4 @@
-// import { useState, useEffect } from 'react';
+// import { useState, useEffect, useMemo } from 'react';
 // import { useNavigate } from 'react-router-dom';
 // import { API_URL } from '../config/api';
 // import { useCart } from '../context/CartContext';
@@ -20,6 +20,15 @@
 
 // type Step = 'address' | 'payment' | 'success';
 
+// const TAS_LOCATIONS = [
+//   { suburb: 'Glenorchy', postcode: '7010' },
+//   { suburb: 'Moonah', postcode: '7009' },
+//   { suburb: 'West Moonah', postcode: '7009' },
+//   { suburb: 'Rosetta', postcode: '7010' },
+//   { suburb: 'Montrose', postcode: '7010' },
+//   { suburb: 'Derwent Park', postcode: '7009' }
+// ];
+
 // export default function Checkout() {
 //   const navigate = useNavigate();
 //   const { cartItems, cartTotalPrice, clearCart, token, orderType, setOrderType } = useCart();
@@ -38,7 +47,7 @@
 //     phone: '',
 //     street: '',
 //     suburb: '',
-//     state: '',
+//     state: 'TAS',
 //     postcode: '',
 //     notes: '',
 //   });
@@ -55,24 +64,91 @@
 //   const subtotal = cartTotalPrice;
 //   const total = subtotal + platformFee + deliveryFee;
 
+//   // Check if any item in the cart is an Ice Cream item
+//   const hasIceCream = useMemo(() => {
+//     return cartItems.some((item: any) => {
+//       const isIceCreamCat = item.categoryId === 'cat-ice-cream';
+//       const nameMatch = item.name?.toLowerCase().includes('ice cream') || 
+//                         item.name?.toLowerCase().includes('gelato') || 
+//                         item.name?.toLowerCase().includes('sundae');
+//       const idMatch = item.id?.includes('ice-cream') || item.menuItemId?.includes('ice-cream');
+      
+//       return isIceCreamCat || nameMatch || idMatch;
+//     });
+//   }, [cartItems]);
+
 //   const buildWhatsAppUrl = (generatedOrderId: string) => {
-//     const message = `*🍕 NEW ORDER RECEIVED!*\n` +
-//       `--------------------------\n` +
-//       `*Order ID:* #${generatedOrderId.slice(0, 8).toUpperCase()}\n` +
-//       `*Customer:* ${address.name}\n` +
-//       `*Type:* ${orderType.toUpperCase()}\n` +
+//     const message = `*🍕 NEW ORDER RECEIVED!*\\n` +
+//       `--------------------------\\n` +
+//       `*Order ID:* #${generatedOrderId.slice(0, 8).toUpperCase()}\\n` +
+//       `*Customer:* ${address.name}\\n` +
+//       `*Type:* ${orderType.toUpperCase()}\\n` +
 //       `*Address:* ${orderType === 'delivery' ? `${address.street}, ${address.suburb}` : 'Pickup'}`;
 
 //     return `https://wa.me/61362724004?text=${encodeURIComponent(message)}`;
 //   };
 
+//   const handleSuburbChange = (suburb: string) => {
+//     const match = TAS_LOCATIONS.find(loc => loc.suburb === suburb);
+//     setAddress(prev => ({
+//       ...prev,
+//       suburb,
+//       postcode: match ? match.postcode : prev.postcode
+//     }));
+//   };
+
+//   const handlePostcodeChange = (postcode: string) => {
+//     setAddress(prev => {
+//       const nextState = { ...prev, postcode };
+      
+//       // Check if current suburb already matches this postcode
+//       const currentSuburbValid = TAS_LOCATIONS.some(
+//         loc => loc.suburb === prev.suburb && loc.postcode === postcode
+//       );
+      
+//       // If not valid or empty, auto-select the first matching suburb
+//       if (!currentSuburbValid) {
+//         const match = TAS_LOCATIONS.find(loc => loc.postcode === postcode);
+//         if (match) {
+//           nextState.suburb = match.suburb;
+//         }
+//       }
+      
+//       return nextState;
+//     });
+//   };
+
 //   const handleAddressSubmit = (e: React.FormEvent) => {
 //     e.preventDefault();
+    
+//     if (orderType === 'delivery') {
+//       if (hasIceCream) {
+//         toast.error('Ice Cream items are only available for pickup. Please switch to Pickup or remove them from your cart.', { duration: 5000 });
+//         return;
+//       }
+//       if (total < 25) {
+//         toast.error(`Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`, { duration: 4000 });
+//         return;
+//       }
+//     }
+
 //     setStep('payment');
 //     window.scrollTo({ top: 0, behavior: 'smooth' });
 //   };
 
 //   const handlePlaceOrder = async () => {
+//     // Secondary safety checks
+//     if (orderType === 'delivery') {
+//       if (hasIceCream) {
+//         toast.error('Ice Cream items are only available for pickup.', { duration: 5000 });
+//         return;
+//       }
+//       if (total < 25) {
+//         toast.error(`Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`, { duration: 4000 });
+//         return;
+//       }
+//     }
+
 //     setIsProcessing(true);
 //     if (!token) {
 //       toast.error('Authentication error. Please refresh the page and try again.', { duration: 4000 });
@@ -263,6 +339,9 @@
 //     );
 //   }
 
+//   // Determine if the submit button should be disabled
+//   const isDeliveryDisabled = orderType === 'delivery' && (hasIceCream || total < 25);
+
 //   return (
 //     <div className="min-h-screen bg-[#FDF8F2] pt-24 pb-20 px-4 md:px-8">
 //       <Toaster position="top-center" />
@@ -357,14 +436,17 @@
 //                     <div className="grid grid-cols-3 gap-3">
 //                       <div className="col-span-1">
 //                         <label className="block font-barlow text-[10px] font-700 uppercase tracking-wider text-[#555555] mb-1.5">Suburb*</label>
-//                         <input
+//                         <select
 //                           required
-//                           type="text"
 //                           value={address.suburb}
-//                           onChange={e => setAddress(a => ({ ...a, suburb: e.target.value }))}
-//                           placeholder="Melbourne"
+//                           onChange={e => handleSuburbChange(e.target.value)}
 //                           className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A] transition-colors bg-[#FDFAF6]"
-//                         />
+//                         >
+//                           <option value="" disabled>Select Suburb</option>
+//                           {TAS_LOCATIONS.map(loc => (
+//                             <option key={loc.suburb} value={loc.suburb}>{loc.suburb}</option>
+//                           ))}
+//                         </select>
 //                       </div>
 //                       <div>
 //                         <label className="block font-barlow text-[10px] font-700 uppercase tracking-wider text-[#555555] mb-1.5">State</label>
@@ -373,11 +455,6 @@
 //                           onChange={e => setAddress(a => ({ ...a, state: e.target.value }))}
 //                           className="w-full border border-[#E8D8C8] rounded-xl px-3 py-3 font-inter text-[14px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A] transition-colors bg-[#FDFAF6]"
 //                         >
-//                           <option value="VIC">VIC</option>
-//                           <option value="NSW">NSW</option>
-//                           <option value="QLD">QLD</option>
-//                           <option value="WA">WA</option>
-//                           <option value="SA">SA</option>
 //                           <option value="TAS">TAS</option>
 //                         </select>
 //                       </div>
@@ -388,8 +465,8 @@
 //                           type="text"
 //                           maxLength={4}
 //                           value={address.postcode}
-//                           onChange={e => setAddress(a => ({ ...a, postcode: e.target.value }))}
-//                           placeholder="3000"
+//                           onChange={e => handlePostcodeChange(e.target.value)}
+//                           placeholder="7000"
 //                           className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A] transition-colors bg-[#FDFAF6]"
 //                         />
 //                       </div>
@@ -412,11 +489,35 @@
 //                   </div>
 //                 )}
 
+//                 {/* Warnings Section */}
+//                 {orderType === 'delivery' && hasIceCream && (
+//                   <div className="p-4 bg-[#EB001B]/10 border border-[#EB001B]/20 rounded-xl text-[#EB001B] text-[13px] font-inter">
+//                     <p className="font-semibold mb-1">Pickup Only Items</p>
+//                     <p>Ice Cream is strictly available for <strong>pickup only</strong>. Please switch to Pickup or remove Ice Cream from your cart to proceed.</p>
+//                   </div>
+//                 )}
+
+//                 {orderType === 'delivery' && !hasIceCream && total < 25 && (
+//                   <div className="p-4 bg-[#EB001B]/10 border border-[#EB001B]/20 rounded-xl text-[#EB001B] text-[13px] font-inter">
+//                     <p className="font-semibold mb-1">Minimum Order Requirement</p>
+//                     <p>Delivery requires a minimum order total of $25.00. Please add ${(25 - total).toFixed(2)} more to your cart.</p>
+//                   </div>
+//                 )}
+
 //                 <button
-//                   type="submit"
-//                   className="w-full flex items-center justify-between bg-[#C8201A] hover:bg-[#9E1510] text-white font-barlow font-700 text-[14px] uppercase tracking-wider px-6 py-4 rounded-xl transition-all shadow-[0_8px_24px_rgba(200,32,26,0.35)] hover:shadow-[0_12px_32px_rgba(200,32,26,0.5)]"
+//                   type={isDeliveryDisabled ? "button" : "submit"}
+//                   disabled={isDeliveryDisabled}
+//                   className={`w-full flex items-center justify-between font-barlow font-700 text-[14px] uppercase tracking-wider px-6 py-4 rounded-xl transition-all ${
+//                     isDeliveryDisabled
+//                       ? 'bg-[#E8D8C8] text-[#555555] cursor-not-allowed'
+//                       : 'bg-[#C8201A] hover:bg-[#9E1510] text-white shadow-[0_8px_24px_rgba(200,32,26,0.35)] hover:shadow-[0_12px_32px_rgba(200,32,26,0.5)]'
+//                   }`}
 //                 >
-//                   <span>Continue to Payment</span>
+//                   <span>
+//                     {hasIceCream && orderType === 'delivery' 
+//                       ? 'Pickup Required for Ice Cream' 
+//                       : (orderType === 'delivery' && total < 25 ? 'Minimum $25 Required' : 'Continue to Payment')}
+//                   </span>
 //                   <ChevronRight className="w-5 h-5" />
 //                 </button>
 //               </form>
@@ -630,15 +731,15 @@ const TAS_LOCATIONS = [
 export default function Checkout() {
   const navigate = useNavigate();
   const { cartItems, cartTotalPrice, clearCart, token, orderType, setOrderType } = useCart();
+
   const [step, setStep] = useState<Step>('address');
   const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'COD'>('ONLINE');
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderId, setOrderId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
   const [finalTotal, setFinalTotal] = useState(0);
-  
-  // Store the pre-baked WhatsApp URL right before clearing the cart
   const [whatsappUrl, setWhatsappUrl] = useState('');
+  const [catalogProducts, setCatalogProducts] = useState<any[]>([]);
 
   const [address, setAddress] = useState({
     name: '',
@@ -650,33 +751,50 @@ export default function Checkout() {
     notes: '',
   });
 
-  // If cart is empty, redirect to menu
   useEffect(() => {
     if (cartItems.length === 0 && step !== 'success') {
       navigate('/menu');
     }
   }, [cartItems, navigate, step]);
 
-  const deliveryFee = orderType === 'delivery' ? 5.00 : 0;
-  const platformFee = orderType === 'delivery' ? 0.50 : 0.50;
+  useEffect(() => {
+    fetch(`${API_URL}/api/catalog/products`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.products) setCatalogProducts(data.products);
+      })
+      .catch(console.error);
+  }, []);
+
+  const productMap = useMemo(() => {
+    const map = new Map<string, any>();
+    catalogProducts.forEach((p: any) => {
+      map.set(p.id, p);
+    });
+    return map;
+  }, [catalogProducts]);
+
+  const deliveryFee = orderType === 'delivery' ? 5.0 : 0;
+  const platformFee = 0.5;
   const subtotal = cartTotalPrice;
   const total = subtotal + platformFee + deliveryFee;
 
-  // Check if any item in the cart is an Ice Cream item
   const hasIceCream = useMemo(() => {
     return cartItems.some((item: any) => {
       const isIceCreamCat = item.categoryId === 'cat-ice-cream';
-      const nameMatch = item.name?.toLowerCase().includes('ice cream') || 
-                        item.name?.toLowerCase().includes('gelato') || 
-                        item.name?.toLowerCase().includes('sundae');
+      const nameMatch =
+        item.name?.toLowerCase().includes('ice cream') ||
+        item.name?.toLowerCase().includes('gelato') ||
+        item.name?.toLowerCase().includes('sundae');
       const idMatch = item.id?.includes('ice-cream') || item.menuItemId?.includes('ice-cream');
-      
+
       return isIceCreamCat || nameMatch || idMatch;
     });
   }, [cartItems]);
 
   const buildWhatsAppUrl = (generatedOrderId: string) => {
-    const message = `*🍕 NEW ORDER RECEIVED!*\\n` +
+    const message =
+      `*🍕 NEW ORDER RECEIVED!*\\n` +
       `--------------------------\\n` +
       `*Order ID:* #${generatedOrderId.slice(0, 8).toUpperCase()}\\n` +
       `*Customer:* ${address.name}\\n` +
@@ -698,34 +816,49 @@ export default function Checkout() {
   const handlePostcodeChange = (postcode: string) => {
     setAddress(prev => {
       const nextState = { ...prev, postcode };
-      
-      // Check if current suburb already matches this postcode
+
       const currentSuburbValid = TAS_LOCATIONS.some(
         loc => loc.suburb === prev.suburb && loc.postcode === postcode
       );
-      
-      // If not valid or empty, auto-select the first matching suburb
+
       if (!currentSuburbValid) {
         const match = TAS_LOCATIONS.find(loc => loc.postcode === postcode);
         if (match) {
           nextState.suburb = match.suburb;
         }
       }
-      
+
       return nextState;
     });
   };
 
+  const getDealSelectionLabel = (selection: any) => {
+    const matchedProduct = selection?.productId ? productMap.get(selection.productId) : null;
+    return (
+      selection?.name ||
+      selection?.productName ||
+      selection?.title ||
+      matchedProduct?.name ||
+      'Selected item'
+    );
+  };
+
   const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (orderType === 'delivery') {
       if (hasIceCream) {
-        toast.error('Ice Cream items are only available for pickup. Please switch to Pickup or remove them from your cart.', { duration: 5000 });
+        toast.error(
+          'Ice Cream items are only available for pickup. Please switch to Pickup or remove them from your cart.',
+          { duration: 5000 }
+        );
         return;
       }
       if (total < 25) {
-        toast.error(`Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`, { duration: 4000 });
+        toast.error(
+          `Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`,
+          { duration: 4000 }
+        );
         return;
       }
     }
@@ -735,19 +868,22 @@ export default function Checkout() {
   };
 
   const handlePlaceOrder = async () => {
-    // Secondary safety checks
     if (orderType === 'delivery') {
       if (hasIceCream) {
         toast.error('Ice Cream items are only available for pickup.', { duration: 5000 });
         return;
       }
       if (total < 25) {
-        toast.error(`Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`, { duration: 4000 });
+        toast.error(
+          `Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`,
+          { duration: 4000 }
+        );
         return;
       }
     }
 
     setIsProcessing(true);
+
     if (!token) {
       toast.error('Authentication error. Please refresh the page and try again.', { duration: 4000 });
       setIsProcessing(false);
@@ -755,86 +891,123 @@ export default function Checkout() {
     }
 
     try {
-      // ─── Step 1: Validate prices against current DB prices ───────────────
-      const freshRes = await fetch(`${API_URL}/api/catalog/products`);
-      if (freshRes.ok) {
-        const freshData = await freshRes.json();
-        const freshProducts: any[] = freshData.products || [];
+      const [freshProductsRes, freshDealsRes] = await Promise.all([
+        fetch(`${API_URL}/api/catalog/products`),
+        fetch(`${API_URL}/api/catalog/deals`)
+      ]);
 
-        const mismatchedItems: string[] = [];
-        
-        for (const cartItem of cartItems) {
-          const dbProduct = freshProducts.find(
-            (p: any) => p.id === (cartItem.menuItemId || cartItem.id)
-          );
-          
-          if (dbProduct) {
-            if (dbProduct.name === 'Custom Ice Cream' || dbProduct.id === 'ice-cream-custom') {
-              continue;
-            }
+      const freshProductsData = freshProductsRes.ok ? await freshProductsRes.json() : { products: [] };
+      const freshDealsData = freshDealsRes.ok ? await freshDealsRes.json() : { deals: [] };
 
-            let expectedPrice = Number(dbProduct.price);
+      const freshProducts: any[] = freshProductsData.products || [];
+      const freshDeals: any[] = freshDealsData.deals || [];
 
-            if (cartItem.size && dbProduct.sizes && Array.isArray(dbProduct.sizes)) {
-              const matchingSize = dbProduct.sizes.find((s: any) => s.name === cartItem.size);
-              if (matchingSize) {
-                expectedPrice = Number(matchingSize.price);
-              }
-            }
+      const mismatchedItems: string[] = [];
 
-            if (cartItem.addedExtras && Array.isArray(cartItem.addedExtras)) {
-              for (const extra of cartItem.addedExtras) {
-                expectedPrice += Number(extra.price || 0);
-              }
-            }
+      for (const cartItem of cartItems) {
+        const rawId = cartItem.menuItemId || cartItem.id;
+        const isDeal = Boolean(cartItem.dealId) || String(rawId).startsWith('deal_');
 
+        if (isDeal) {
+          const dealId = cartItem.dealId || String(rawId).replace('deal_', '');
+          const dbDeal = freshDeals.find((d: any) => d.id === dealId);
+
+          if (dbDeal) {
+            const expectedPrice = Number(dbDeal.price);
             const cartPrice = Number(cartItem.price);
-            
+
             if (Math.abs(expectedPrice - cartPrice) > 0.001) {
               mismatchedItems.push(
-                `• ${cartItem.name} ${cartItem.size ? `(${cartItem.size})` : ''}: was $${cartPrice.toFixed(2)}, now $${expectedPrice.toFixed(2)}`
+                `• ${cartItem.name}: was $${cartPrice.toFixed(2)}, now $${expectedPrice.toFixed(2)}`
               );
             }
           }
+
+          continue;
         }
 
-        if (mismatchedItems.length > 0) {
-          toast.error(
-            <div className="flex flex-col gap-2">
-              <strong>Prices Updated!</strong>
-              <p className="text-sm">Please go back and update your cart. The following prices changed:</p>
-              <ul className="text-xs space-y-1">
-                {mismatchedItems.map((msg, i) => <li key={i}>{msg}</li>)}
-              </ul>
-            </div>, 
-            { duration: 6000 }
-          );
-          setIsProcessing(false);
-          return;
+        const dbProduct = freshProducts.find((p: any) => p.id === rawId);
+
+        if (dbProduct) {
+          if (dbProduct.name === 'Custom Ice Cream' || dbProduct.id === 'ice-cream-custom') {
+            continue;
+          }
+
+          let expectedPrice = Number(dbProduct.price);
+
+          if (cartItem.size && dbProduct.sizes && Array.isArray(dbProduct.sizes)) {
+            const matchingSize = dbProduct.sizes.find((s: any) => s.name === cartItem.size);
+            if (matchingSize) {
+              expectedPrice = Number(matchingSize.price);
+            }
+          }
+
+          if (cartItem.addedExtras && Array.isArray(cartItem.addedExtras)) {
+            for (const extra of cartItem.addedExtras) {
+              expectedPrice += Number(extra.price || 0);
+            }
+          }
+
+          const cartPrice = Number(cartItem.price);
+
+          if (Math.abs(expectedPrice - cartPrice) > 0.001) {
+            mismatchedItems.push(
+              `• ${cartItem.name} ${cartItem.size ? `(${cartItem.size})` : ''}: was $${cartPrice.toFixed(2)}, now $${expectedPrice.toFixed(2)}`
+            );
+          }
         }
       }
-      // ─────────────────────────────────────────────────────────────────────
+
+      if (mismatchedItems.length > 0) {
+        toast.error(
+          <div className="flex flex-col gap-2">
+            <strong>Prices Updated!</strong>
+            <p className="text-sm">Please go back and update your cart. The following prices changed:</p>
+            <ul className="text-xs space-y-1">
+              {mismatchedItems.map((msg, i) => (
+                <li key={i}>{msg}</li>
+              ))}
+            </ul>
+          </div>,
+          { duration: 6000 }
+        );
+        setIsProcessing(false);
+        return;
+      }
+
+      const payloadCartItems = cartItems.map((item: any) => {
+        const rawId = item.menuItemId || item.id;
+        const isDeal = Boolean(item.dealId) || String(rawId).startsWith('deal_');
+        const normalizedDealId = isDeal ? (item.dealId || String(rawId).replace('deal_', '')) : null;
+
+        return {
+          productId: isDeal ? null : rawId,
+          dealId: normalizedDealId,
+          quantity: item.quantity,
+          price: Number(item.price),
+          size: item.size || null,
+          removedToppings: item.removedToppings || [],
+          addedExtras: item.addedExtras || [],
+          selectedDealItems: item.selectedDealItems || [],
+        };
+      });
 
       const res = await fetch(`${API_URL}/api/orders`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           totalAmount: total.toFixed(2),
           paymentMethod,
-          deliveryAddress: orderType === 'delivery' ? `${address.street}, ${address.suburb} ${address.state} ${address.postcode}` : 'Pickup',
+          deliveryAddress:
+            orderType === 'delivery'
+              ? `${address.street}, ${address.suburb} ${address.state} ${address.postcode}`
+              : 'Pickup',
           customerName: address.name,
           customerPhone: address.phone,
-          cartItems: cartItems.map(item => ({
-            productId: item.menuItemId || item.id,
-            quantity: item.quantity,
-            price: Number(item.price),
-            size: item.size || null,
-            removedToppings: item.removedToppings || [],
-            addedExtras: item.addedExtras || [],
-          })),
+          cartItems: payloadCartItems,
         }),
       });
 
@@ -844,8 +1017,6 @@ export default function Checkout() {
 
       const newOrderId = data.order.id;
       setOrderId(newOrderId);
-      
-      // Pre-generate WhatsApp message (simplified version)
       setWhatsappUrl(buildWhatsAppUrl(newOrderId));
 
       if (paymentMethod === 'COD') {
@@ -860,7 +1031,6 @@ export default function Checkout() {
         setIsProcessing(false);
         return;
       }
-
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || 'Something went wrong. Please try again.', { duration: 5000 });
@@ -937,7 +1107,6 @@ export default function Checkout() {
     );
   }
 
-  // Determine if the submit button should be disabled
   const isDeliveryDisabled = orderType === 'delivery' && (hasIceCream || total < 25);
 
   return (
@@ -945,7 +1114,7 @@ export default function Checkout() {
       <Toaster position="top-center" />
       <div className="max-w-[1200px] mx-auto mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <button
-          onClick={() => step === 'payment' ? setStep('address') : navigate('/menu')}
+          onClick={() => (step === 'payment' ? setStep('address') : navigate('/menu'))}
           className="flex items-center gap-2 text-[#555555] hover:text-[#C8201A] font-barlow font-700 text-[13px] uppercase tracking-wider transition-colors w-fit"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -957,12 +1126,9 @@ export default function Checkout() {
       </div>
 
       <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 xl:gap-12 items-start">
-        {/* ── LEFT PANEL: Form / Payment ── */}
         <div className="space-y-6">
-          {/* STEP 1: Address */}
           {step === 'address' && (
             <>
-              {/* Order Type Toggle */}
               <div className="bg-white border border-[#E8D8C8] rounded-2xl p-5">
                 <p className="font-barlow text-[11px] font-700 uppercase tracking-wider text-[#555555] mb-3">Order Type</p>
                 <div className="grid grid-cols-2 gap-3">
@@ -970,13 +1136,19 @@ export default function Checkout() {
                     <button
                       key={type}
                       onClick={() => setOrderType(type)}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${orderType === type ? 'border-[#C8201A] bg-[#C8201A]/8' : 'border-[#E8D8C8] hover:border-[#E8D8C8]/80'}`}
+                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                        orderType === type ? 'border-[#C8201A] bg-[#C8201A]/8' : 'border-[#E8D8C8] hover:border-[#E8D8C8]/80'
+                      }`}
                     >
-                      {type === 'delivery' ? <Bike className="w-5 h-5 text-[#C8201A]" /> : <Store className="w-5 h-5 text-[#C8201A]" />}
+                      {type === 'delivery' ? (
+                        <Bike className="w-5 h-5 text-[#C8201A]" />
+                      ) : (
+                        <Store className="w-5 h-5 text-[#C8201A]" />
+                      )}
                       <div className="text-left">
                         <p className="font-barlow text-[13px] font-700 uppercase tracking-wide text-[#1A1A1A] capitalize">{type}</p>
                         <p className="font-inter text-[11px] text-[#555555]">
-                          {type === 'delivery' ? '25–35 min · $4.99' : '15–20 min · Free'}
+                          {type === 'delivery' ? '25–35 min · $5.00' : '15–20 min · Free'}
                         </p>
                       </div>
                     </button>
@@ -984,7 +1156,6 @@ export default function Checkout() {
                 </div>
               </div>
 
-              {/* Address Form */}
               <form onSubmit={handleAddressSubmit} className="bg-white border border-[#E8D8C8] rounded-2xl p-5 space-y-4">
                 <div className="flex items-center gap-2 mb-1">
                   <MapPin className="w-4 h-4 text-[#C8201A]" />
@@ -1087,7 +1258,6 @@ export default function Checkout() {
                   </div>
                 )}
 
-                {/* Warnings Section */}
                 {orderType === 'delivery' && hasIceCream && (
                   <div className="p-4 bg-[#EB001B]/10 border border-[#EB001B]/20 rounded-xl text-[#EB001B] text-[13px] font-inter">
                     <p className="font-semibold mb-1">Pickup Only Items</p>
@@ -1103,7 +1273,7 @@ export default function Checkout() {
                 )}
 
                 <button
-                  type={isDeliveryDisabled ? "button" : "submit"}
+                  type={isDeliveryDisabled ? 'button' : 'submit'}
                   disabled={isDeliveryDisabled}
                   className={`w-full flex items-center justify-between font-barlow font-700 text-[14px] uppercase tracking-wider px-6 py-4 rounded-xl transition-all ${
                     isDeliveryDisabled
@@ -1112,9 +1282,11 @@ export default function Checkout() {
                   }`}
                 >
                   <span>
-                    {hasIceCream && orderType === 'delivery' 
-                      ? 'Pickup Required for Ice Cream' 
-                      : (orderType === 'delivery' && total < 25 ? 'Minimum $25 Required' : 'Continue to Payment')}
+                    {hasIceCream && orderType === 'delivery'
+                      ? 'Pickup Required for Ice Cream'
+                      : orderType === 'delivery' && total < 25
+                      ? 'Minimum $25 Required'
+                      : 'Continue to Payment'}
                   </span>
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -1122,10 +1294,8 @@ export default function Checkout() {
             </>
           )}
 
-          {/* STEP 2: Payment */}
           {step === 'payment' && (
             <div className="space-y-5">
-              {/* Address summary */}
               <div className="bg-white border border-[#E8D8C8] rounded-2xl p-5 flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-[#C8201A] flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
@@ -1134,7 +1304,12 @@ export default function Checkout() {
                   </p>
                   <p className="font-inter text-[14px] text-[#1A1A1A]">
                     {address.name} · {address.phone}
-                    {orderType === 'delivery' && <><br />{address.street}, {address.suburb} {address.state} {address.postcode}</>}
+                    {orderType === 'delivery' && (
+                      <>
+                        <br />
+                        {address.street}, {address.suburb} {address.state} {address.postcode}
+                      </>
+                    )}
                   </p>
                 </div>
                 <button
@@ -1145,13 +1320,14 @@ export default function Checkout() {
                 </button>
               </div>
 
-              {/* Payment Method */}
               <div className="bg-white border border-[#E8D8C8] rounded-2xl p-5">
                 <p className="font-barlow text-[11px] font-700 uppercase tracking-wider text-[#555555] mb-4">Payment Method</p>
                 <div className="space-y-3">
                   <button
                     onClick={() => setPaymentMethod('ONLINE')}
-                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${paymentMethod === 'ONLINE' ? 'border-[#C8201A] bg-[#C8201A]/8' : 'border-[#E8D8C8] hover:border-[#E8D8C8]/80'}`}
+                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
+                      paymentMethod === 'ONLINE' ? 'border-[#C8201A] bg-[#C8201A]/8' : 'border-[#E8D8C8] hover:border-[#E8D8C8]/80'
+                    }`}
                   >
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${paymentMethod === 'ONLINE' ? 'border-[#C8201A]' : 'border-[#E8D8C8]'}`}>
                       {paymentMethod === 'ONLINE' && <div className="w-2.5 h-2.5 rounded-full bg-[#C8201A]" />}
@@ -1170,7 +1346,9 @@ export default function Checkout() {
 
                   <button
                     onClick={() => setPaymentMethod('COD')}
-                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${paymentMethod === 'COD' ? 'border-[#C8201A] bg-[#C8201A]/8' : 'border-[#E8D8C8] hover:border-[#E8D8C8]/80'}`}
+                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
+                      paymentMethod === 'COD' ? 'border-[#C8201A] bg-[#C8201A]/8' : 'border-[#E8D8C8] hover:border-[#E8D8C8]/80'
+                    }`}
                   >
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${paymentMethod === 'COD' ? 'border-[#C8201A]' : 'border-[#E8D8C8]'}`}>
                       {paymentMethod === 'COD' && <div className="w-2.5 h-2.5 rounded-full bg-[#C8201A]" />}
@@ -1186,7 +1364,6 @@ export default function Checkout() {
                 </div>
               </div>
 
-              {/* Trust badges */}
               <div className="flex items-center gap-2 px-1 text-[#555555]">
                 <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                 <p className="font-inter text-[12px]">
@@ -1194,7 +1371,6 @@ export default function Checkout() {
                 </p>
               </div>
 
-              {/* Online Payment Form or Place Order button */}
               {paymentMethod === 'ONLINE' && clientSecret ? (
                 <div className="bg-white border border-[#E8D8C8] rounded-2xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <p className="font-barlow text-[13px] font-800 uppercase tracking-widest text-[#1A1A1A] mb-6 flex items-center gap-2">
@@ -1203,9 +1379,9 @@ export default function Checkout() {
                   </p>
                   {stripePromise ? (
                     <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
-                      <StripePaymentForm 
+                      <StripePaymentForm
                         orderId={orderId}
-                        clientSecret={clientSecret} 
+                        clientSecret={clientSecret}
                         total={total}
                         onSuccess={async () => {
                           setFinalTotal(total);
@@ -1235,7 +1411,6 @@ export default function Checkout() {
           )}
         </div>
 
-        {/* ── RIGHT PANEL: Order Summary ── */}
         <div className="lg:sticky lg:top-[72px] self-start">
           <div className="bg-white border border-[#E8D8C8] rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-[#E8D8C8] flex items-center justify-between">
@@ -1246,21 +1421,46 @@ export default function Checkout() {
             </div>
 
             <div className="divide-y divide-[#F0E8DC]">
-              {cartItems.map((item: any) => (
-                <div key={item.id} className="px-5 py-3.5 flex items-start gap-3">
+              {cartItems.map((item: any, index: number) => (
+                <div key={`${item.id}-${index}`} className="px-5 py-3.5 flex items-start gap-3">
                   <span className="w-5 h-5 rounded-full bg-[#C8201A] text-white font-barlow font-700 text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
                     {item.quantity}
                   </span>
+
                   <div className="flex-1 min-w-0">
                     <p className="font-barlow text-[13px] font-700 text-[#1A1A1A] truncate">{item.name}</p>
-                    {item.size && <p className="font-inter text-[11px] text-[#555555]">{item.size}</p>}
-                    {item.removedToppings && item.removedToppings.length > 0 && (
-                      <p className="font-inter text-[10px] text-[#C8201A]">No {item.removedToppings.join(', ')}</p>
+
+                    {item.size && (
+                      <p className="font-inter text-[11px] text-[#555555]">{item.size}</p>
                     )}
+
+                    {item.removedToppings && item.removedToppings.length > 0 && (
+                      <p className="font-inter text-[10px] text-[#C8201A]">
+                        No {item.removedToppings.join(', ')}
+                      </p>
+                    )}
+
                     {item.addedExtras && item.addedExtras.length > 0 && (
-                      <p className="font-inter text-[10px] text-[#D4952A]">+ {item.addedExtras.map((e: any) => e.name).join(', ')}</p>
+                      <p className="font-inter text-[10px] text-[#D4952A]">
+                        + {item.addedExtras.map((e: any) => e.name).join(', ')}
+                      </p>
+                    )}
+
+                    {item.selectedDealItems && item.selectedDealItems.length > 0 && (
+                      <div className="mt-1.5 space-y-1">
+                        {item.selectedDealItems.map((selection: any, selIdx: number) => (
+                          <p
+                            key={`${item.id}-${index}-sel-${selIdx}`}
+                            className="font-inter text-[10px] text-[#555555]"
+                          >
+                            • {selection.quantity || 1}x {getDealSelectionLabel(selection)}{' '}
+                            {selection.size ? `(${selection.size})` : ''}
+                          </p>
+                        ))}
+                      </div>
                     )}
                   </div>
+
                   <span className="font-barlow font-700 text-[13px] text-[#1A1A1A] flex-shrink-0">
                     ${(Number(item.price) * item.quantity).toFixed(2)}
                   </span>
@@ -1268,7 +1468,6 @@ export default function Checkout() {
               ))}
             </div>
 
-            {/* Price breakdown */}
             <div className="px-5 pt-4 pb-5 space-y-2.5 border-t border-[#E8D8C8]">
               <div className="flex justify-between font-inter text-[13px] text-[#555555]">
                 <span>Subtotal</span>
