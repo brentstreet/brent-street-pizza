@@ -635,7 +635,7 @@ export default function OrdersManager() {
     }
   };
 
-  // --- NEW: Delete Single Order ---
+  // --- Delete Single Order ---
   const handleDeleteOrder = async (orderId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (!window.confirm(`Are you sure you want to permanently delete order #${orderId.slice(0, 8).toUpperCase()}? This cannot be undone.`)) return;
@@ -667,7 +667,7 @@ export default function OrdersManager() {
     }
   };
 
-  // --- NEW: Delete Multiple Orders (Bulk) ---
+  // --- Delete Multiple Orders (Bulk) ---
   const handleBulkDeleteOrders = async () => {
     if (selectedOrders.size === 0) return;
     if (!window.confirm(`WARNING: Are you sure you want to permanently delete ${selectedOrders.size} selected order(s)? This action cannot be undone.`)) return;
@@ -706,10 +706,8 @@ export default function OrdersManager() {
   const uniqueStatuses = ['ALL', ...Array.from(new Set(orders.map(o => o.status || 'Placed')))];
 
   const filteredOrders = orders.filter(o => {
-    // Status Match
     const matchStatus = filterStatus === 'ALL' || (o.status || 'Placed') === filterStatus;
     
-    // Date Match
     let matchDate = true;
     if (filterDate) {
       const orderDate = new Date(o.createdAt);
@@ -717,7 +715,6 @@ export default function OrdersManager() {
       matchDate = localDate === filterDate;
     }
 
-    // Search Match (Order ID, Name, Phone)
     let matchSearch = true;
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase().trim();
@@ -797,7 +794,6 @@ export default function OrdersManager() {
 
         {/* Filters and Search Bar */}
         <div className="bg-white border border-[#E8D8C8] rounded-xl p-4 mb-4 flex flex-wrap items-center gap-4 shadow-sm">
-          {/* Search Bar */}
           <div className="flex items-center gap-2 bg-[#FDFAF6] border border-[#E8D8C8] rounded-lg px-3 py-1.5 flex-1 min-w-[240px]">
             <Search className="w-4 h-4 text-[#888]" />
             <input 
@@ -814,7 +810,6 @@ export default function OrdersManager() {
             )}
           </div>
 
-          {/* Order Status Filter */}
           <div className="flex items-center gap-2 bg-[#FDFAF6] border border-[#E8D8C8] rounded-lg px-3 py-1.5 flex-1 md:flex-none">
             <Filter className="w-4 h-4 text-[#888]" />
             <select 
@@ -828,7 +823,6 @@ export default function OrdersManager() {
             </select>
           </div>
 
-          {/* Date Filter */}
           <div className="flex items-center gap-2 bg-[#FDFAF6] border border-[#E8D8C8] rounded-lg px-3 py-1.5 flex-1 md:flex-none">
             <Calendar className="w-4 h-4 text-[#888]" />
             <input 
@@ -862,7 +856,6 @@ export default function OrdersManager() {
             </div>
 
             <div className="flex items-center flex-wrap gap-3">
-              {/* Delete Selected Button */}
               <button
                 onClick={handleBulkDeleteOrders}
                 disabled={selectedOrders.size === 0 || updating === 'bulk'}
@@ -873,7 +866,6 @@ export default function OrdersManager() {
 
               <div className="w-px h-6 bg-[#E8D8C8] mx-1 hidden sm:block"></div>
 
-              {/* Update Payment Button */}
               <select
                 value={bulkPaymentStatus}
                 onChange={(e) => setBulkPaymentStatus(e.target.value)}
@@ -944,7 +936,6 @@ export default function OrdersManager() {
                   </div>
                   <div className="w-px h-8 bg-[#E8D8C8] mx-1"></div>
                   
-                  {/* Single Delete Button */}
                   <button 
                     onClick={(e) => handleDeleteOrder(order.id, e)}
                     disabled={updating === order.id}
@@ -963,14 +954,29 @@ export default function OrdersManager() {
                   <p className="font-barlow text-[11px] font-700 uppercase tracking-widest text-[#C8201A] mb-2 border-b border-[#E8D8C8] pb-2">
                     Order Items ({order.orderItems.length})
                   </p>
-                  <div className="space-y-3 max-h-[160px] overflow-y-auto pr-2">
+                  <div className="space-y-4 max-h-[160px] overflow-y-auto pr-2">
                     {order.orderItems.map((item: any) => (
                       <div key={item.id} className="flex gap-3 text-[14px]">
                         <span className="font-barlow font-700 text-[#1A1A1A] w-6 flex-shrink-0 text-right">{item.quantity}x</span>
                         <div className="flex-1 font-inter">
-                          <p className="font-medium text-[#1A1A1A]">{item.product?.name || item.deal?.title || 'Unknown Item'} {item.size ? `(${item.size})` : ''}</p>
-                          {item.removedToppings?.length > 0 && <p className="text-[12px] text-[#C8201A] italic">No {item.removedToppings.join(', ')}</p>}
-                          {item.addedExtras?.length > 0 && <p className="text-[12px] text-[#D4952A]">+ {item.addedExtras.map((e:any)=>e.name).join(', ')}</p>}
+                          <p className="font-medium text-[#1A1A1A]">
+                            {item.product?.name || item.deal?.title || 'Unknown Item'} {item.size ? `(${item.size})` : ''}
+                          </p>
+
+                          {/* COMBO DEAL ITEMS DISPLAY */}
+                          {item.selectedDealItems && item.selectedDealItems.length > 0 && (
+                            <div className="mt-1 space-y-0.5 border-l-2 border-[#E8D8C8] pl-2 ml-1">
+                              {item.selectedDealItems.map((sel: any, selIdx: number) => (
+                                <p key={selIdx} className={`text-[12px] leading-snug ${sel.type === 'fixed' ? 'text-[#888888]' : 'text-[#555555]'}`}>
+                                  • {sel.quantity || 1}x {sel.name} {sel.size ? `(${sel.size})` : ''} {sel.type === 'fixed' && <span className="italic">(Included)</span>}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* CUSTOMIZATIONS */}
+                          {item.removedToppings?.length > 0 && <p className="text-[12px] text-[#C8201A] italic mt-0.5">No {item.removedToppings.join(', ')}</p>}
+                          {item.addedExtras?.length > 0 && <p className="text-[12px] text-[#D4952A] mt-0.5">+ {item.addedExtras.map((e:any)=>e.name).join(', ')}</p>}
                         </div>
                         <span className="font-barlow font-700">${Number(item.price).toFixed(2)}</span>
                       </div>
@@ -1039,18 +1045,15 @@ export default function OrdersManager() {
           const customerCode = order.id.slice(0, 5).toUpperCase();
           const isDelivery = order.deliveryAddress && order.deliveryAddress.trim().toLowerCase() !== 'pickup';
           
-          // Calculate true food subtotal
           const foodSubtotal = order.orderItems.reduce((sum: number, item: any) => sum + (Number(item.price) * item.quantity), 0);
 
           return (
             <div key={order.id} className={`w-[320px] mx-auto bg-white p-4 ${idx > 0 ? 'mt-12 [page-break-before:always]' : ''}`}>
-              {/* Receipt Header */}
               <div className="flex justify-between items-center mb-2 border-b-2 border-black pb-2">
                 <h1 className="text-[20px] font-extrabold tracking-tight">Brent Street Pizza</h1>
                 <span className="text-[18px] font-normal tracking-wide">{isDelivery ? 'DELIVERY' : 'PICKUP'}</span>
               </div>
 
-              {/* Customer ID Banner */}
               <div className="bg-black text-white px-2 py-1.5 flex justify-between items-center font-bold text-[22px] tracking-wide mb-3">
                 <span className="flex-1">
                   {order.customerName || (order.user?.name?.toLowerCase() === 'guest' ? `Guest (#${order.id.slice(0, 5).toUpperCase()})` : order.user?.name)}
@@ -1065,7 +1068,6 @@ export default function OrdersManager() {
                 )}
               </div>
 
-              {/* Items List */}
               <div className="space-y-4 text-[15px] font-semibold border-b-2 border-black pb-4">
                 {order.orderItems.map((item: any, i: number) => {
                   return (
@@ -1076,13 +1078,28 @@ export default function OrdersManager() {
                       </div>
                       
                       {/* Choices / Modifications */}
-                      {((item.removedToppings && item.removedToppings.length > 0) || (item.addedExtras && item.addedExtras.length > 0)) && (
+                      {((item.removedToppings && item.removedToppings.length > 0) || 
+                        (item.addedExtras && item.addedExtras.length > 0) || 
+                        (item.selectedDealItems && item.selectedDealItems.length > 0)) && (
                         <div className="ml-4 mt-1 space-y-1 text-[13px] font-normal">
+                          
+                          {/* COMBO DEAL ITEMS PRINT */}
+                          {item.selectedDealItems && item.selectedDealItems.length > 0 && (
+                            <>
+                              <div className="text-gray-600 uppercase tracking-wide text-[11px] font-semibold mt-1">Combo Items</div>
+                              {item.selectedDealItems.map((sel: any, selIdx: number) => (
+                                <div key={selIdx} className={`flex justify-between items-center ${sel.type === 'fixed' ? 'text-gray-500' : ''}`}>
+                                  <span>- {sel.quantity || 1}x {sel.name} {sel.size ? `(${sel.size})` : ''} {sel.type === 'fixed' && '(Included)'}</span>
+                                </div>
+                              ))}
+                            </>
+                          )}
+
                           {item.removedToppings && item.removedToppings.length > 0 && (
                             <>
                               <div className="text-gray-600 uppercase tracking-wide text-[11px] font-semibold mt-1">Removed Toppings</div>
                               <div className="flex justify-between items-center">
-                                <span>1x {item.removedToppings.join(', ')}</span>
+                                <span>- No {item.removedToppings.join(', ')}</span>
                                 <span>$0.00</span>
                               </div>
                             </>
@@ -1093,7 +1110,7 @@ export default function OrdersManager() {
                               <div className="text-gray-600 uppercase tracking-wide text-[11px] font-semibold mt-1">Add Extras</div>
                               {item.addedExtras.map((ex: any, exIdx: number) => (
                                 <div key={exIdx} className="flex justify-between items-center">
-                                  <span>1x {ex.name}</span>
+                                  <span>- + {ex.name}</span>
                                   <span>${Number(ex.price).toFixed(2)}</span>
                                 </div>
                               ))}
@@ -1106,7 +1123,6 @@ export default function OrdersManager() {
                 })}
               </div>
 
-              {/* Totals Section */}
               <div className="mt-4 border-b-2 border-black pb-4 space-y-1 text-[15px] font-semibold">
                 <div className="flex justify-between">
                   <span>Subtotal (Food)</span>
@@ -1131,7 +1147,6 @@ export default function OrdersManager() {
                 </div>
               </div>
 
-              {/* Footer */}
               <div className="mt-4 text-center text-[12px] font-medium italic px-4 pb-8">
                 Thank you for ordering from Brent Street Pizza
               </div>
