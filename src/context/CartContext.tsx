@@ -279,7 +279,7 @@ export interface CartItem {
   menuItemId?: string;
   dealId?: string | null;
   selectedDealItems?: any[];
-  image?: string;
+  image: string;
 }
 
 interface CartContextType {
