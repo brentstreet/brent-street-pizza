@@ -46,4 +46,7 @@ export interface CartItem {
   size?: string;
   removedToppings?: string[];
   addedExtras?: { name: string; price: number }[];
+
+  dealId?: string | null;
+  selectedDealItems?: any[];
 }
