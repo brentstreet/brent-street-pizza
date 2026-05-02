@@ -578,8 +578,8 @@ export default function DealManager() {
               <div className="mb-4">
                 <p className="font-barlow text-[11px] font-700 uppercase tracking-widest text-[#888] mb-1.5">Bundle Structure:</p>
                 <div className="space-y-1">
-                  {(deal.components || []).map((comp: any, idx: number) => (
-                    <div key={idx} className="flex items-center gap-2 text-[12px] font-inter text-[#555]">
+                  {(deal.components || []).map((comp: any) => (
+                    <div key={comp.id} className="flex items-center gap-2 text-[12px] font-inter text-[#555]">
                       <Package className="w-3.5 h-3.5 text-[#D4952A]" />
                       {comp.quantity}x {comp.title} {comp.type === 'choice' ? '(Choice)' : '(Fixed)'}
                     </div>
