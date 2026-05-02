@@ -698,7 +698,7 @@ export default function DealManager() {
                 </div>
                 
                 <div className="space-y-4">
-                  {formData.components.map((comp, idx) => (
+                  {formData.components.map((comp) => (
                     <div key={comp.id} className="bg-white border border-[#E8D8C8] p-4 rounded-xl relative shadow-sm">
                       <button type="button" onClick={() => removeComponent(comp.id)} className="absolute top-3 right-3 text-red-400 hover:text-red-600">
                         <X className="w-5 h-5" />
