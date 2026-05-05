@@ -906,6 +906,25 @@ export default function Checkout() {
     );
   }, [cartItems]);
 
+  // Centralized validation for delivery restrictions
+  const validateDeliveryRestrictions = () => {
+    if (orderType === 'delivery') {
+      if (hasIceCream) {
+        toast.error('Ice Cream items are only available for pickup. Please switch to Pickup or remove them from your cart.', { duration: 5000 });
+        return false;
+      }
+      if (hasPickupOnlyDeal) {
+        toast.error('Your cart contains Pickup-Only items/deals. Please switch to Pickup or remove them from your cart.', { duration: 5000 });
+        return false;
+      }
+      if (total < 25) {
+        toast.error(`Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`, { duration: 4000 });
+        return false;
+      }
+    }
+    return true;
+  };
+
   // Prevent delivery if restricted items are in the cart
   useEffect(() => {
     if (orderType === 'delivery' && (hasIceCream || hasPickupOnlyDeal)) {
@@ -967,28 +986,8 @@ export default function Checkout() {
   const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (orderType === 'delivery') {
-      if (hasIceCream) {
-        toast.error(
-          'Ice Cream items are only available for pickup. Please switch to Pickup or remove them from your cart.',
-          { duration: 5000 }
-        );
-        return;
-      }
-      if (hasPickupOnlyDeal) {
-        toast.error(
-          'Your cart contains Pickup-Only deals. Please switch to Pickup or remove them from your cart.',
-          { duration: 5000 }
-        );
-        return;
-      }
-      if (total < 25) {
-        toast.error(
-          `Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`,
-          { duration: 4000 }
-        );
-        return;
-      }
+    if (!validateDeliveryRestrictions()) {
+      return;
     }
 
     setStep('payment');
@@ -996,24 +995,9 @@ export default function Checkout() {
   };
 
   const handlePlaceOrder = async () => {
-    if (orderType === 'delivery') {
-      if (hasIceCream) {
-        toast.error('Ice Cream items are only available for pickup.', { duration: 5000 });
-        setStep('address');
-        return;
-      }
-      if (hasPickupOnlyDeal) {
-        toast.error('Your cart contains Pickup-Only deals. Please switch to Pickup.', { duration: 5000 });
-        setStep('address');
-        return;
-      }
-      if (total < 25) {
-        toast.error(
-          `Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`,
-          { duration: 4000 }
-        );
-        return;
-      }
+    if (!validateDeliveryRestrictions()) {
+      setStep('address');
+      return;
     }
 
     setIsProcessing(true);
@@ -1270,6 +1254,7 @@ export default function Checkout() {
                   {(['delivery', 'pickup'] as const).map(type => (
                     <button
                       key={type}
+                      type="button"
                       onClick={() => setOrderType(type)}
                       className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
                         orderType === type ? 'border-[#C8201A] bg-[#C8201A]/8' : 'border-[#E8D8C8] hover:border-[#E8D8C8]/80'
@@ -1408,7 +1393,7 @@ export default function Checkout() {
                 )}
 
                 <button
-                  type={isDeliveryDisabled ? 'button' : 'submit'}
+                  type="submit"
                   disabled={isDeliveryDisabled}
                   className={`w-full flex items-center justify-between font-barlow font-700 text-[14px] uppercase tracking-wider px-6 py-4 rounded-xl transition-all ${
                     isDeliveryDisabled
@@ -1535,7 +1520,7 @@ export default function Checkout() {
               ) : (
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={isProcessing}
+                  disabled={isProcessing || isDeliveryDisabled}
                   className="w-full flex items-center justify-between bg-[#C8201A] hover:bg-[#9E1510] disabled:opacity-70 disabled:cursor-wait text-white font-barlow font-700 text-[14px] uppercase tracking-wider px-6 py-5 rounded-xl transition-all shadow-[0_8px_24px_rgba(200,32,26,0.35)]"
                 >
                   <span>{isProcessing ? 'Processing...' : paymentMethod === 'ONLINE' ? 'Initialize Payment' : 'Place Order'}</span>
