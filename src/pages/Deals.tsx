@@ -448,8 +448,7 @@
 
 // export default Deals;
 import React, { useEffect, useState } from 'react';
-import { Tag, Clock, ArrowRight, Star, Flame, Zap, ShoppingCart, Check, X, Package, Store } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Tag, Clock, ArrowRight, Star, Flame, Zap, ShoppingCart, X, Package, Store } from 'lucide-react';
 import { useSectionContent } from '../context/ContentContext';
 import { useCart } from '../context/CartContext';
 import { API_URL } from '../config/api';
@@ -490,7 +489,6 @@ const Deals: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Helper to check time constraints
   const isDealAvailableNow = (deal: any) => {
     if (!deal.constraints?.isTimeRestricted) return true;
     if (!deal.constraints.startTime || !deal.constraints.endTime) return true;
@@ -602,7 +600,7 @@ const Deals: React.FC = () => {
         const chosenVariant = fixedSelections[comp.id];
 
         if (requiresVariant && !chosenVariant) {
-          setErrorMsg(`Please select an option for the included ${product.name}.`);
+          setErrorMsg(`Please select an option for the included ${product?.name || comp.title}.`);
           return;
         }
 
@@ -626,7 +624,7 @@ const Deals: React.FC = () => {
       categoryId: 'deals',
       dealId: selectedDeal.id,
       selectedDealItems: formattedSelections,
-      pickupOnly: selectedDeal.constraints?.pickupOnly // Persist constraint into cart
+      pickupOnly: selectedDeal.constraints?.pickupOnly
     };
 
     addToCart(dealMenuItem as any, { price: selectedDeal.price, quantity: 1, selectedDealItems: formattedSelections });
@@ -751,10 +749,7 @@ const Deals: React.FC = () => {
         </div>
 
         {selectedDeal && (
-          // [Modal Component omitted for brevity but identical to your previous modal with handleAddToCart intact]
-          // The modal code remains EXACTLY the same. Let me know if you need it generated here.
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-             {/* Same Modal contents here */}
              <div className="bg-white rounded-[24px] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col">
                 <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-[#E8D8C8] p-6 md:p-8 flex justify-between items-start z-10">
                   <div><h3 className="font-bebas text-[36px] tracking-wider text-[#1A1A1A] leading-none mb-1">{selectedDeal.title}</h3></div>
@@ -762,7 +757,106 @@ const Deals: React.FC = () => {
                 </div>
                 <div className="p-6 md:p-8 flex-1 space-y-8">
                   {errorMsg && (<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">{errorMsg}</div>)}
-                  {/* ... same selection mapping logic ... */}
+                  
+                  {(selectedDeal.components || []).map((comp: any) => {
+                    if (comp.type === 'fixed' && comp.fixedProductId) {
+                      const fixedProduct = products.find(p => p.id === comp.fixedProductId);
+                      const hasVariants = fixedProduct?.variants && fixedProduct.variants.length > 0;
+
+                      return (
+                        <div key={comp.id} className="border border-[#E8D8C8] rounded-xl p-5 bg-[#FDFAF6]">
+                          <div className="flex items-center gap-3 mb-4 border-b border-[#E8D8C8] pb-3">
+                            <div className="bg-[#1A1A1A] text-white w-8 h-8 rounded-full flex items-center justify-center font-bebas text-[18px]">
+                              {comp.quantity}
+                            </div>
+                            <div>
+                              <h4 className="font-barlow font-800 text-[16px] uppercase tracking-wide text-[#1A1A1A]">
+                                {comp.title}
+                              </h4>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col gap-3 bg-white border border-[#E8D8C8] p-3 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <span className="font-inter text-[14px] font-medium text-[#1A1A1A]">
+                                {fixedProduct?.name || 'Included Item'}
+                              </span>
+                            </div>
+
+                            {hasVariants && (
+                              <div className="pl-8">
+                                 <select
+                                    value={fixedSelections[comp.id] || ''}
+                                    onChange={(e) => handleFixedVariantChange(comp.id, e.target.value)}
+                                    className="w-full bg-[#FDF8F2] border border-[#E8D8C8] rounded-lg px-4 py-2.5 font-inter text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A] appearance-none"
+                                  >
+                                    <option value="" disabled>-- Select Option --</option>
+                                    {fixedProduct.variants.map((v: string) => (
+                                      <option key={v} value={v}>{v}</option>
+                                    ))}
+                                  </select>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div key={comp.id} className="border border-[#E8D8C8] rounded-xl p-5 bg-[#FDFAF6]">
+                        <div className="flex items-center gap-3 mb-4 border-b border-[#E8D8C8] pb-3">
+                          <div className="bg-[#1A1A1A] text-white w-8 h-8 rounded-full flex items-center justify-center font-bebas text-[18px]">
+                            {comp.quantity}
+                          </div>
+                          <div>
+                            <h4 className="font-barlow font-800 text-[16px] uppercase tracking-wide text-[#1A1A1A]">
+                              {comp.title}
+                            </h4>
+                            {comp.requiredSize && (
+                              <p className="text-[12px] text-[#C8201A] font-bold">Size: {comp.requiredSize}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          {Array.from({ length: comp.quantity }).map((_, index) => {
+                            const options = getFilteredProducts(comp);
+                            const choiceState = selections[comp.id]?.[index] || { productId: '', variant: '' };
+                            const selectedProduct = products.find(p => p.id === choiceState.productId);
+                            const hasVariants = selectedProduct?.variants && selectedProduct.variants.length > 0;
+
+                            return (
+                              <div key={`${comp.id}-${index}`} className="flex flex-col gap-2">
+                                <select
+                                  value={choiceState.productId || ''}
+                                  onChange={(e) => handleSelectionChange(comp.id, index, e.target.value)}
+                                  className="w-full bg-white border border-[#E8D8C8] rounded-lg px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A] appearance-none"
+                                >
+                                  <option value="" disabled>-- Select Option {index + 1} --</option>
+                                  {options.map((opt: any) => (
+                                    <option key={opt.id} value={opt.id}>{opt.name}</option>
+                                  ))}
+                                </select>
+
+                                {hasVariants && (
+                                  <select
+                                    value={choiceState.variant || ''}
+                                    onChange={(e) => handleVariantChange(comp.id, index, e.target.value)}
+                                    className="w-full bg-[#FDF8F2] border border-[#E8D8C8] rounded-lg px-4 py-2.5 font-inter text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#C8201A] appearance-none ml-4 w-[calc(100%-1rem)]"
+                                  >
+                                    <option value="" disabled>-- Choose {selectedProduct.name} Option --</option>
+                                    {selectedProduct.variants.map((v: string) => (
+                                      <option key={v} value={v}>{v}</option>
+                                    ))}
+                                  </select>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
                 <div className="sticky bottom-0 bg-white border-t border-[#E8D8C8] p-6 md:p-8 flex items-center justify-between z-10">
                   <div className="font-bebas text-[36px] text-[#C8201A] leading-none">${Number(selectedDeal.price).toFixed(2)}</div>
