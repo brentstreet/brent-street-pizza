@@ -717,7 +717,7 @@ const Deals: React.FC = () => {
                     <p className="font-barlow text-[11px] font-700 uppercase tracking-widest text-[#888] mb-2">Bundle Includes:</p>
                     <ul className="space-y-1">
                       {(deal.components || []).map((comp: any, idx: number) => (
-                        >
+                        <li key={idx} className="flex items-center gap-2 text-[13px] font-inter text-[#333]">
                           <Package className="w-4 h-4 text-[#D4952A]" />
                           <span className="font-medium">{comp.quantity}x</span> {comp.title}
                         </li>
