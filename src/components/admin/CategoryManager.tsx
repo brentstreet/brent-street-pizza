@@ -249,7 +249,7 @@ interface Category {
   name: string;
   iconName: string;
   isActive: boolean;
-  displayOrder?: number; // NEW: Category order field
+  sortOrder?: number; // CHANGED: Using sortOrder to match Prisma schema
 }
 
 const CategoryManager: React.FC = () => {
@@ -259,7 +259,7 @@ const CategoryManager: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Category>>({});
   const [isAdding, setIsAdding] = useState(false);
-  const [newForm, setNewForm] = useState({ id: '', name: '', iconName: 'Pizza', isActive: true, displayOrder: 0 });
+  const [newForm, setNewForm] = useState({ id: '', name: '', iconName: 'Pizza', isActive: true, sortOrder: 0 });
 
   const navigate = useNavigate();
 
@@ -280,8 +280,8 @@ const CategoryManager: React.FC = () => {
       }
       const data = await res.json();
       
-      // Sort categories locally by displayOrder if the backend doesn't already sort them
-      const sortedData = data.sort((a: Category, b: Category) => (a.displayOrder || 0) - (b.displayOrder || 0));
+      // Sort categories locally by sortOrder
+      const sortedData = data.sort((a: Category, b: Category) => (a.sortOrder || 0) - (b.sortOrder || 0));
       setCategories(sortedData);
     } catch (err) {
       console.error('Fetch categories error:', err);
@@ -308,6 +308,9 @@ const CategoryManager: React.FC = () => {
       if (res.ok) {
         setEditingId(null);
         fetchCategories();
+      } else {
+        const err = await res.json();
+        alert('Failed to update category: ' + (err.error || 'Unknown error'));
       }
     } catch (err) {
       console.error('Update category error:', err);
@@ -327,8 +330,11 @@ const CategoryManager: React.FC = () => {
       });
       if (res.ok) {
         setIsAdding(false);
-        setNewForm({ id: '', name: '', iconName: 'Pizza', isActive: true, displayOrder: 0 });
+        setNewForm({ id: '', name: '', iconName: 'Pizza', isActive: true, sortOrder: 0 });
         fetchCategories();
+      } else {
+        const err = await res.json();
+        alert('Failed to create category: ' + (err.error || 'Unknown error'));
       }
     } catch (err) {
       console.error('Create category error:', err);
@@ -415,7 +421,7 @@ const CategoryManager: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 w-24">
                     <input 
-                      type="number" value={newForm.displayOrder} onChange={(e) => setNewForm({...newForm, displayOrder: parseInt(e.target.value) || 0})}
+                      type="number" value={newForm.sortOrder} onChange={(e) => setNewForm({...newForm, sortOrder: parseInt(e.target.value) || 0})}
                       placeholder="0" className="w-full border-[#E8D8C8] rounded-lg text-[13px]"
                     />
                   </td>
@@ -452,12 +458,12 @@ const CategoryManager: React.FC = () => {
                   <td className="px-6 py-4 font-inter text-[13px] text-[#555555] w-24">
                     {editingId === cat.id ? (
                       <input 
-                        type="number" value={editForm.displayOrder ?? 0} onChange={(e) => setEditForm({...editForm, displayOrder: parseInt(e.target.value) || 0})}
+                        type="number" value={editForm.sortOrder ?? 0} onChange={(e) => setEditForm({...editForm, sortOrder: parseInt(e.target.value) || 0})}
                         className="w-full border-[#E8D8C8] rounded-lg text-[13px]"
                       />
                     ) : (
                       <span className="bg-[#F8F1E7] border border-[#E8D8C8] px-2 py-1 rounded font-bold text-[12px]">
-                        {cat.displayOrder || 0}
+                        {cat.sortOrder || 0}
                       </span>
                     )}
                   </td>
