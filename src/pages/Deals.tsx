@@ -681,15 +681,18 @@ const Deals: React.FC = () => {
                 `}
               >
                 <div className="p-8 md:p-10 flex flex-col flex-1 relative">
-                  <div className="absolute top-6 right-6 flex flex-col items-end gap-2">
-                    <div 
-                      className="px-4 py-1.5 rounded-full font-barlow font-800 text-[11px] tracking-widest uppercase flex items-center gap-2"
-                      style={{ backgroundColor: `${deal.color || '#C8201A'}20`, color: deal.color || '#C8201A', border: `1px solid ${deal.color || '#C8201A'}40` }}
-                    >
-                      {ICON_MAP[deal.icon] || <Tag className="w-5 h-5" />}
-                      {deal.tag || 'Special'}
-                    </div>
+                  
+                  {/* Deal Tag - Top Right */}
+                  <div 
+                    className="absolute top-6 right-6 px-4 py-1.5 rounded-full font-barlow font-800 text-[11px] tracking-widest uppercase flex items-center gap-2"
+                    style={{ backgroundColor: `${deal.color || '#C8201A'}20`, color: deal.color || '#C8201A', border: `1px solid ${deal.color || '#C8201A'}40` }}
+                  >
+                    {ICON_MAP[deal.icon] || <Tag className="w-5 h-5" />}
+                    {deal.tag || 'Special'}
+                  </div>
 
+                  {/* Constraints Badges - Top Left */}
+                  <div className="absolute top-6 left-6 flex flex-col items-start gap-2">
                     {deal.constraints?.pickupOnly && (
                        <div className="bg-[#1A1A1A] text-white px-3 py-1 rounded font-barlow text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md">
                          <Store className="w-3 h-3" /> Pickup Only
@@ -702,7 +705,7 @@ const Deals: React.FC = () => {
                     )}
                   </div>
 
-                  <h3 className="font-bebas text-[36px] md:text-[42px] text-[#1A1A1A] tracking-wider mb-2 group-hover:text-[#D4952A] transition-colors mt-8">
+                  <h3 className="font-bebas text-[36px] md:text-[42px] text-[#1A1A1A] tracking-wider mb-2 group-hover:text-[#D4952A] transition-colors mt-12 md:mt-8">
                     {deal.title}
                   </h3>
                   
@@ -714,7 +717,7 @@ const Deals: React.FC = () => {
                     <p className="font-barlow text-[11px] font-700 uppercase tracking-widest text-[#888] mb-2">Bundle Includes:</p>
                     <ul className="space-y-1">
                       {(deal.components || []).map((comp: any, idx: number) => (
-                        <li key={idx} className="flex items-center gap-2 text-[13px] font-inter text-[#333]">
+                        >
                           <Package className="w-4 h-4 text-[#D4952A]" />
                           <span className="font-medium">{comp.quantity}x</span> {comp.title}
                         </li>
