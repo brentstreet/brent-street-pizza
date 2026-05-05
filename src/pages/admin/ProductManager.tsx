@@ -531,7 +531,6 @@ export default function ProductManager() {
     name: '',
     description: '',
     price: 0,
-    displayOrder: 0, // NEW: Category Order field
     toppings: '', // Store toppings as a comma-separated string
     variants: '', // Store variants as a comma-separated string
     hasPizzaExtras: false,
@@ -587,7 +586,6 @@ export default function ProductManager() {
         name: product.name,
         description: product.description || '',
         price: Number(product.price),
-        displayOrder: Number(product.displayOrder) || 0, // NEW: Populate order
         toppings: product.toppings && Array.isArray(product.toppings) 
           ? product.toppings.join(', ') 
           : '',
@@ -610,7 +608,6 @@ export default function ProductManager() {
         name: '',
         description: '',
         price: 0,
-        displayOrder: 0, // Default to 0
         toppings: '',
         variants: '', 
         hasPizzaExtras: false,
@@ -651,7 +648,6 @@ export default function ProductManager() {
       submitData.append('name', formData.name);
       submitData.append('description', formData.description);
       submitData.append('price', formData.price.toString());
-      submitData.append('displayOrder', formData.displayOrder.toString()); // NEW: Save order to backend
       submitData.append('hasPizzaExtras', formData.hasPizzaExtras.toString());
       submitData.append('isFavorite', formData.isFavorite.toString());
       submitData.append('isActive', formData.isActive.toString());
@@ -773,15 +769,9 @@ export default function ProductManager() {
             </div>
             
             <div className="p-5 flex-1 flex flex-col">
-              <div className="flex justify-between items-start mb-1">
-                <h3 className="font-barlow text-[18px] font-700 text-[#1A1A1A] uppercase tracking-wide leading-tight">
-                  {product.name}
-                </h3>
-                {/* NEW: Show the display order in the card for admin visibility */}
-                <span className="bg-[#FDF8F2] text-[#888] text-[10px] font-bold px-2 py-0.5 rounded border border-[#E8D8C8]">
-                  Ord: {product.displayOrder || 0}
-                </span>
-              </div>
+              <h3 className="font-barlow text-[18px] font-700 text-[#1A1A1A] uppercase tracking-wide mb-1 leading-tight">
+                {product.name}
+              </h3>
               <p className="font-inter text-[12px] text-[#888888] line-clamp-2 mb-4 flex-1">
                 {product.description}
               </p>
@@ -828,7 +818,7 @@ export default function ProductManager() {
             </div>
 
             <form onSubmit={handleSave} className="p-6 space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                  <div>
                   <label className="block font-barlow text-[11px] font-700 uppercase tracking-[0.1em] text-[#555555] mb-2">Internal ID</label>
                   <input
@@ -848,17 +838,6 @@ export default function ProductManager() {
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
-                </div>
-                {/* NEW: Category Order Input */}
-                <div>
-                  <label className="block font-barlow text-[11px] font-700 uppercase tracking-[0.1em] text-[#555555] mb-2">Category Order</label>
-                  <input
-                    type="number"
-                    value={formData.displayOrder} 
-                    onChange={e => setFormData({ ...formData, displayOrder: parseInt(e.target.value) || 0 })}
-                    className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:border-[#C8201A] outline-none"
-                  />
-                  <p className="text-[10px] text-[#AAAAAA] mt-1">Lower numbers appear first.</p>
                 </div>
               </div>
 
