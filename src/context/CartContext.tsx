@@ -1,11 +1,34 @@
 // import React, { createContext, useContext, useState, useEffect } from 'react';
-// import { type MenuItem, type CartItem } from '../types/menu';
+// import { type MenuItem } from '../types/menu';
 // import { API_URL } from '../config/api';
+
+// export interface CartItem {
+//   id: string;
+//   name: string;
+//   price: number;
+//   quantity: number;
+//   categoryId?: string;
+//   size?: string;
+//   removedToppings?: string[];
+//   addedExtras?: any[];
+//   menuItemId?: string;
+//   dealId?: string | null;
+//   selectedDealItems?: any[];
+//   image: string;
+// }
 
 // interface CartContextType {
 //   cartItems: CartItem[];
 //   token: string | null;
-//   addToCart: (item: MenuItem, customizations?: { size?: string, price?: number, removedToppings?: string[], addedExtras?: { name: string; price: number }[], quantity?: number }) => void;
+//   addToCart: (item: MenuItem, customizations?: { 
+//     size?: string, 
+//     price?: number, 
+//     removedToppings?: string[], 
+//     addedExtras?: { name: string; price: number }[], 
+//     quantity?: number,
+//     selectedDealItems?: any[],
+//     dealId?: string
+//   }) => void;
 //   incrementItem: (id: string) => void;
 //   decrementItem: (id: string) => void;
 //   clearCart: () => void;
@@ -66,17 +89,6 @@
 //     localStorage.setItem('pizza_order_type', orderType);
 //   }, [orderType]);
 
-//   // NEW: Persist Deals to localStorage so they survive page reloads 
-//   // since the backend DB rejects them
-//   useEffect(() => {
-//     const localDeals = cartItems.filter(item => String(item.menuItemId).startsWith('deal_'));
-//     if (localDeals.length > 0) {
-//       localStorage.setItem('pizza_local_deals', JSON.stringify(localDeals));
-//     } else {
-//       localStorage.removeItem('pizza_local_deals');
-//     }
-//   }, [cartItems]);
-
 //   useEffect(() => {
 //     const initAuth = async () => {
 //       const stored = localStorage.getItem('pizza_token');
@@ -93,14 +105,7 @@
 //               ...ci,
 //               image: formatImageUrl(ci.image, undefined, ci.menuItemId)
 //             }));
-            
-//             // Load deals from local storage that the backend doesn't know about
-//             const savedDeals = JSON.parse(localStorage.getItem('pizza_local_deals') || '[]');
-//             setCartItems([...formattedItems, ...savedDeals]);
-//           } else {
-//             // If DB cart is empty, still load local deals if they exist
-//             const savedDeals = JSON.parse(localStorage.getItem('pizza_local_deals') || '[]');
-//             setCartItems(savedDeals);
+//             setCartItems(formattedItems);
 //           }
 //           return;
 //         } else {
@@ -123,13 +128,18 @@
 //     'Content-Type': 'application/json'
 //   });
 
-//   const addToCart = async (item: MenuItem, customizations?: { size?: string, price?: number, removedToppings?: string[], addedExtras?: { name: string; price: number }[], quantity?: number }) => {
+//   const addToCart = async (item: MenuItem | any, customizations?: { size?: string, price?: number, removedToppings?: string[], addedExtras?: { name: string; price: number }[], quantity?: number, selectedDealItems?: any[] }) => {
 //     const unitPrice = Number(customizations?.price || item.price || 0);
 //     const effectiveSize = customizations?.size ?? (item.sizes?.length ? item.sizes[0].name : undefined);
+    
+//     // Determine Deal IDs if applicable
+//     const isDeal = item.categoryId === 'deals' || String(item.id).startsWith('deal_');
+//     const rawDealId = isDeal ? (item.dealId || String(item.id).replace('deal_', '')) : null;
 
 //     const localItem: CartItem = {
 //       id: `local_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-//       menuItemId: item.id,
+//       menuItemId: isDeal ? null : item.id, // Normal products use menuItemId
+//       dealId: rawDealId,                   // Deals use dealId
 //       name: item.name,
 //       price: unitPrice,
 //       quantity: customizations?.quantity || 1,
@@ -137,29 +147,24 @@
 //       size: effectiveSize,
 //       removedToppings: customizations?.removedToppings || [],
 //       addedExtras: customizations?.addedExtras || [],
+//       selectedDealItems: customizations?.selectedDealItems || item.selectedDealItems || [],
+//       categoryId: item.categoryId
 //     };
 
-//     // Always update local state immediately
-//     setCartItems(prev => {
-//       // Check if this exact deal is already locally in cart to just increment quantity
-//       if (String(item.id).startsWith('deal_')) {
-//         const existing = prev.find(p => p.menuItemId === item.id);
-//         if (existing) {
-//           return prev.map(p => p.menuItemId === item.id ? { ...p, quantity: p.quantity + (customizations?.quantity || 1) } : p);
-//         }
-//       }
-//       return [...prev, localItem];
-//     });
+//     // Update local UI immediately for snappiness
+//     setCartItems(prev => [...prev, localItem]);
 
 //     if (token) {
 //       try {
 //         const payload = {
-//           menuItemId: item.id,
+//           menuItemId: localItem.menuItemId,
+//           dealId: localItem.dealId,
 //           quantity: localItem.quantity,
 //           price: localItem.price,
 //           size: localItem.size || null,
-//           removedToppings: localItem.removedToppings || [],
-//           addedExtras: localItem.addedExtras || []
+//           removedToppings: localItem.removedToppings,
+//           addedExtras: localItem.addedExtras,
+//           selectedDealItems: localItem.selectedDealItems
 //         };
         
 //         const res = await fetch(`${API_URL}/api/cart`, {
@@ -169,6 +174,7 @@
 //         });
 
 //         if (res.ok) {
+//           // Re-fetch the clean cart from DB to get actual DB IDs and standardized formatting
 //           const cartRes = await fetch(`${API_URL}/api/cart`, { headers: authHeaders() });
 //           const data = await cartRes.json();
 //           if (data.cartItems) {
@@ -176,18 +182,11 @@
 //               ...ci,
 //               image: formatImageUrl(ci.image, undefined, ci.menuItemId)
 //             }));
-            
-//             // FIX: Merge the database items with our unsynced local deals so they don't get wiped!
-//             setCartItems(prev => {
-//               const localDeals = prev.filter(p => String(p.menuItemId).startsWith('deal_'));
-//               // Filter out backend items that might be deals (if you ever update the backend schema in the future)
-//               const dbItemsNormal = formattedItems.filter((i: any) => !String(i.menuItemId).startsWith('deal_'));
-//               return [...dbItemsNormal, ...localDeals];
-//             });
+//             setCartItems(formattedItems);
 //           }
 //         }
 //       } catch (err) {
-//         console.error('Cart sync failed (item still in local state):', err);
+//         console.error('Cart sync failed:', err);
 //       }
 //     }
 //   };
@@ -197,7 +196,6 @@
 //     if (!item) return;
 //     setCartItems(prev => prev.map(i => i.id === id ? { ...i, quantity: i.quantity + 1 } : i));
     
-//     // Prevent hitting backend for local-only deals
 //     if (token && !id.startsWith('local_')) {
 //       fetch(`${API_URL}/api/cart/${id}`, {
 //         method: 'PUT', headers: authHeaders(),
@@ -227,7 +225,6 @@
 
 //   const clearCart = async () => {
 //     setCartItems([]);
-//     localStorage.removeItem('pizza_local_deals');
 //     if (token) {
 //       fetch(`${API_URL}/api/cart`, { method: 'DELETE', headers: authHeaders() }).catch(console.error);
 //     }
@@ -274,6 +271,10 @@ export interface CartItem {
   quantity: number;
   categoryId?: string;
   size?: string;
+  
+  // NEW: Support capturing the chosen variant for the cart
+  variant?: string; 
+  
   removedToppings?: string[];
   addedExtras?: any[];
   menuItemId?: string;
@@ -287,6 +288,7 @@ interface CartContextType {
   token: string | null;
   addToCart: (item: MenuItem, customizations?: { 
     size?: string, 
+    variant?: string, // NEW: Include variant in customizations arg
     price?: number, 
     removedToppings?: string[], 
     addedExtras?: { name: string; price: number }[], 
@@ -393,7 +395,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     'Content-Type': 'application/json'
   });
 
-  const addToCart = async (item: MenuItem | any, customizations?: { size?: string, price?: number, removedToppings?: string[], addedExtras?: { name: string; price: number }[], quantity?: number, selectedDealItems?: any[] }) => {
+  const addToCart = async (item: MenuItem | any, customizations?: { size?: string, variant?: string, price?: number, removedToppings?: string[], addedExtras?: { name: string; price: number }[], quantity?: number, selectedDealItems?: any[] }) => {
     const unitPrice = Number(customizations?.price || item.price || 0);
     const effectiveSize = customizations?.size ?? (item.sizes?.length ? item.sizes[0].name : undefined);
     
@@ -410,6 +412,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       quantity: customizations?.quantity || 1,
       image: formatImageUrl(item.image, item.categoryId, item.id),
       size: effectiveSize,
+      variant: customizations?.variant || undefined, // NEW: Apply chosen variant
       removedToppings: customizations?.removedToppings || [],
       addedExtras: customizations?.addedExtras || [],
       selectedDealItems: customizations?.selectedDealItems || item.selectedDealItems || [],
@@ -427,6 +430,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           quantity: localItem.quantity,
           price: localItem.price,
           size: localItem.size || null,
+          variant: localItem.variant || null, // NEW: Send variant to backend
           removedToppings: localItem.removedToppings,
           addedExtras: localItem.addedExtras,
           selectedDealItems: localItem.selectedDealItems
