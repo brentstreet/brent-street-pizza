@@ -395,7 +395,7 @@
 //   );
 // }
 import { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, Phone, Plus, Check, Search } from 'lucide-react';
+import { ShoppingCart, Phone, Plus, Check, Search, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { API_URL } from '../config/api';
 import { useMenu } from '../context/MenuContext';
@@ -413,12 +413,10 @@ export default function Menu() {
   const { sectionContent: globalContent } = useSectionContent('global');
 
   const [activeCategory, setActiveCategory] = useState<string>('cat-classic-pizza');
-  const [searchQuery, setSearchQuery] = useState<string>(''); // Added search state
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
   const [preselectedSize, setPreselectedSize] = useState<string | undefined>(undefined);
-  
-  // Prevent sudden refresh flashes by only showing the full-page loader once
   const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
 
   const location = useLocation();
@@ -431,24 +429,20 @@ export default function Menu() {
     return `${API_URL}${imagePath}`;
   };
 
-  // Check if Ice Cream category actually exists in the backend data
   const hasIceCreamCategory = categories.some(
-    (cat) => cat.id === 'cat-ice-cream' || cat.name.toLowerCase() === 'ice cream'
+    (cat) => cat.id === 'cat-ice-cream' || cat.name?.toLowerCase() === 'ice cream'
   );
 
-  // ─── Mark initial load complete to prevent sudden reloading flashes ───
   useEffect(() => {
     if (!menuLoading && !icLoading && !menuContentLoading) {
       setIsInitialLoadDone(true);
     }
   }, [menuLoading, icLoading, menuContentLoading]);
 
-  // Reset the scroll guard whenever the URL search params change
   useEffect(() => {
     hasScrolledRef.current = false;
   }, [location.search]);
 
-  // ─── Auto-scroll to category from URL param ───────────────────
   useEffect(() => {
     if (!isInitialLoadDone) return;
     if (hasScrolledRef.current) return;
@@ -481,9 +475,9 @@ export default function Menu() {
     }
   }, [location.search, categories, isInitialLoadDone, hasIceCreamCategory]);
 
-  // ─── Intersection Observer for .reveal animations ─────────────
   useEffect(() => {
     if (!isInitialLoadDone) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -492,12 +486,13 @@ export default function Menu() {
       },
       { threshold: 0.1 }
     );
+
     const reveals = document.querySelectorAll('.reveal');
     reveals.forEach((el) => observer.observe(el));
+
     return () => observer.disconnect();
   }, [isInitialLoadDone]);
 
-  // Use the new initial load state so background refetches don't flash the screen
   if (!isInitialLoadDone) {
     return (
       <div className="min-h-screen bg-[#FDF8F2] flex items-center justify-center">
@@ -517,6 +512,7 @@ export default function Menu() {
 
   const handleQuickAdd = (item: MenuItem, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+
     if (item.categoryId !== 'cat-ice-cream' && item.sizes && item.sizes.length > 0) {
       setSelectedItem(item);
     } else {
@@ -525,35 +521,42 @@ export default function Menu() {
   };
 
   const openModal = (item: MenuItem, initialSize?: string) => {
-    // Prevent modal from opening for ice cream items
     if (item.categoryId === 'cat-ice-cream') {
       handleQuickAdd(item);
       return;
     }
+
     setSelectedItem(item);
     setPreselectedSize(initialSize);
   };
 
-  // ─── Filter Products with Search Keyword ──────────────────────
   const keyword = searchQuery.toLowerCase().trim();
 
-  // Main grid: Everything EXCEPT Ice Cream, filtered by category AND search keyword
   const filteredProducts = products.filter((p) => {
     if (p.categoryId === 'cat-ice-cream') return false;
+
     const matchesCategory = activeCategory === 'all' || p.categoryId === activeCategory;
-    const matchesSearch = p.name.toLowerCase().includes(keyword) || p.description.toLowerCase().includes(keyword);
+    const matchesSearch =
+      !keyword ||
+      p.name?.toLowerCase().includes(keyword) ||
+      p.description?.toLowerCase().includes(keyword);
+
     return matchesCategory && matchesSearch;
   });
 
-  // Gelato grid: Strictly backend ice cream products (excluding the builder placeholder), filtered by search keyword
   const backendIceCreams = products.filter((p) => {
-    if (p.categoryId !== 'cat-ice-cream' || p.name.toLowerCase().includes('custom')) return false;
-    return p.name.toLowerCase().includes(keyword) || p.description.toLowerCase().includes(keyword);
+    if (p.categoryId !== 'cat-ice-cream' || p.name?.toLowerCase().includes('custom')) return false;
+
+    return (
+      !keyword ||
+      p.name?.toLowerCase().includes(keyword) ||
+      p.description?.toLowerCase().includes(keyword)
+    );
   });
 
-  // ─── Reusable Product Card Component ──────────────────────────
   const renderProductCard = (item: MenuItem) => {
     const isJustAdded = justAddedId === item.id;
+
     return (
       <div
         key={item.id}
@@ -585,10 +588,14 @@ export default function Menu() {
 
           <div className="absolute bottom-3 right-3 flex gap-1.5">
             {item.tags?.isSpicy && (
-              <span className="bg-[#C8201A]/85 backdrop-blur-sm text-[#FFFCF7] font-barlow text-[9px] font-700 uppercase tracking-wider px-2 py-0.5 rounded-full">🌶 Hot</span>
+              <span className="bg-[#C8201A]/85 backdrop-blur-sm text-[#FFFCF7] font-barlow text-[9px] font-700 uppercase tracking-wider px-2 py-0.5 rounded-full">
+                🌶 Hot
+              </span>
             )}
             {item.tags?.isVegan && (
-              <span className="bg-emerald-700/85 backdrop-blur-sm text-[#FFFCF7] font-barlow text-[9px] font-700 uppercase tracking-wider px-2 py-0.5 rounded-full">🌿 Vegan</span>
+              <span className="bg-emerald-700/85 backdrop-blur-sm text-[#FFFCF7] font-barlow text-[9px] font-700 uppercase tracking-wider px-2 py-0.5 rounded-full">
+                🌿 Vegan
+              </span>
             )}
           </div>
         </div>
@@ -613,13 +620,18 @@ export default function Menu() {
                 <button
                   type="button"
                   key={size.name}
-                  onClick={(e) => { e.stopPropagation(); openModal(item, size.name); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openModal(item, size.name);
+                  }}
                   className="flex-1 flex flex-col items-center py-1.5 rounded-lg bg-[#F5F5F5]
                     hover:bg-[#1A1A1A] hover:text-white
                     font-inter text-[#555555] transition-all duration-200 group/size"
                 >
                   <span className="text-[11px] font-semibold">{size.name[0]}</span>
-                  <span className="text-[12px] font-bold group-hover/size:text-white transition-colors">${size.price}</span>
+                  <span className="text-[12px] font-bold group-hover/size:text-white transition-colors">
+                    ${size.price}
+                  </span>
                 </button>
               ))}
             </div>
@@ -630,26 +642,34 @@ export default function Menu() {
             onClick={(e) => handleQuickAdd(item, e)}
             className={`mt-2 flex items-center justify-center gap-2 font-barlow font-800 text-[14px] uppercase tracking-widest
               px-4 py-3 rounded-xl transition-all duration-300
-              ${isJustAdded
-                ? 'bg-emerald-600 text-white scale-95'
-                : 'bg-[#1A1A1A] text-white hover:bg-[#C8201A] hover:shadow-[0_8px_20px_rgba(200,32,26,0.4)] hover:-translate-y-0.5'
+              ${
+                isJustAdded
+                  ? 'bg-emerald-600 text-white scale-95'
+                  : 'bg-[#1A1A1A] text-white hover:bg-[#C8201A] hover:shadow-[0_8px_20px_rgba(200,32,26,0.4)] hover:-translate-y-0.5'
               }`}
           >
-            {isJustAdded
-              ? <><Check className="w-4 h-4" /> Added</>
-              : <><Plus className="w-4 h-4" /> Quick Add</>
-            }
+            {isJustAdded ? (
+              <>
+                <Check className="w-4 h-4" /> Added
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4" /> Quick Add
+              </>
+            )}
           </button>
         </div>
       </div>
     );
   };
 
+  const showNoResults = filteredProducts.length === 0 && !!keyword;
+  const showIceCreamBuilder = !searchQuery || 'custom ice cream gelato bowl builder'.includes(keyword);
+  const showAnyIceCreamResults = backendIceCreams.length > 0 || showIceCreamBuilder;
+
   return (
     <div className="bg-[#FDF8F2] min-h-screen pt-32 pb-24">
       <div className="container-custom">
-
-        {/* ── Header ── */}
         <div className="relative mb-12 text-center md:text-left">
           <span className="font-barlow text-[12px] font-700 uppercase tracking-[0.4em] text-[#D4952A] block mb-4">
             {menuContent?.subtitle || '— Locally Owned & Handcrafted —'}
@@ -659,86 +679,126 @@ export default function Menu() {
             <span className="text-[#C8201A] block md:inline">{menuContent?.title_2 || 'Menu'}</span>
           </h1>
           <p className="font-inter text-[#555555] text-[16px] max-w-xl leading-relaxed mb-8">
-            {menuContent?.description || 'From our signature hand-stretched pizzas to artisan ice cream, every item is made with passion using the finest local ingredients.'}
+            {menuContent?.description ||
+              'From our signature hand-stretched pizzas to artisan ice cream, every item is made with passion using the finest local ingredients.'}
           </p>
         </div>
 
-        {/* ── Sticky Category Nav & Search Bar ── */}
-        <div className="sticky top-[80px] z-30 bg-[#FDF8F2]/95 backdrop-blur-md py-4 -mx-4 px-4 border-b border-[#E8D8C8] mb-12 flex flex-col md:flex-row gap-4 justify-between items-center">
-          
-          <div ref={scrollContainerRef} className="flex gap-2 overflow-x-auto pb-2 no-scrollbar w-full md:w-auto">
-            {categories
-              .filter(cat => cat.id !== 'cat-ice-cream') 
-              .map(cat => (
-              <button
-                type="button"
-                key={cat.id}
-                id={`nav-${cat.id}`}
-                onClick={() => {
-                  setActiveCategory(cat.id);
-                  setSearchQuery(''); // Reset search when clicking a category directly
-                  const navBtn = document.getElementById(`nav-${cat.id}`);
-                  if (navBtn) navBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-
-                  const grid = document.getElementById('menu-products-grid');
-                  if (grid) {
-                    const y = grid.getBoundingClientRect().top + window.scrollY - 150;
-                    window.scrollTo({ top: y, behavior: 'smooth' });
-                  }
-                }}
-                className={`flex-shrink-0 px-6 py-2.5 rounded-full font-barlow font-700 text-[13px] uppercase tracking-wider transition-all
-                  ${activeCategory === cat.id && !searchQuery
-                    ? 'bg-[#1A1A1A] text-white shadow-lg'
-                    : 'bg-white border border-[#E8D8C8] text-[#555555] hover:border-[#C8201A]'}`}
+        <div className="sticky top-[80px] z-30 bg-[#FDF8F2]/95 backdrop-blur-md border-b border-[#E8D8C8] mb-12">
+          <div className="px-4 py-4 -mx-4">
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 xl:gap-6">
+              <div
+                ref={scrollContainerRef}
+                className="flex gap-2 overflow-x-auto pb-2 xl:pb-0 no-scrollbar flex-1 min-w-0"
               >
-                {cat.name}
-              </button>
-            ))}
-          </div>
+                {categories
+                  .filter(cat => cat.id !== 'cat-ice-cream')
+                  .map(cat => (
+                    <button
+                      type="button"
+                      key={cat.id}
+                      id={`nav-${cat.id}`}
+                      onClick={() => {
+                        setActiveCategory(cat.id);
+                        setSearchQuery('');
 
-          {/* Search Input */}
-          <div className="relative w-full md:w-[300px]">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="w-4 h-4 text-[#888]" />
+                        const navBtn = document.getElementById(`nav-${cat.id}`);
+                        if (navBtn) {
+                          navBtn.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'nearest',
+                            inline: 'center',
+                          });
+                        }
+
+                        const grid = document.getElementById('menu-products-grid');
+                        if (grid) {
+                          const y = grid.getBoundingClientRect().top + window.scrollY - 150;
+                          window.scrollTo({ top: y, behavior: 'smooth' });
+                        }
+                      }}
+                      className={`flex-shrink-0 px-6 py-2.5 rounded-full font-barlow font-700 text-[13px] uppercase tracking-wider transition-all
+                        ${
+                          activeCategory === cat.id && !searchQuery
+                            ? 'bg-[#1A1A1A] text-white shadow-lg'
+                            : 'bg-white border border-[#E8D8C8] text-[#555555] hover:border-[#C8201A]'
+                        }`}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+              </div>
+
+              <div className="w-full xl:w-auto xl:flex-shrink-0">
+                <div className="relative w-full xl:w-[360px] 2xl:w-[420px]">
+                  <div className="flex items-center bg-white border border-[#E8D8C8] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.04)] overflow-hidden">
+                    <div className="pl-4 pr-3 text-[#888]">
+                      <Search className="w-4 h-4" />
+                    </div>
+
+                    <input
+                      type="text"
+                      placeholder="Search menu items..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setSearchQuery(value);
+                        if (value && activeCategory !== 'all') {
+                          setActiveCategory('all');
+                        }
+                      }}
+                      className="w-full bg-transparent py-3.5 pr-3 font-inter text-[14px] text-[#1A1A1A] placeholder:text-[#9A9A9A] focus:outline-none"
+                    />
+
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery('')}
+                        className="mr-2 w-9 h-9 rounded-xl flex items-center justify-center text-[#777] hover:text-[#1A1A1A] hover:bg-[#F5F5F5] transition-colors"
+                        aria-label="Clear search"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  <p className="hidden xl:block mt-2 pl-1 font-inter text-[11px] text-[#888]">
+                    Search by name or keyword like chicken, veg, bbq, garlic.
+                  </p>
+                </div>
+              </div>
             </div>
-            <input
-              type="text"
-              placeholder="Search pizzas, sides..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                if (e.target.value && activeCategory !== 'all') {
-                  setActiveCategory('all'); // Switch to 'all' so search applies globally across menu
-                }
-              }}
-              className="w-full bg-white border border-[#E8D8C8] rounded-full py-2.5 pl-11 pr-4 font-inter text-[14px] focus:outline-none focus:border-[#C8201A] focus:ring-1 focus:ring-[#C8201A] transition-all"
-            />
           </div>
-
         </div>
 
-        {/* ── Products Grid ── */}
-        {filteredProducts.length > 0 ? (
-          <div id="menu-products-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-            {filteredProducts.map(renderProductCard)}
-          </div>
-        ) : (
+        {showNoResults ? (
           <div className="text-center py-16">
             <p className="font-bebas text-[28px] text-[#888]">No items found for "{searchQuery}"</p>
-            <button 
-              onClick={() => { setSearchQuery(''); setActiveCategory('cat-classic-pizza'); }}
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setActiveCategory('cat-classic-pizza');
+              }}
               className="mt-4 text-[#C8201A] font-barlow font-700 uppercase tracking-widest hover:underline"
             >
               Clear Search
             </button>
           </div>
+        ) : (
+          <div
+            id="menu-products-grid"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
+          >
+            {filteredProducts.map(renderProductCard)}
+          </div>
         )}
 
-        {/* ── Ice Cream Section ── */}
-        {hasIceCreamCategory && (
+        {hasIceCreamCategory && showAnyIceCreamResults && (
           <div id="cat-ice-cream" className="mt-28 reveal pt-12 border-t border-[#E8D8C8]">
             <div className="text-center mb-16">
-              <span className="font-barlow text-[12px] font-700 uppercase tracking-[0.4em] text-[#D4952A] block mb-4">— Artisan Treats —</span>
+              <span className="font-barlow text-[12px] font-700 uppercase tracking-[0.4em] text-[#D4952A] block mb-4">
+                — Artisan Treats —
+              </span>
               <h2 className="font-bebas text-[64px] md:text-[80px] text-[#1A1A1A] tracking-wider mb-2">
                 The <span className="text-[#C8201A]">Gelato Bar</span>
               </h2>
@@ -748,40 +808,53 @@ export default function Menu() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-              {/* IceCreamBuilder taking 1 column (Hide if user is actively searching to avoid clutter, unless search matches "custom" or "ice cream") */}
-              {(!searchQuery || 'custom ice cream gelato bowl builder'.includes(keyword)) && (
-                <div 
-                  className="lg:col-span-1"
-                  onSubmit={(e) => e.preventDefault()} 
-                >
+              {showIceCreamBuilder && (
+                <div className="lg:col-span-1" onSubmit={(e) => e.preventDefault()}>
                   <IceCreamBuilder
                     scoops={icContent?.scoops}
                     flavours={icContent?.flavours}
                     toppings={icContent?.toppings}
                     sauces={icContent?.sauces}
                     onAddToCart={(customs) => {
-                      const item = products.find((p: any) => 
-                        p.categoryId === 'cat-ice-cream' && p.name.toLowerCase().includes('custom')
-                      ) || {
-                        id: 'ice-cream-custom',
-                        name: 'Custom Ice Cream',
-                        categoryId: 'cat-ice-cream',
-                        price: customs.price,
-                        image: 'https://pbs.twimg.com/media/DxIwlXCW0AA1uM3.jpg'
-                      };
+                      const item =
+                        products.find((p: any) =>
+                          p.categoryId === 'cat-ice-cream' &&
+                          p.name.toLowerCase().includes('custom')
+                        ) || {
+                          id: 'ice-cream-custom',
+                          name: 'Custom Ice Cream',
+                          categoryId: 'cat-ice-cream',
+                          price: customs.price,
+                          image: 'https://pbs.twimg.com/media/DxIwlXCW0AA1uM3.jpg',
+                        };
 
                       const extras = [];
-                      if (customs.scoops) extras.push({ name: `${customs.scoops}: ${customs.flavours.join(', ')}`, price: 0 });
-                      if (customs.toppings?.length) extras.push({ name: `Toppings: ${customs.toppings.join(', ')}`, price: 0 });
-                      if (customs.sauce) extras.push({ name: `Sauce: ${customs.sauce}`, price: 0 });
-                      
-                      handleAddToCart(item as MenuItem, { price: customs.price, addedExtras: extras, quantity: 1 });
+                      if (customs.scoops) {
+                        extras.push({
+                          name: `${customs.scoops}: ${customs.flavours.join(', ')}`,
+                          price: 0,
+                        });
+                      }
+                      if (customs.toppings?.length) {
+                        extras.push({
+                          name: `Toppings: ${customs.toppings.join(', ')}`,
+                          price: 0,
+                        });
+                      }
+                      if (customs.sauce) {
+                        extras.push({ name: `Sauce: ${customs.sauce}`, price: 0 });
+                      }
+
+                      handleAddToCart(item as MenuItem, {
+                        price: customs.price,
+                        addedExtras: extras,
+                        quantity: 1,
+                      });
                     }}
                   />
                 </div>
               )}
 
-              {/* Render strict Backend Ice Cream Products using the standard Product Card */}
               <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
                 {backendIceCreams.map(renderProductCard)}
               </div>
@@ -789,10 +862,13 @@ export default function Menu() {
           </div>
         )}
 
-        {/* ── CTA Banner ── */}
         <div className="relative mt-24 bg-[#FFFCF7] rounded-3xl border border-[#E8D8C8] p-10 md:p-14 text-center overflow-hidden">
-          <div className="absolute inset-0 opacity-4 grayscale pointer-events-none"
-            style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/dark-leather.png')` }} />
+          <div
+            className="absolute inset-0 opacity-4 grayscale pointer-events-none"
+            style={{
+              backgroundImage: `url('https://www.transparenttextures.com/patterns/dark-leather.png')`,
+            }}
+          />
           <div className="relative z-10">
             <h3 className="font-bebas text-[38px] md:text-[52px] text-[#1A1A1A] tracking-wider mb-3">
               Large Order or Special Request?
@@ -811,7 +887,6 @@ export default function Menu() {
         </div>
       </div>
 
-      {/* ── Modals & Floating Button ── */}
       <CustomizationModal
         item={selectedItem}
         isOpen={!!selectedItem}
@@ -839,4 +914,3 @@ export default function Menu() {
     </div>
   );
 }
-
