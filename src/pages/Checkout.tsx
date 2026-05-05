@@ -900,8 +900,18 @@ export default function Checkout() {
   }, [cartItems]);
 
   const hasPickupOnlyDeal = useMemo(() => {
-    return cartItems.some((item: any) => item.pickupOnly === true);
+    return cartItems.some((item: any) => 
+      item.pickupOnly === true || 
+      item.constraints?.pickupOnly === true
+    );
   }, [cartItems]);
+
+  // Prevent delivery if restricted items are in the cart
+  useEffect(() => {
+    if (orderType === 'delivery' && (hasIceCream || hasPickupOnlyDeal)) {
+      setStep('address'); // Force user back to address step to see the error block
+    }
+  }, [orderType, hasIceCream, hasPickupOnlyDeal]);
 
   const buildWhatsAppUrl = (generatedOrderId: string) => {
     const message =
@@ -989,10 +999,12 @@ export default function Checkout() {
     if (orderType === 'delivery') {
       if (hasIceCream) {
         toast.error('Ice Cream items are only available for pickup.', { duration: 5000 });
+        setStep('address');
         return;
       }
       if (hasPickupOnlyDeal) {
         toast.error('Your cart contains Pickup-Only deals. Please switch to Pickup.', { duration: 5000 });
+        setStep('address');
         return;
       }
       if (total < 25) {
@@ -1108,7 +1120,7 @@ export default function Checkout() {
           quantity: item.quantity,
           price: Number(item.price),
           size: item.size || null,
-          variant: item.variant || null, // Include standard item variant
+          variant: item.variant || null,
           removedToppings: item.removedToppings || [],
           addedExtras: item.addedExtras || [],
           selectedDealItems: item.selectedDealItems || [],
