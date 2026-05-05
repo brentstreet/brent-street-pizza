@@ -752,10 +752,11 @@
 //                         {item.selectedDealItems.map((selection: any, selIdx: number) => (
 //                           <p
 //                             key={`${item.id}-${index}-sel-${selIdx}`}
-//                             className="font-inter text-[10px] text-[#555555]"
+//                             className={`font-inter text-[10px] ${selection.type === 'fixed' ? 'text-[#888888]' : 'text-[#555555]'}`}
 //                           >
 //                             • {selection.quantity || 1}x {getDealSelectionLabel(selection)}{' '}
 //                             {selection.size ? `(${selection.size})` : ''}
+//                             {selection.type === 'fixed' && ' (Included)'}
 //                           </p>
 //                         ))}
 //                       </div>
@@ -892,11 +893,11 @@ export default function Checkout() {
 
   const buildWhatsAppUrl = (generatedOrderId: string) => {
     const message =
-      `*🍕 NEW ORDER RECEIVED!*\\n` +
-      `--------------------------\\n` +
-      `*Order ID:* #${generatedOrderId.slice(0, 8).toUpperCase()}\\n` +
-      `*Customer:* ${address.name}\\n` +
-      `*Type:* ${orderType.toUpperCase()}\\n` +
+      `*🍕 NEW ORDER RECEIVED!*\\\\n` +
+      `--------------------------\\\\n` +
+      `*Order ID:* #${generatedOrderId.slice(0, 8).toUpperCase()}\\\\n` +
+      `*Customer:* ${address.name}\\\\n` +
+      `*Type:* ${orderType.toUpperCase()}\\\\n` +
       `*Address:* ${orderType === 'delivery' ? `${address.street}, ${address.suburb}` : 'Pickup'}`;
 
     return `https://wa.me/61362724004?text=${encodeURIComponent(message)}`;
@@ -1084,6 +1085,7 @@ export default function Checkout() {
           quantity: item.quantity,
           price: Number(item.price),
           size: item.size || null,
+          variant: item.variant || null, // Include standard item variant
           removedToppings: item.removedToppings || [],
           addedExtras: item.addedExtras || [],
           selectedDealItems: item.selectedDealItems || [],
@@ -1528,6 +1530,11 @@ export default function Checkout() {
                   <div className="flex-1 min-w-0">
                     <p className="font-barlow text-[13px] font-700 text-[#1A1A1A] truncate">{item.name}</p>
 
+                    {/* RENDERING VARIANT FOR STANDARD PRODUCTS */}
+                    {item.variant && (
+                      <p className="font-inter text-[11px] text-[#C8201A] font-medium">Option: {item.variant}</p>
+                    )}
+
                     {item.size && (
                       <p className="font-inter text-[11px] text-[#555555]">{item.size}</p>
                     )}
@@ -1544,6 +1551,7 @@ export default function Checkout() {
                       </p>
                     )}
 
+                    {/* RENDERING NESTED COMBO DEAL ITEMS & THEIR VARIANTS */}
                     {item.selectedDealItems && item.selectedDealItems.length > 0 && (
                       <div className="mt-1.5 space-y-1">
                         {item.selectedDealItems.map((selection: any, selIdx: number) => (
@@ -1552,6 +1560,7 @@ export default function Checkout() {
                             className={`font-inter text-[10px] ${selection.type === 'fixed' ? 'text-[#888888]' : 'text-[#555555]'}`}
                           >
                             • {selection.quantity || 1}x {getDealSelectionLabel(selection)}{' '}
+                            {selection.variant ? <span className="text-[#C8201A]">({selection.variant})</span> : ''}{' '}
                             {selection.size ? `(${selection.size})` : ''}
                             {selection.type === 'fixed' && ' (Included)'}
                           </p>
