@@ -1,10 +1,10 @@
-
-// import React, { useEffect, useRef } from 'react';
+// import React, { useEffect, useRef, useState } from 'react';
 // import { Link } from 'react-router-dom';
-// import { Star, ShoppingBag, ArrowRight } from 'lucide-react';
+// import { Star, ShoppingBag, ArrowRight, Check } from 'lucide-react';
 // import { useSectionContent } from '../context/ContentContext';
-
+// import { useCart } from '../context/CartContext';
 // import { API_URL } from '../config/api';
+// import { type MenuItem } from '../types/menu';
 
 // // We now fetch ratings from the database field `rating`
 
@@ -23,8 +23,10 @@
 // const CustomerFavourites: React.FC = () => {
 //   const sectionRef = useRef<HTMLDivElement>(null);
 //   const { sectionContent, loading: contentLoading } = useSectionContent('favourites');
-//   const [favorites, setFavorites] = React.useState<any[]>([]);
-//   const [loading, setLoading] = React.useState(true);
+//   const { addToCart } = useCart(); // Access cart context
+//   const [favorites, setFavorites] = useState<any[]>([]);
+//   const [loading, setLoading] = useState(true);
+//   const [justAddedId, setJustAddedId] = useState<string | null>(null);
 
 //   // Helper to construct full image URLs
 //   const getImageUrl = (imagePath?: string) => {
@@ -68,6 +70,22 @@
 //     return () => observer.disconnect();
 //   }, [loading, contentLoading]);
 
+//   // Handler to add item directly to cart
+//   const handleQuickAdd = (item: any) => {
+//     // Determine the base price (use the first size price if available, otherwise base price)
+//     const basePrice = item.sizes?.length > 0 ? Number(item.sizes[0].price) : Number(item.price);
+    
+//     addToCart(item as MenuItem, {
+//       price: basePrice,
+//       quantity: 1,
+//       size: item.sizes?.length > 0 ? item.sizes[0].name : undefined
+//     });
+
+//     // Show temporary "Added" feedback
+//     setJustAddedId(item.id);
+//     setTimeout(() => setJustAddedId(null), 2000);
+//   };
+
 //   if (loading || contentLoading) return <div className="min-h-[400px] bg-[#FDF8F2]" />;
 
 //   return (
@@ -96,58 +114,69 @@
 
 //         {/* Cards Grid */}
 //         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-//           {favorites.map((item, idx) => (
-//             <div
-//               key={item.id}
-//               className="reveal group relative bg-white rounded-2xl border border-transparent shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col cursor-pointer
-//                       hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] hover:border-[#1A1A1A]/10 hover:-translate-y-1.5 transition-all duration-500"
-//               style={{ transitionDelay: `${idx * 80}ms` }}
-//             >
-//               {/* Image */}
-//               <div className="relative overflow-hidden aspect-square">
-//                 <img
-//                   src={getImageUrl(item.image)}
-//                   alt={item.name}
-//                   loading="lazy"
-//                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-//                 />
-//                 <div className="absolute top-4 left-4 bg-[#1A1A1A] text-white font-bebas text-[18px] px-3 py-1 rounded shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
-//                   ${item.sizes?.length ? item.sizes[0].price : item.price}
+//           {favorites.map((item, idx) => {
+//             const isJustAdded = justAddedId === item.id;
+            
+//             return (
+//               <div
+//                 key={item.id}
+//                 className="reveal group relative bg-white rounded-2xl border border-transparent shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col cursor-pointer
+//                         hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] hover:border-[#1A1A1A]/10 hover:-translate-y-1.5 transition-all duration-500"
+//                 style={{ transitionDelay: `${idx * 80}ms` }}
+//               >
+//                 {/* Image */}
+//                 <div className="relative overflow-hidden aspect-square">
+//                   <img
+//                     src={getImageUrl(item.image)}
+//                     alt={item.name}
+//                     loading="lazy"
+//                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+//                   />
+//                   <div className="absolute top-4 left-4 bg-[#1A1A1A] text-white font-bebas text-[18px] px-3 py-1 rounded shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
+//                     ${item.sizes?.length ? item.sizes[0].price : item.price}
+//                   </div>
+
+//                   {/* Favourite badge */}
+//                   <div className="absolute top-4 right-4 bg-[#D4952A] text-white font-barlow text-[10px] font-800 uppercase tracking-[0.2em] px-3 py-1 rounded shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
+//                     #Fave
+//                   </div>
 //                 </div>
 
-//                 {/* Favourite badge */}
-//                 <div className="absolute top-4 right-4 bg-[#D4952A] text-white font-barlow text-[10px] font-800 uppercase tracking-[0.2em] px-3 py-1 rounded shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
-//                   #Fave
+//                 {/* Info */}
+//                 <div className="p-5 flex flex-col flex-grow gap-3">
+//                   <StarRating rating={Number(item.rating) || 4.8} />
+
+//                   <h3 className="font-bebas text-[22px] tracking-widest text-[#1A1A1A] leading-none">
+//                     {item.name}
+//                   </h3>
+
+//                   <p className="font-inter text-[#555555] text-[13px] leading-relaxed line-clamp-2 flex-grow">
+//                     {item.description}
+//                   </p>
+
+//                   {/* Quick Add button */}
+//                   <button
+//                     onClick={() => handleQuickAdd(item)}
+//                     id={`fav-add-${item.id}`}
+//                     className={`mt-4 flex items-center justify-center gap-2 font-barlow text-[14px] font-800 uppercase tracking-widest px-5 py-3 rounded-xl transition-all duration-300 
+//                       ${isJustAdded 
+//                         ? 'bg-emerald-600 text-white shadow-lg' 
+//                         : 'bg-[#F5F5F5] hover:bg-[#1A1A1A] text-[#1A1A1A] hover:text-white'}`}
+//                   >
+//                     {isJustAdded ? (
+//                       <>
+//                         <Check className="w-4 h-4" /> Added
+//                       </>
+//                     ) : (
+//                       <>
+//                         <ShoppingBag className="w-4 h-4" /> Quick Add
+//                       </>
+//                     )}
+//                   </button>
 //                 </div>
 //               </div>
-
-//               {/* Info */}
-//               <div className="p-5 flex flex-col flex-grow gap-3">
-//                 <StarRating rating={Number(item.rating) || 4.8} />
-
-//                 <h3 className="font-bebas text-[22px] tracking-widest text-[#1A1A1A] leading-none">
-//                   {item.name}
-//                 </h3>
-
-//                 <p className="font-inter text-[#555555] text-[13px] leading-relaxed line-clamp-2 flex-grow">
-//                   {item.description}
-//                 </p>
-
-//                 {/* Quick Add button */}
-//                 <Link
-//                   to="/menu"
-//                   id={`fav-add-${item.id}`}
-//                   className="mt-4 flex items-center justify-between bg-[#F5F5F5] hover:bg-[#1A1A1A] text-[#1A1A1A] hover:text-white font-barlow text-[14px] font-800 uppercase tracking-widest px-5 py-3 rounded-xl transition-all duration-300 group/btn"
-//                 >
-//                   <span className="flex items-center gap-2">
-//                     <ShoppingBag className="w-4 h-4 opacity-60 group-hover/btn:opacity-100" />
-//                     Quick Add
-//                   </span>
-//                   <ArrowRight className="w-4 h-4 opacity-0 group-hover/btn:opacity-100 -translate-x-2 group-hover/btn:translate-x-0 transition-all duration-300" />
-//                 </Link>
-//               </div>
-//             </div>
-//           ))}
+//             );
+//           })}
 //         </div>
 
 //         {/* View All CTA */}
@@ -172,11 +201,12 @@
 // export default CustomerFavourites;
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, ShoppingBag, ArrowRight, Check } from 'lucide-react';
+import { Star, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useSectionContent } from '../context/ContentContext';
 import { useCart } from '../context/CartContext';
 import { API_URL } from '../config/api';
 import { type MenuItem } from '../types/menu';
+import CustomizationModal from '../components/CustomizationModal';
 
 // We now fetch ratings from the database field `rating`
 
@@ -195,10 +225,13 @@ const StarRating: React.FC<{ rating: number }> = ({ rating }) => (
 const CustomerFavourites: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const { sectionContent, loading: contentLoading } = useSectionContent('favourites');
-  const { addToCart } = useCart(); // Access cart context
+  const { addToCart } = useCart();
+  
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [justAddedId, setJustAddedId] = useState<string | null>(null);
+  
+  // State for the Customization Modal
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
 
   // Helper to construct full image URLs
   const getImageUrl = (imagePath?: string) => {
@@ -242,20 +275,15 @@ const CustomerFavourites: React.FC = () => {
     return () => observer.disconnect();
   }, [loading, contentLoading]);
 
-  // Handler to add item directly to cart
-  const handleQuickAdd = (item: any) => {
-    // Determine the base price (use the first size price if available, otherwise base price)
-    const basePrice = item.sizes?.length > 0 ? Number(item.sizes[0].price) : Number(item.price);
-    
-    addToCart(item as MenuItem, {
-      price: basePrice,
-      quantity: 1,
-      size: item.sizes?.length > 0 ? item.sizes[0].name : undefined
-    });
+  // Handle adding the customized item to cart
+  const handleAddToCart = (item: MenuItem, customization?: any) => {
+    addToCart(item, customization || { price: item.price, quantity: 1 });
+    setSelectedItem(null); // Close modal
+  };
 
-    // Show temporary "Added" feedback
-    setJustAddedId(item.id);
-    setTimeout(() => setJustAddedId(null), 2000);
+  // Open modal instead of adding directly
+  const handleQuickAddClick = (item: any) => {
+    setSelectedItem(item as MenuItem);
   };
 
   if (loading || contentLoading) return <div className="min-h-[400px] bg-[#FDF8F2]" />;
@@ -286,69 +314,62 @@ const CustomerFavourites: React.FC = () => {
 
         {/* Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {favorites.map((item, idx) => {
-            const isJustAdded = justAddedId === item.id;
-            
-            return (
-              <div
-                key={item.id}
-                className="reveal group relative bg-white rounded-2xl border border-transparent shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col cursor-pointer
-                        hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] hover:border-[#1A1A1A]/10 hover:-translate-y-1.5 transition-all duration-500"
-                style={{ transitionDelay: `${idx * 80}ms` }}
-              >
-                {/* Image */}
-                <div className="relative overflow-hidden aspect-square">
-                  <img
-                    src={getImageUrl(item.image)}
-                    alt={item.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute top-4 left-4 bg-[#1A1A1A] text-white font-bebas text-[18px] px-3 py-1 rounded shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
-                    ${item.sizes?.length ? item.sizes[0].price : item.price}
-                  </div>
-
-                  {/* Favourite badge */}
-                  <div className="absolute top-4 right-4 bg-[#D4952A] text-white font-barlow text-[10px] font-800 uppercase tracking-[0.2em] px-3 py-1 rounded shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
-                    #Fave
-                  </div>
+          {favorites.map((item, idx) => (
+            <div
+              key={item.id}
+              onClick={() => handleQuickAddClick(item)} // Allow clicking anywhere on card
+              className="reveal group relative bg-white rounded-2xl border border-transparent shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col cursor-pointer
+                      hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] hover:border-[#1A1A1A]/10 hover:-translate-y-1.5 transition-all duration-500"
+              style={{ transitionDelay: `${idx * 80}ms` }}
+            >
+              {/* Image */}
+              <div className="relative overflow-hidden aspect-square">
+                <img
+                  src={getImageUrl(item.image)}
+                  alt={item.name}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute top-4 left-4 bg-[#1A1A1A] text-white font-bebas text-[18px] px-3 py-1 rounded shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
+                  ${item.sizes?.length ? item.sizes[0].price : item.price}
                 </div>
 
-                {/* Info */}
-                <div className="p-5 flex flex-col flex-grow gap-3">
-                  <StarRating rating={Number(item.rating) || 4.8} />
-
-                  <h3 className="font-bebas text-[22px] tracking-widest text-[#1A1A1A] leading-none">
-                    {item.name}
-                  </h3>
-
-                  <p className="font-inter text-[#555555] text-[13px] leading-relaxed line-clamp-2 flex-grow">
-                    {item.description}
-                  </p>
-
-                  {/* Quick Add button */}
-                  <button
-                    onClick={() => handleQuickAdd(item)}
-                    id={`fav-add-${item.id}`}
-                    className={`mt-4 flex items-center justify-center gap-2 font-barlow text-[14px] font-800 uppercase tracking-widest px-5 py-3 rounded-xl transition-all duration-300 
-                      ${isJustAdded 
-                        ? 'bg-emerald-600 text-white shadow-lg' 
-                        : 'bg-[#F5F5F5] hover:bg-[#1A1A1A] text-[#1A1A1A] hover:text-white'}`}
-                  >
-                    {isJustAdded ? (
-                      <>
-                        <Check className="w-4 h-4" /> Added
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingBag className="w-4 h-4" /> Quick Add
-                      </>
-                    )}
-                  </button>
+                {/* Favourite badge */}
+                <div className="absolute top-4 right-4 bg-[#D4952A] text-white font-barlow text-[10px] font-800 uppercase tracking-[0.2em] px-3 py-1 rounded shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
+                  #Fave
                 </div>
               </div>
-            );
-          })}
+
+              {/* Info */}
+              <div className="p-5 flex flex-col flex-grow gap-3">
+                <StarRating rating={Number(item.rating) || 4.8} />
+
+                <h3 className="font-bebas text-[22px] tracking-widest text-[#1A1A1A] leading-none">
+                  {item.name}
+                </h3>
+
+                <p className="font-inter text-[#555555] text-[13px] leading-relaxed line-clamp-2 flex-grow">
+                  {item.description}
+                </p>
+
+                {/* Quick Add button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleQuickAddClick(item);
+                  }}
+                  id={`fav-add-${item.id}`}
+                  className="mt-4 flex items-center justify-between bg-[#F5F5F5] hover:bg-[#1A1A1A] text-[#1A1A1A] hover:text-white font-barlow text-[14px] font-800 uppercase tracking-widest px-5 py-3 rounded-xl transition-all duration-300 group/btn"
+                >
+                  <span className="flex items-center gap-2">
+                    <ShoppingBag className="w-4 h-4 opacity-60 group-hover/btn:opacity-100" />
+                    Quick Add
+                  </span>
+                  <ArrowRight className="w-4 h-4 opacity-0 group-hover/btn:opacity-100 -translate-x-2 group-hover/btn:translate-x-0 transition-all duration-300" />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* View All CTA */}
@@ -366,6 +387,14 @@ const CustomerFavourites: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {/* Customization Modal */}
+      <CustomizationModal
+        item={selectedItem}
+        isOpen={!!selectedItem}
+        onClose={() => setSelectedItem(null)}
+        onAddToCart={handleAddToCart}
+      />
     </section>
   );
 };
