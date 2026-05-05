@@ -395,7 +395,7 @@
 //   );
 // }
 import { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, Phone, Plus, Check } from 'lucide-react';
+import { ShoppingCart, Phone, Plus, Check, Search } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { API_URL } from '../config/api';
 import { useMenu } from '../context/MenuContext';
@@ -413,6 +413,7 @@ export default function Menu() {
   const { sectionContent: globalContent } = useSectionContent('global');
 
   const [activeCategory, setActiveCategory] = useState<string>('cat-classic-pizza');
+  const [searchQuery, setSearchQuery] = useState<string>(''); // Added search state
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
   const [preselectedSize, setPreselectedSize] = useState<string | undefined>(undefined);
@@ -533,16 +534,22 @@ export default function Menu() {
     setPreselectedSize(initialSize);
   };
 
-  // ─── Filter Products ──────────────────────────────────────────
-  // Main grid: Everything EXCEPT Ice Cream
-  const filteredProducts = products.filter(
-    p => p.categoryId !== 'cat-ice-cream' && (activeCategory === 'all' || p.categoryId === activeCategory)
-  );
+  // ─── Filter Products with Search Keyword ──────────────────────
+  const keyword = searchQuery.toLowerCase().trim();
 
-  // Gelato grid: Strictly backend ice cream products (excluding the builder placeholder)
-  const backendIceCreams = products.filter(
-    p => p.categoryId === 'cat-ice-cream' && !p.name.toLowerCase().includes('custom')
-  );
+  // Main grid: Everything EXCEPT Ice Cream, filtered by category AND search keyword
+  const filteredProducts = products.filter((p) => {
+    if (p.categoryId === 'cat-ice-cream') return false;
+    const matchesCategory = activeCategory === 'all' || p.categoryId === activeCategory;
+    const matchesSearch = p.name.toLowerCase().includes(keyword) || p.description.toLowerCase().includes(keyword);
+    return matchesCategory && matchesSearch;
+  });
+
+  // Gelato grid: Strictly backend ice cream products (excluding the builder placeholder), filtered by search keyword
+  const backendIceCreams = products.filter((p) => {
+    if (p.categoryId !== 'cat-ice-cream' || p.name.toLowerCase().includes('custom')) return false;
+    return p.name.toLowerCase().includes(keyword) || p.description.toLowerCase().includes(keyword);
+  });
 
   // ─── Reusable Product Card Component ──────────────────────────
   const renderProductCard = (item: MenuItem) => {
@@ -551,7 +558,6 @@ export default function Menu() {
       <div
         key={item.id}
         id={item.id}
-        // If it's an ice cream product, clicking the card skips the modal and adds directly
         onClick={(e) => {
           if (item.categoryId === 'cat-ice-cream') {
             handleQuickAdd(item, e);
@@ -657,9 +663,10 @@ export default function Menu() {
           </p>
         </div>
 
-        {/* ── Sticky Category Nav ── */}
-        <div className="sticky top-[80px] z-30 bg-[#FDF8F2]/95 backdrop-blur-md py-4 -mx-4 px-4 border-b border-[#E8D8C8] mb-12">
-          <div ref={scrollContainerRef} className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+        {/* ── Sticky Category Nav & Search Bar ── */}
+        <div className="sticky top-[80px] z-30 bg-[#FDF8F2]/95 backdrop-blur-md py-4 -mx-4 px-4 border-b border-[#E8D8C8] mb-12 flex flex-col md:flex-row gap-4 justify-between items-center">
+          
+          <div ref={scrollContainerRef} className="flex gap-2 overflow-x-auto pb-2 no-scrollbar w-full md:w-auto">
             {categories
               .filter(cat => cat.id !== 'cat-ice-cream') 
               .map(cat => (
@@ -669,6 +676,7 @@ export default function Menu() {
                 id={`nav-${cat.id}`}
                 onClick={() => {
                   setActiveCategory(cat.id);
+                  setSearchQuery(''); // Reset search when clicking a category directly
                   const navBtn = document.getElementById(`nav-${cat.id}`);
                   if (navBtn) navBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 
@@ -679,7 +687,7 @@ export default function Menu() {
                   }
                 }}
                 className={`flex-shrink-0 px-6 py-2.5 rounded-full font-barlow font-700 text-[13px] uppercase tracking-wider transition-all
-                  ${activeCategory === cat.id
+                  ${activeCategory === cat.id && !searchQuery
                     ? 'bg-[#1A1A1A] text-white shadow-lg'
                     : 'bg-white border border-[#E8D8C8] text-[#555555] hover:border-[#C8201A]'}`}
               >
@@ -687,12 +695,44 @@ export default function Menu() {
               </button>
             ))}
           </div>
+
+          {/* Search Input */}
+          <div className="relative w-full md:w-[300px]">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="w-4 h-4 text-[#888]" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search pizzas, sides..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                if (e.target.value && activeCategory !== 'all') {
+                  setActiveCategory('all'); // Switch to 'all' so search applies globally across menu
+                }
+              }}
+              className="w-full bg-white border border-[#E8D8C8] rounded-full py-2.5 pl-11 pr-4 font-inter text-[14px] focus:outline-none focus:border-[#C8201A] focus:ring-1 focus:ring-[#C8201A] transition-all"
+            />
+          </div>
+
         </div>
 
         {/* ── Products Grid ── */}
-        <div id="menu-products-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-          {filteredProducts.map(renderProductCard)}
-        </div>
+        {filteredProducts.length > 0 ? (
+          <div id="menu-products-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+            {filteredProducts.map(renderProductCard)}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <p className="font-bebas text-[28px] text-[#888]">No items found for "{searchQuery}"</p>
+            <button 
+              onClick={() => { setSearchQuery(''); setActiveCategory('cat-classic-pizza'); }}
+              className="mt-4 text-[#C8201A] font-barlow font-700 uppercase tracking-widest hover:underline"
+            >
+              Clear Search
+            </button>
+          </div>
+        )}
 
         {/* ── Ice Cream Section ── */}
         {hasIceCreamCategory && (
@@ -708,36 +748,38 @@ export default function Menu() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-              {/* IceCreamBuilder taking 1 column */}
-              <div 
-                className="lg:col-span-1"
-                onSubmit={(e) => e.preventDefault()} 
-              >
-                <IceCreamBuilder
-                  scoops={icContent?.scoops}
-                  flavours={icContent?.flavours}
-                  toppings={icContent?.toppings}
-                  sauces={icContent?.sauces}
-                  onAddToCart={(customs) => {
-                    const item = products.find((p: any) => 
-                      p.categoryId === 'cat-ice-cream' && p.name.toLowerCase().includes('custom')
-                    ) || {
-                      id: 'ice-cream-custom',
-                      name: 'Custom Ice Cream',
-                      categoryId: 'cat-ice-cream',
-                      price: customs.price,
-                      image: 'https://pbs.twimg.com/media/DxIwlXCW0AA1uM3.jpg'
-                    };
+              {/* IceCreamBuilder taking 1 column (Hide if user is actively searching to avoid clutter, unless search matches "custom" or "ice cream") */}
+              {(!searchQuery || 'custom ice cream gelato bowl builder'.includes(keyword)) && (
+                <div 
+                  className="lg:col-span-1"
+                  onSubmit={(e) => e.preventDefault()} 
+                >
+                  <IceCreamBuilder
+                    scoops={icContent?.scoops}
+                    flavours={icContent?.flavours}
+                    toppings={icContent?.toppings}
+                    sauces={icContent?.sauces}
+                    onAddToCart={(customs) => {
+                      const item = products.find((p: any) => 
+                        p.categoryId === 'cat-ice-cream' && p.name.toLowerCase().includes('custom')
+                      ) || {
+                        id: 'ice-cream-custom',
+                        name: 'Custom Ice Cream',
+                        categoryId: 'cat-ice-cream',
+                        price: customs.price,
+                        image: 'https://pbs.twimg.com/media/DxIwlXCW0AA1uM3.jpg'
+                      };
 
-                    const extras = [];
-                    if (customs.scoops) extras.push({ name: `${customs.scoops}: ${customs.flavours.join(', ')}`, price: 0 });
-                    if (customs.toppings?.length) extras.push({ name: `Toppings: ${customs.toppings.join(', ')}`, price: 0 });
-                    if (customs.sauce) extras.push({ name: `Sauce: ${customs.sauce}`, price: 0 });
-                    
-                    handleAddToCart(item as MenuItem, { price: customs.price, addedExtras: extras, quantity: 1 });
-                  }}
-                />
-              </div>
+                      const extras = [];
+                      if (customs.scoops) extras.push({ name: `${customs.scoops}: ${customs.flavours.join(', ')}`, price: 0 });
+                      if (customs.toppings?.length) extras.push({ name: `Toppings: ${customs.toppings.join(', ')}`, price: 0 });
+                      if (customs.sauce) extras.push({ name: `Sauce: ${customs.sauce}`, price: 0 });
+                      
+                      handleAddToCart(item as MenuItem, { price: customs.price, addedExtras: extras, quantity: 1 });
+                    }}
+                  />
+                </div>
+              )}
 
               {/* Render strict Backend Ice Cream Products using the standard Product Card */}
               <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
@@ -797,3 +839,4 @@ export default function Menu() {
     </div>
   );
 }
+
