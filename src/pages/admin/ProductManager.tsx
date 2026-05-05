@@ -20,6 +20,7 @@
 //     name: '',
 //     description: '',
 //     price: 0,
+//     toppings: '', // NEW: Store toppings as a comma-separated string in the form
 //     hasPizzaExtras: false,
 //     isFavorite: false,
 //     isActive: true,
@@ -73,6 +74,10 @@
 //         name: product.name,
 //         description: product.description || '',
 //         price: Number(product.price),
+//         // NEW: Convert array ["Cheese", "Ham"] to string "Cheese, Ham" for editing
+//         toppings: product.toppings && Array.isArray(product.toppings) 
+//           ? product.toppings.join(', ') 
+//           : '',
 //         hasPizzaExtras: product.hasPizzaExtras || false,
 //         isFavorite: product.isFavorite || false,
 //         isActive: product.isActive !== undefined ? product.isActive : true,
@@ -89,6 +94,7 @@
 //         name: '',
 //         description: '',
 //         price: 0,
+//         toppings: '', // NEW: Empty string for new products
 //         hasPizzaExtras: false,
 //         isFavorite: false,
 //         isActive: true,
@@ -109,6 +115,12 @@
 //         ? `${API_URL}/api/admin/products/${editingProduct.id}`
 //         : `${API_URL}/api/admin/products`;
 
+//       // NEW: Convert comma-separated string back to array, remove empty strings and trim whitespace
+//       const formattedToppings = formData.toppings
+//         .split(',')
+//         .map(t => t.trim())
+//         .filter(t => t !== '');
+
 //       // Use FormData to support multipart/form-data file uploads
 //       const submitData = new FormData();
 //       submitData.append('id', formData.id);
@@ -120,6 +132,7 @@
 //       submitData.append('isFavorite', formData.isFavorite.toString());
 //       submitData.append('isActive', formData.isActive.toString());
 //       submitData.append('sizes', JSON.stringify(formData.sizes)); // Arrays must be stringified
+//       submitData.append('toppings', JSON.stringify(formattedToppings)); // NEW: Append stringified array
 
 //       if (imageFile) {
 //         submitData.append('image', imageFile);
@@ -325,6 +338,19 @@
 //                   placeholder="Ingredients, taste, specifics..."
 //                 />
 //               </div>
+
+//               {/* NEW: TOPPINGS INPUT */}
+//               <div>
+//                 <label className="block font-barlow text-[11px] font-700 uppercase tracking-[0.1em] text-[#555555] mb-2">Toppings (Comma Separated)</label>
+//                 <input
+//                   type="text"
+//                   value={formData.toppings} 
+//                   onChange={e => setFormData({ ...formData, toppings: e.target.value })}
+//                   className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:border-[#C8201A] outline-none"
+//                   placeholder="Tomato Sauce, Cheese, Pineapple, Ham"
+//                 />
+//                 <p className="text-[10px] text-[#AAAAAA] mt-1">Separate each topping with a comma.</p>
+//               </div>
               
 //               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
 //                 <div>
@@ -480,7 +506,8 @@ export default function ProductManager() {
     name: '',
     description: '',
     price: 0,
-    toppings: '', // NEW: Store toppings as a comma-separated string in the form
+    toppings: '', // Store toppings as a comma-separated string
+    variants: '', // NEW: Store variants as a comma-separated string
     hasPizzaExtras: false,
     isFavorite: false,
     isActive: true,
@@ -534,9 +561,12 @@ export default function ProductManager() {
         name: product.name,
         description: product.description || '',
         price: Number(product.price),
-        // NEW: Convert array ["Cheese", "Ham"] to string "Cheese, Ham" for editing
         toppings: product.toppings && Array.isArray(product.toppings) 
           ? product.toppings.join(', ') 
+          : '',
+        // NEW: Convert array ["Coke", "Sprite"] to string "Coke, Sprite" for editing
+        variants: product.variants && Array.isArray(product.variants)
+          ? product.variants.join(', ')
           : '',
         hasPizzaExtras: product.hasPizzaExtras || false,
         isFavorite: product.isFavorite || false,
@@ -554,7 +584,8 @@ export default function ProductManager() {
         name: '',
         description: '',
         price: 0,
-        toppings: '', // NEW: Empty string for new products
+        toppings: '',
+        variants: '', // NEW: Empty string for new products
         hasPizzaExtras: false,
         isFavorite: false,
         isActive: true,
@@ -575,11 +606,17 @@ export default function ProductManager() {
         ? `${API_URL}/api/admin/products/${editingProduct.id}`
         : `${API_URL}/api/admin/products`;
 
-      // NEW: Convert comma-separated string back to array, remove empty strings and trim whitespace
+      // Convert comma-separated strings back to arrays, removing empty strings and whitespace
       const formattedToppings = formData.toppings
         .split(',')
         .map(t => t.trim())
         .filter(t => t !== '');
+        
+      // NEW: Parse comma-separated string back to array, remove empty strings
+      const formattedVariants = formData.variants
+        .split(',')
+        .map(v => v.trim())
+        .filter(v => v !== '');
 
       // Use FormData to support multipart/form-data file uploads
       const submitData = new FormData();
@@ -592,7 +629,8 @@ export default function ProductManager() {
       submitData.append('isFavorite', formData.isFavorite.toString());
       submitData.append('isActive', formData.isActive.toString());
       submitData.append('sizes', JSON.stringify(formData.sizes)); // Arrays must be stringified
-      submitData.append('toppings', JSON.stringify(formattedToppings)); // NEW: Append stringified array
+      submitData.append('toppings', JSON.stringify(formattedToppings));
+      submitData.append('variants', JSON.stringify(formattedVariants)); // NEW: Append stringified array
 
       if (imageFile) {
         submitData.append('image', imageFile);
@@ -810,6 +848,19 @@ export default function ProductManager() {
                   placeholder="Tomato Sauce, Cheese, Pineapple, Ham"
                 />
                 <p className="text-[10px] text-[#AAAAAA] mt-1">Separate each topping with a comma.</p>
+              </div>
+
+              {/* NEW: VARIANTS INPUT */}
+              <div>
+                <label className="block font-barlow text-[11px] font-700 uppercase tracking-[0.1em] text-[#555555] mb-2">Variants (Comma Separated)</label>
+                <input
+                  type="text"
+                  value={formData.variants} 
+                  onChange={e => setFormData({ ...formData, variants: e.target.value })}
+                  className="w-full border border-[#E8D8C8] rounded-xl px-4 py-3 font-inter text-[14px] text-[#1A1A1A] focus:border-[#C8201A] outline-none"
+                  placeholder="Coke, Sprite, Fanta"
+                />
+                <p className="text-[10px] text-[#AAAAAA] mt-1">For drinks or items with flavor options. Separate each variant with a comma.</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
