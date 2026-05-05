@@ -9,6 +9,10 @@
 //   quantity: number;
 //   categoryId?: string;
 //   size?: string;
+  
+//   // NEW: Support capturing the chosen variant for the cart
+//   variant?: string; 
+  
 //   removedToppings?: string[];
 //   addedExtras?: any[];
 //   menuItemId?: string;
@@ -22,6 +26,7 @@
 //   token: string | null;
 //   addToCart: (item: MenuItem, customizations?: { 
 //     size?: string, 
+//     variant?: string, // NEW: Include variant in customizations arg
 //     price?: number, 
 //     removedToppings?: string[], 
 //     addedExtras?: { name: string; price: number }[], 
@@ -128,7 +133,7 @@
 //     'Content-Type': 'application/json'
 //   });
 
-//   const addToCart = async (item: MenuItem | any, customizations?: { size?: string, price?: number, removedToppings?: string[], addedExtras?: { name: string; price: number }[], quantity?: number, selectedDealItems?: any[] }) => {
+//   const addToCart = async (item: MenuItem | any, customizations?: { size?: string, variant?: string, price?: number, removedToppings?: string[], addedExtras?: { name: string; price: number }[], quantity?: number, selectedDealItems?: any[] }) => {
 //     const unitPrice = Number(customizations?.price || item.price || 0);
 //     const effectiveSize = customizations?.size ?? (item.sizes?.length ? item.sizes[0].name : undefined);
     
@@ -145,6 +150,7 @@
 //       quantity: customizations?.quantity || 1,
 //       image: formatImageUrl(item.image, item.categoryId, item.id),
 //       size: effectiveSize,
+//       variant: customizations?.variant || undefined, // NEW: Apply chosen variant
 //       removedToppings: customizations?.removedToppings || [],
 //       addedExtras: customizations?.addedExtras || [],
 //       selectedDealItems: customizations?.selectedDealItems || item.selectedDealItems || [],
@@ -162,6 +168,7 @@
 //           quantity: localItem.quantity,
 //           price: localItem.price,
 //           size: localItem.size || null,
+//           variant: localItem.variant || null, // NEW: Send variant to backend
 //           removedToppings: localItem.removedToppings,
 //           addedExtras: localItem.addedExtras,
 //           selectedDealItems: localItem.selectedDealItems
@@ -272,13 +279,14 @@ export interface CartItem {
   categoryId?: string;
   size?: string;
   
-  // NEW: Support capturing the chosen variant for the cart
+  // Support capturing the chosen variant for standalone products
   variant?: string; 
   
   removedToppings?: string[];
   addedExtras?: any[];
   menuItemId?: string;
   dealId?: string | null;
+  // selectedDealItems includes nested objects which have their own variants
   selectedDealItems?: any[];
   image: string;
 }
@@ -288,7 +296,7 @@ interface CartContextType {
   token: string | null;
   addToCart: (item: MenuItem, customizations?: { 
     size?: string, 
-    variant?: string, // NEW: Include variant in customizations arg
+    variant?: string, 
     price?: number, 
     removedToppings?: string[], 
     addedExtras?: { name: string; price: number }[], 
@@ -403,6 +411,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const isDeal = item.categoryId === 'deals' || String(item.id).startsWith('deal_');
     const rawDealId = isDeal ? (item.dealId || String(item.id).replace('deal_', '')) : null;
 
+    // Ensure selectedDealItems strictly retains variants
+    let formattedDealItems = customizations?.selectedDealItems || item.selectedDealItems || [];
+    if (Array.isArray(formattedDealItems)) {
+      formattedDealItems = formattedDealItems.map((dealItem: any) => ({
+        ...dealItem,
+        variant: dealItem.variant || null
+      }));
+    }
+
     const localItem: CartItem = {
       id: `local_${Date.now()}_${Math.random().toString(36).slice(2)}`,
       menuItemId: isDeal ? null : item.id, // Normal products use menuItemId
@@ -412,10 +429,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       quantity: customizations?.quantity || 1,
       image: formatImageUrl(item.image, item.categoryId, item.id),
       size: effectiveSize,
-      variant: customizations?.variant || undefined, // NEW: Apply chosen variant
+      variant: customizations?.variant || undefined, // Apply chosen variant for standard items
       removedToppings: customizations?.removedToppings || [],
       addedExtras: customizations?.addedExtras || [],
-      selectedDealItems: customizations?.selectedDealItems || item.selectedDealItems || [],
+      selectedDealItems: formattedDealItems,
       categoryId: item.categoryId
     };
 
@@ -430,10 +447,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           quantity: localItem.quantity,
           price: localItem.price,
           size: localItem.size || null,
-          variant: localItem.variant || null, // NEW: Send variant to backend
+          variant: localItem.variant || null,
           removedToppings: localItem.removedToppings,
           addedExtras: localItem.addedExtras,
-          selectedDealItems: localItem.selectedDealItems
+          // Sending cleanly structured combo choices
+          selectedDealItems: localItem.selectedDealItems 
         };
         
         const res = await fetch(`${API_URL}/api/cart`, {
@@ -447,10 +465,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const cartRes = await fetch(`${API_URL}/api/cart`, { headers: authHeaders() });
           const data = await cartRes.json();
           if (data.cartItems) {
-            const formattedItems = data.cartItems.map((ci: any) => ({
-              ...ci,
-              image: formatImageUrl(ci.image, undefined, ci.menuItemId)
-            }));
+            const formattedItems = data.cartItems.map((ci: any) => {
+              
+              // Ensure variants are mapped correctly when fetching from the backend
+              let parsedDealItems = ci.selectedDealItems || [];
+              if (typeof parsedDealItems === 'string') {
+                try { parsedDealItems = JSON.parse(parsedDealItems); } catch { parsedDealItems = []; }
+              }
+
+              return {
+                ...ci,
+                selectedDealItems: parsedDealItems,
+                image: formatImageUrl(ci.image, undefined, ci.menuItemId)
+              };
+            });
             setCartItems(formattedItems);
           }
         }
