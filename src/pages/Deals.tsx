@@ -443,14 +443,27 @@ const Deals: React.FC = () => {
 
   const getFilteredProducts = (comp: any) => {
     return products.filter(p => {
+      // 1. Product must be active
       if (!p.isActive) return false;
+      
+      // 2. Category matching (with safety trims and case insensitivity)
       if (comp.allowedCategoryIds && comp.allowedCategoryIds.length > 0) {
-        if (!comp.allowedCategoryIds.includes(p.categoryId)) return false;
+        // Clean up API strings (e.g., "Beverages " -> "beverages")
+        const safeAllowedIds = comp.allowedCategoryIds.map((id: string) => id.trim().toLowerCase());
+        const safeProductId = p.categoryId?.trim().toLowerCase();
+        
+        if (!safeProductId || !safeAllowedIds.includes(safeProductId)) {
+          return false;
+        }
       }
+      
+      // 3. Size matching (if the deal requires a specific size)
       if (comp.requiredSize && p.sizes && Array.isArray(p.sizes)) {
-        const hasSize = p.sizes.some((s: any) => s.name === comp.requiredSize);
+        const safeRequiredSize = comp.requiredSize.trim().toLowerCase();
+        const hasSize = p.sizes.some((s: any) => s.name.trim().toLowerCase() === safeRequiredSize);
         if (!hasSize) return false;
       }
+      
       return true;
     });
   };
