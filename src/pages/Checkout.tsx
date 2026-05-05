@@ -95,11 +95,11 @@
 
 //   const buildWhatsAppUrl = (generatedOrderId: string) => {
 //     const message =
-//       `*🍕 NEW ORDER RECEIVED!*\\n` +
-//       `--------------------------\\n` +
-//       `*Order ID:* #${generatedOrderId.slice(0, 8).toUpperCase()}\\n` +
-//       `*Customer:* ${address.name}\\n` +
-//       `*Type:* ${orderType.toUpperCase()}\\n` +
+//       `*🍕 NEW ORDER RECEIVED!*\\\\n` +
+//       `--------------------------\\\\n` +
+//       `*Order ID:* #${generatedOrderId.slice(0, 8).toUpperCase()}\\\\n` +
+//       `*Customer:* ${address.name}\\\\n` +
+//       `*Type:* ${orderType.toUpperCase()}\\\\n` +
 //       `*Address:* ${orderType === 'delivery' ? `${address.street}, ${address.suburb}` : 'Pickup'}`;
 
 //     return `https://wa.me/61362724004?text=${encodeURIComponent(message)}`;
@@ -287,6 +287,7 @@
 //           quantity: item.quantity,
 //           price: Number(item.price),
 //           size: item.size || null,
+//           variant: item.variant || null, // Include standard item variant
 //           removedToppings: item.removedToppings || [],
 //           addedExtras: item.addedExtras || [],
 //           selectedDealItems: item.selectedDealItems || [],
@@ -731,6 +732,11 @@
 //                   <div className="flex-1 min-w-0">
 //                     <p className="font-barlow text-[13px] font-700 text-[#1A1A1A] truncate">{item.name}</p>
 
+//                     {/* RENDERING VARIANT FOR STANDARD PRODUCTS */}
+//                     {item.variant && (
+//                       <p className="font-inter text-[11px] text-[#C8201A] font-medium">Option: {item.variant}</p>
+//                     )}
+
 //                     {item.size && (
 //                       <p className="font-inter text-[11px] text-[#555555]">{item.size}</p>
 //                     )}
@@ -747,6 +753,7 @@
 //                       </p>
 //                     )}
 
+//                     {/* RENDERING NESTED COMBO DEAL ITEMS & THEIR VARIANTS */}
 //                     {item.selectedDealItems && item.selectedDealItems.length > 0 && (
 //                       <div className="mt-1.5 space-y-1">
 //                         {item.selectedDealItems.map((selection: any, selIdx: number) => (
@@ -755,6 +762,7 @@
 //                             className={`font-inter text-[10px] ${selection.type === 'fixed' ? 'text-[#888888]' : 'text-[#555555]'}`}
 //                           >
 //                             • {selection.quantity || 1}x {getDealSelectionLabel(selection)}{' '}
+//                             {selection.variant ? <span className="text-[#C8201A]">({selection.variant})</span> : ''}{' '}
 //                             {selection.size ? `(${selection.size})` : ''}
 //                             {selection.type === 'fixed' && ' (Included)'}
 //                           </p>
@@ -891,6 +899,10 @@ export default function Checkout() {
     });
   }, [cartItems]);
 
+  const hasPickupOnlyDeal = useMemo(() => {
+    return cartItems.some((item: any) => item.pickupOnly === true);
+  }, [cartItems]);
+
   const buildWhatsAppUrl = (generatedOrderId: string) => {
     const message =
       `*🍕 NEW ORDER RECEIVED!*\\\\n` +
@@ -953,6 +965,13 @@ export default function Checkout() {
         );
         return;
       }
+      if (hasPickupOnlyDeal) {
+        toast.error(
+          'Your cart contains Pickup-Only deals. Please switch to Pickup or remove them from your cart.',
+          { duration: 5000 }
+        );
+        return;
+      }
       if (total < 25) {
         toast.error(
           `Minimum order total for delivery is $25.00. Please add $${(25 - total).toFixed(2)} more items.`,
@@ -970,6 +989,10 @@ export default function Checkout() {
     if (orderType === 'delivery') {
       if (hasIceCream) {
         toast.error('Ice Cream items are only available for pickup.', { duration: 5000 });
+        return;
+      }
+      if (hasPickupOnlyDeal) {
+        toast.error('Your cart contains Pickup-Only deals. Please switch to Pickup.', { duration: 5000 });
         return;
       }
       if (total < 25) {
@@ -1207,7 +1230,7 @@ export default function Checkout() {
     );
   }
 
-  const isDeliveryDisabled = orderType === 'delivery' && (hasIceCream || total < 25);
+  const isDeliveryDisabled = orderType === 'delivery' && (hasIceCream || hasPickupOnlyDeal || total < 25);
 
   return (
     <div className="min-h-screen bg-[#FDF8F2] pt-24 pb-20 px-4 md:px-8">
@@ -1358,14 +1381,14 @@ export default function Checkout() {
                   </div>
                 )}
 
-                {orderType === 'delivery' && hasIceCream && (
+                {orderType === 'delivery' && (hasIceCream || hasPickupOnlyDeal) && (
                   <div className="p-4 bg-[#EB001B]/10 border border-[#EB001B]/20 rounded-xl text-[#EB001B] text-[13px] font-inter">
-                    <p className="font-semibold mb-1">Pickup Only Items</p>
-                    <p>Ice Cream is strictly available for <strong>pickup only</strong>. Please switch to Pickup or remove Ice Cream from your cart to proceed.</p>
+                    <p className="font-semibold mb-1">Pickup Only Items in Cart</p>
+                    <p>Some items in your cart (Ice Cream or exclusive Deals) are strictly available for <strong>pickup only</strong>. Please switch to Pickup or remove them to proceed.</p>
                   </div>
                 )}
 
-                {orderType === 'delivery' && !hasIceCream && total < 25 && (
+                {orderType === 'delivery' && !hasIceCream && !hasPickupOnlyDeal && total < 25 && (
                   <div className="p-4 bg-[#EB001B]/10 border border-[#EB001B]/20 rounded-xl text-[#EB001B] text-[13px] font-inter">
                     <p className="font-semibold mb-1">Minimum Order Requirement</p>
                     <p>Delivery requires a minimum order total of $25.00. Please add ${(25 - total).toFixed(2)} more to your cart.</p>
@@ -1382,8 +1405,8 @@ export default function Checkout() {
                   }`}
                 >
                   <span>
-                    {hasIceCream && orderType === 'delivery'
-                      ? 'Pickup Required for Ice Cream'
+                    {(hasIceCream || hasPickupOnlyDeal) && orderType === 'delivery'
+                      ? 'Pickup Required for some items'
                       : orderType === 'delivery' && total < 25
                       ? 'Minimum $25 Required'
                       : 'Continue to Payment'}
@@ -1602,3 +1625,4 @@ export default function Checkout() {
     </div>
   );
 }
+</query>
