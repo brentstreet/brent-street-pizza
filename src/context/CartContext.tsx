@@ -10,13 +10,14 @@
 //   categoryId?: string;
 //   size?: string;
   
-//   // NEW: Support capturing the chosen variant for the cart
+//   // Support capturing the chosen variant for standalone products
 //   variant?: string; 
   
 //   removedToppings?: string[];
 //   addedExtras?: any[];
 //   menuItemId?: string;
 //   dealId?: string | null;
+//   // selectedDealItems includes nested objects which have their own variants
 //   selectedDealItems?: any[];
 //   image: string;
 // }
@@ -26,7 +27,7 @@
 //   token: string | null;
 //   addToCart: (item: MenuItem, customizations?: { 
 //     size?: string, 
-//     variant?: string, // NEW: Include variant in customizations arg
+//     variant?: string, 
 //     price?: number, 
 //     removedToppings?: string[], 
 //     addedExtras?: { name: string; price: number }[], 
@@ -141,6 +142,15 @@
 //     const isDeal = item.categoryId === 'deals' || String(item.id).startsWith('deal_');
 //     const rawDealId = isDeal ? (item.dealId || String(item.id).replace('deal_', '')) : null;
 
+//     // Ensure selectedDealItems strictly retains variants
+//     let formattedDealItems = customizations?.selectedDealItems || item.selectedDealItems || [];
+//     if (Array.isArray(formattedDealItems)) {
+//       formattedDealItems = formattedDealItems.map((dealItem: any) => ({
+//         ...dealItem,
+//         variant: dealItem.variant || null
+//       }));
+//     }
+
 //     const localItem: CartItem = {
 //       id: `local_${Date.now()}_${Math.random().toString(36).slice(2)}`,
 //       menuItemId: isDeal ? null : item.id, // Normal products use menuItemId
@@ -150,10 +160,10 @@
 //       quantity: customizations?.quantity || 1,
 //       image: formatImageUrl(item.image, item.categoryId, item.id),
 //       size: effectiveSize,
-//       variant: customizations?.variant || undefined, // NEW: Apply chosen variant
+//       variant: customizations?.variant || undefined, // Apply chosen variant for standard items
 //       removedToppings: customizations?.removedToppings || [],
 //       addedExtras: customizations?.addedExtras || [],
-//       selectedDealItems: customizations?.selectedDealItems || item.selectedDealItems || [],
+//       selectedDealItems: formattedDealItems,
 //       categoryId: item.categoryId
 //     };
 
@@ -168,10 +178,11 @@
 //           quantity: localItem.quantity,
 //           price: localItem.price,
 //           size: localItem.size || null,
-//           variant: localItem.variant || null, // NEW: Send variant to backend
+//           variant: localItem.variant || null,
 //           removedToppings: localItem.removedToppings,
 //           addedExtras: localItem.addedExtras,
-//           selectedDealItems: localItem.selectedDealItems
+//           // Sending cleanly structured combo choices
+//           selectedDealItems: localItem.selectedDealItems 
 //         };
         
 //         const res = await fetch(`${API_URL}/api/cart`, {
@@ -185,10 +196,20 @@
 //           const cartRes = await fetch(`${API_URL}/api/cart`, { headers: authHeaders() });
 //           const data = await cartRes.json();
 //           if (data.cartItems) {
-//             const formattedItems = data.cartItems.map((ci: any) => ({
-//               ...ci,
-//               image: formatImageUrl(ci.image, undefined, ci.menuItemId)
-//             }));
+//             const formattedItems = data.cartItems.map((ci: any) => {
+              
+//               // Ensure variants are mapped correctly when fetching from the backend
+//               let parsedDealItems = ci.selectedDealItems || [];
+//               if (typeof parsedDealItems === 'string') {
+//                 try { parsedDealItems = JSON.parse(parsedDealItems); } catch { parsedDealItems = []; }
+//               }
+
+//               return {
+//                 ...ci,
+//                 selectedDealItems: parsedDealItems,
+//                 image: formatImageUrl(ci.image, undefined, ci.menuItemId)
+//               };
+//             });
 //             setCartItems(formattedItems);
 //           }
 //         }
@@ -289,6 +310,9 @@ export interface CartItem {
   // selectedDealItems includes nested objects which have their own variants
   selectedDealItems?: any[];
   image: string;
+  
+  // Support capturing Deal Constraints
+  pickupOnly?: boolean;
 }
 
 interface CartContextType {
@@ -433,7 +457,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       removedToppings: customizations?.removedToppings || [],
       addedExtras: customizations?.addedExtras || [],
       selectedDealItems: formattedDealItems,
-      categoryId: item.categoryId
+      categoryId: item.categoryId,
+      // Apply Deal Constraint pickupOnly bool
+      pickupOnly: item.pickupOnly || false
     };
 
     // Update local UI immediately for snappiness
@@ -451,7 +477,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           removedToppings: localItem.removedToppings,
           addedExtras: localItem.addedExtras,
           // Sending cleanly structured combo choices
-          selectedDealItems: localItem.selectedDealItems 
+          selectedDealItems: localItem.selectedDealItems,
+          // Deal Constraint pickupOnly bool
+          pickupOnly: localItem.pickupOnly
         };
         
         const res = await fetch(`${API_URL}/api/cart`, {
