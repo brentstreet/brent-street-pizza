@@ -113,9 +113,9 @@
 //     setTimeout(() => setJustAddedId(null), 2000);
 //   };
 
-//   const handleQuickAdd = (item: MenuItem, e: React.MouseEvent) => {
-//     e.stopPropagation();
-//     if (item.sizes && item.sizes.length > 0) {
+//   const handleQuickAdd = (item: MenuItem, e?: React.MouseEvent) => {
+//     if (e) e.stopPropagation();
+//     if (item.categoryId !== 'cat-ice-cream' && item.sizes && item.sizes.length > 0) {
 //       setSelectedItem(item);
 //     } else {
 //       handleAddToCart(item);
@@ -123,6 +123,11 @@
 //   };
 
 //   const openModal = (item: MenuItem, initialSize?: string) => {
+//     // Prevent modal from opening for ice cream items
+//     if (item.categoryId === 'cat-ice-cream') {
+//       handleQuickAdd(item);
+//       return;
+//     }
 //     setSelectedItem(item);
 //     setPreselectedSize(initialSize);
 //   };
@@ -145,7 +150,14 @@
 //       <div
 //         key={item.id}
 //         id={item.id}
-//         onClick={() => openModal(item)}
+//         // If it's an ice cream product, clicking the card skips the modal and adds directly
+//         onClick={(e) => {
+//           if (item.categoryId === 'cat-ice-cream') {
+//             handleQuickAdd(item, e);
+//           } else {
+//             openModal(item);
+//           }
+//         }}
 //         className="group bg-white rounded-2xl border border-[#E8D8C8] overflow-hidden flex flex-col h-full
 //           hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] transition-all duration-500 cursor-pointer"
 //       >
@@ -188,7 +200,7 @@
 //             {item.description}
 //           </p>
 
-//           {item.sizes && item.sizes.length > 0 && (
+//           {item.categoryId !== 'cat-ice-cream' && item.sizes && item.sizes.length > 0 && (
 //             <div className="flex gap-1.5 mt-0.5">
 //               {item.sizes.map(size => (
 //                 <button
@@ -418,6 +430,11 @@ export default function Menu() {
     return `${API_URL}${imagePath}`;
   };
 
+  // Check if Ice Cream category actually exists in the backend data
+  const hasIceCreamCategory = categories.some(
+    (cat) => cat.id === 'cat-ice-cream' || cat.name.toLowerCase() === 'ice cream'
+  );
+
   // ─── Mark initial load complete to prevent sudden reloading flashes ───
   useEffect(() => {
     if (!menuLoading && !icLoading && !menuContentLoading) {
@@ -448,7 +465,7 @@ export default function Menu() {
           navBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         }
 
-        if (cat === 'cat-ice-cream') {
+        if (cat === 'cat-ice-cream' && hasIceCreamCategory) {
           const el = document.getElementById('cat-ice-cream');
           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else {
@@ -461,7 +478,7 @@ export default function Menu() {
         }
       }, 50);
     }
-  }, [location.search, categories, isInitialLoadDone]);
+  }, [location.search, categories, isInitialLoadDone, hasIceCreamCategory]);
 
   // ─── Intersection Observer for .reveal animations ─────────────
   useEffect(() => {
@@ -678,55 +695,57 @@ export default function Menu() {
         </div>
 
         {/* ── Ice Cream Section ── */}
-        <div id="cat-ice-cream" className="mt-28 reveal pt-12 border-t border-[#E8D8C8]">
-          <div className="text-center mb-16">
-            <span className="font-barlow text-[12px] font-700 uppercase tracking-[0.4em] text-[#D4952A] block mb-4">— Artisan Treats —</span>
-            <h2 className="font-bebas text-[64px] md:text-[80px] text-[#1A1A1A] tracking-wider mb-2">
-              The <span className="text-[#C8201A]">Gelato Bar</span>
-            </h2>
-            <p className="font-inter text-[#555555] text-[16px] max-w-xl mx-auto leading-relaxed">
-              Explore our premium artisan ice cream, locally made and served fresh. Build your own perfect bowl or try our signatures.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            {/* IceCreamBuilder taking 1 column */}
-            <div 
-              className="lg:col-span-1"
-              onSubmit={(e) => e.preventDefault()} 
-            >
-              <IceCreamBuilder
-                scoops={icContent?.scoops}
-                flavours={icContent?.flavours}
-                toppings={icContent?.toppings}
-                sauces={icContent?.sauces}
-                onAddToCart={(customs) => {
-                  const item = products.find((p: any) => 
-                    p.categoryId === 'cat-ice-cream' && p.name.toLowerCase().includes('custom')
-                  ) || {
-                    id: 'ice-cream-custom',
-                    name: 'Custom Ice Cream',
-                    categoryId: 'cat-ice-cream',
-                    price: customs.price,
-                    image: 'https://pbs.twimg.com/media/DxIwlXCW0AA1uM3.jpg'
-                  };
-
-                  const extras = [];
-                  if (customs.scoops) extras.push({ name: `${customs.scoops}: ${customs.flavours.join(', ')}`, price: 0 });
-                  if (customs.toppings?.length) extras.push({ name: `Toppings: ${customs.toppings.join(', ')}`, price: 0 });
-                  if (customs.sauce) extras.push({ name: `Sauce: ${customs.sauce}`, price: 0 });
-                  
-                  handleAddToCart(item as MenuItem, { price: customs.price, addedExtras: extras, quantity: 1 });
-                }}
-              />
+        {hasIceCreamCategory && (
+          <div id="cat-ice-cream" className="mt-28 reveal pt-12 border-t border-[#E8D8C8]">
+            <div className="text-center mb-16">
+              <span className="font-barlow text-[12px] font-700 uppercase tracking-[0.4em] text-[#D4952A] block mb-4">— Artisan Treats —</span>
+              <h2 className="font-bebas text-[64px] md:text-[80px] text-[#1A1A1A] tracking-wider mb-2">
+                The <span className="text-[#C8201A]">Gelato Bar</span>
+              </h2>
+              <p className="font-inter text-[#555555] text-[16px] max-w-xl mx-auto leading-relaxed">
+                Explore our premium artisan ice cream, locally made and served fresh. Build your own perfect bowl or try our signatures.
+              </p>
             </div>
 
-            {/* Render strict Backend Ice Cream Products using the standard Product Card */}
-            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
-              {backendIceCreams.map(renderProductCard)}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+              {/* IceCreamBuilder taking 1 column */}
+              <div 
+                className="lg:col-span-1"
+                onSubmit={(e) => e.preventDefault()} 
+              >
+                <IceCreamBuilder
+                  scoops={icContent?.scoops}
+                  flavours={icContent?.flavours}
+                  toppings={icContent?.toppings}
+                  sauces={icContent?.sauces}
+                  onAddToCart={(customs) => {
+                    const item = products.find((p: any) => 
+                      p.categoryId === 'cat-ice-cream' && p.name.toLowerCase().includes('custom')
+                    ) || {
+                      id: 'ice-cream-custom',
+                      name: 'Custom Ice Cream',
+                      categoryId: 'cat-ice-cream',
+                      price: customs.price,
+                      image: 'https://pbs.twimg.com/media/DxIwlXCW0AA1uM3.jpg'
+                    };
+
+                    const extras = [];
+                    if (customs.scoops) extras.push({ name: `${customs.scoops}: ${customs.flavours.join(', ')}`, price: 0 });
+                    if (customs.toppings?.length) extras.push({ name: `Toppings: ${customs.toppings.join(', ')}`, price: 0 });
+                    if (customs.sauce) extras.push({ name: `Sauce: ${customs.sauce}`, price: 0 });
+                    
+                    handleAddToCart(item as MenuItem, { price: customs.price, addedExtras: extras, quantity: 1 });
+                  }}
+                />
+              </div>
+
+              {/* Render strict Backend Ice Cream Products using the standard Product Card */}
+              <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
+                {backendIceCreams.map(renderProductCard)}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* ── CTA Banner ── */}
         <div className="relative mt-24 bg-[#FFFCF7] rounded-3xl border border-[#E8D8C8] p-10 md:p-14 text-center overflow-hidden">
